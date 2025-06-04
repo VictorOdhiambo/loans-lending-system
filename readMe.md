@@ -11,7 +11,7 @@ A Loan Management System is designed to automate and streamline the process of m
 - **Loan Approval Workflow:** Review, approve, or reject loan requests.
 - **Repayment Tracking:** Monitor repayments, calculate outstanding balances, and generate payment schedules.
 - **Notifications:** Automated reminders for repayments and status updates.
-- **Reporting:** Generate reports on loans, repayments, and user activity.
+- **Reporting:** Generate reports on loans, repayments and user activity.
 - **Audit Logs:** Track all system activities for compliance and troubleshooting.
 
 ---
