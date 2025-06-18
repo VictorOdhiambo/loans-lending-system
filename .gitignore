@@ -1,2 +1,3 @@
 .vs/ 
-/LendingWebApp/bin/Debug/net9.0
+/LendingWebApp/bin/
+/LendingWebApp/obj/
