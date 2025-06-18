@@ -1,0 +1,53 @@
+﻿@model Loan_application_service.Models.LoanProduct
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>loan_product</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="LoanName" class="control-label"></label>
+                <input asp-for="LoanName" class="form-control" />
+                <span asp-validation-for="LoanName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="InterestRate" class="control-label"></label>
+                <input asp-for="InterestRate" class="form-control" />
+                <span asp-validation-for="InterestRate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MinimumAmount" class="control-label"></label>
+                <input asp-for="MinimumAmount" class="form-control" />
+                <span asp-validation-for="MinimumAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaximumAmount" class="control-label"></label>
+                <input asp-for="MaximumAmount" class="form-control" />
+                <span asp-validation-for="MaximumAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RepaymentPeriodMonths" class="control-label"></label>
+                <input asp-for="RepaymentPeriodMonths" class="form-control" />
+                <span asp-validation-for="RepaymentPeriodMonths" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
