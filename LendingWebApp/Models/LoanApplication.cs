@@ -5,21 +5,58 @@ namespace Loan_application_service.Models
 {
     public class LoanApplication
     {
-        [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
-
-        [Range(1, 100)]
-        [DataType(DataType.Currency)]
-        [Column(TypeName = "decimal(18, 2)")]
-        public int RequestedAmount { get; set; }
-        public DateTime ApplicationDate { get; set; }
-        public int LoanStatus { get; set; }
-        public DateTime ApprovalDate { get; set; }
-        public DateTime DisbursementDate { get; set; }
-
-        public required virtual Users Users { get; set; }
-
-        public required virtual LoanProduct LoanProduct  { get; set; }
+        [Key]
+        public int ApplicationId { get; set; }
+        
+        [Required]
+        public int CustomerId { get; set; }
+        
+        [Required]
+        public int ProductId { get; set; }
+        
+        public int? ProcessedBy { get; set; }
+        
+        [Column(TypeName = "decimal(15,2)")]
+        public decimal RequestedAmount { get; set; }
+        
+        public int TermMonths { get; set; }
+        
+        [MaxLength(200)]
+        public string Purpose { get; set; }
+        
+        [Required]
+        [MaxLength(20)]
+        public string Status { get; set; } = "Pending";
+        
+        [Column(TypeName = "decimal(15,2)")]
+        public decimal? ApprovedAmount { get; set; }
+        
+        [Column(TypeName = "decimal(5,4)")]
+        public decimal? InterestRate { get; set; }
+        
+        public DateTime ApplicationDate { get; set; } = DateTime.UtcNow;
+        
+        public DateTime? DecisionDate { get; set; }
+        
+        [MaxLength(500)]
+        public string DecisionNotes { get; set; }
+        
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        
+        // Navigation Properties
+        [ForeignKey("CustomerId")]
+        public virtual Customer Customer { get; set; }
+        
+        [ForeignKey("ProductId")]
+        public virtual LoanProduct LoanProduct { get; set; }
+        
+        [ForeignKey("ProcessedBy")]
+        public virtual User ProcessedByUser { get; set; }
+        
+        public virtual Account Account { get; set; }
+        public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public virtual ICollection<AuditTrail> AuditTrails { get; set; } = new List<AuditTrail>();
     }
 }
