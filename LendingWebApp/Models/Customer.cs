@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Loan_application_service.Models;
 
 public class Customer
@@ -8,33 +11,33 @@ public class Customer
         
     [Required]
     [MaxLength(50)]
-    public string FirstName { get; set; }
+    public string? FirstName { get; set; }
         
     [Required]
     [MaxLength(50)]
-    public string LastName { get; set; }
+    public string? LastName { get; set; }
         
     [Required]
     [MaxLength(100)]
     [EmailAddress]
-    public string Email { get; set; }
+    public string? Email { get; set; }
         
     [MaxLength(20)]
-    public string Phone { get; set; }
+    public string? Phone { get; set; }
         
     [MaxLength(200)]
-    public string Address { get; set; }
+    public string? Address { get; set; }
         
     public DateTime DateOfBirth { get; set; }
         
     [MaxLength(20)]
-    public string NationalId { get; set; }
+    public string? NationalId { get; set; }
         
     [Column(TypeName = "decimal(5,2)")]
     public decimal? CreditScore { get; set; }
         
     [MaxLength(50)]
-    public string EmploymentStatus { get; set; }
+    public string? EmploymentStatus { get; set; }
         
     [Column(TypeName = "decimal(15,2)")]
     public decimal? AnnualIncome { get; set; }

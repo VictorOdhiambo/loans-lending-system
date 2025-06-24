@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36202.13 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loan_application_service", "Loan_application_service\Loan_application_service.csproj", "{31A5501B-778B-4E38-A1B3-D26ED4BC9616}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loan_application_service", "Loan_application_service.csproj", "{DFB1833B-1AFB-53E3-6B75-B893CF8DC0A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{31A5501B-778B-4E38-A1B3-D26ED4BC9616}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{31A5501B-778B-4E38-A1B3-D26ED4BC9616}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{31A5501B-778B-4E38-A1B3-D26ED4BC9616}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{31A5501B-778B-4E38-A1B3-D26ED4BC9616}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFB1833B-1AFB-53E3-6B75-B893CF8DC0A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFB1833B-1AFB-53E3-6B75-B893CF8DC0A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFB1833B-1AFB-53E3-6B75-B893CF8DC0A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFB1833B-1AFB-53E3-6B75-B893CF8DC0A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {92F95EE2-F92C-446A-988B-E2976691CF0D}
+		SolutionGuid = {4C6A8C7D-B95D-49A5-BAAF-C4AFD4E42E4C}
 	EndGlobalSection
 EndGlobal

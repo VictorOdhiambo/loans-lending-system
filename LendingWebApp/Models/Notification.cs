@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Loan_application_service.Models;
 
 public class Notification
@@ -16,15 +19,15 @@ public class Notification
         
     [Required]
     [MaxLength(50)]
-    public string NotificationType { get; set; }
+    public string? NotificationType { get; set; }
         
     [Required]
     [MaxLength(200)]
-    public string Title { get; set; }
+    public string? Title { get; set; }
         
     [Required]
     [MaxLength(1000)]
-    public string Message { get; set; }
+    public string? Message { get; set; }
         
     [Required]
     [MaxLength(20)]
@@ -40,14 +43,14 @@ public class Notification
         
     // Navigation Properties
     [ForeignKey("CustomerId")]
-    public virtual Customer Customer { get; set; }
+    public required virtual Customer Customer { get; set; }
         
     [ForeignKey("UserId")]
-    public virtual User User { get; set; }
+    public required virtual Users User { get; set; }
         
     [ForeignKey("ApplicationId")]
-    public virtual LoanApplication LoanApplication { get; set; }
+    public required virtual LoanApplication LoanApplication { get; set; }
         
     [ForeignKey("AccountId")]
-    public virtual Account Account { get; set; }
+    public required virtual Account Account { get; set; }
 }

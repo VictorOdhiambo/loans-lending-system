@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Loan_application_service.Models;
 
 public class Account
@@ -14,11 +17,11 @@ public class Account
         
     [Required]
     [MaxLength(20)]
-    public string AccountNumber { get; set; }
+    public  string? AccountNumber { get; set; }
         
     [Required]
     [MaxLength(20)]
-    public string AccountType { get; set; }
+    public string? AccountType { get; set; }
         
     [Column(TypeName = "decimal(15,2)")]
     public decimal PrincipalAmount { get; set; }
@@ -48,10 +51,10 @@ public class Account
         
     // Navigation Properties
     [ForeignKey("CustomerId")]
-    public virtual Customer Customer { get; set; }
+    public required virtual Customer Customer { get; set; }
         
     [ForeignKey("ApplicationId")]
-    public virtual LoanApplication LoanApplication { get; set; }
+    public required virtual LoanApplication LoanApplication { get; set; }
         
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public virtual ICollection<AuditTrail> AuditTrails { get; set; } = new List<AuditTrail>();

@@ -23,7 +23,7 @@ namespace Loan_application_service.Models
         public int TermMonths { get; set; }
         
         [MaxLength(200)]
-        public string Purpose { get; set; }
+        public string? Purpose { get; set; }
         
         [Required]
         [MaxLength(20)]
@@ -40,22 +40,22 @@ namespace Loan_application_service.Models
         public DateTime? DecisionDate { get; set; }
         
         [MaxLength(500)]
-        public string DecisionNotes { get; set; }
+        public string? DecisionNotes { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         
         // Navigation Properties
         [ForeignKey("CustomerId")]
-        public virtual Customer Customer { get; set; }
+        public required virtual Customer Customer { get; set; }
         
         [ForeignKey("ProductId")]
-        public virtual LoanProduct LoanProduct { get; set; }
+        public required virtual LoanProduct LoanProduct { get; set; }
         
         [ForeignKey("ProcessedBy")]
-        public virtual User ProcessedByUser { get; set; }
+        public required virtual Users ProcessedByUser { get; set; }
         
-        public virtual Account Account { get; set; }
+        public virtual required Account Account { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public virtual ICollection<AuditTrail> AuditTrails { get; set; } = new List<AuditTrail>();
     }

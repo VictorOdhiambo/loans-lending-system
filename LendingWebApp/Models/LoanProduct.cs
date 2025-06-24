@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Loan_application_service.Models
@@ -11,11 +12,11 @@ namespace Loan_application_service.Models
         
         [Required]
         [MaxLength(100)]
-        public string ProductName { get; set; }
+        public required string ProductName { get; set; }
         
         [Required]
         [MaxLength(50)]
-        public string ProductType { get; set; }
+        public required string ProductType { get; set; }
         
         [Column(TypeName = "decimal(15,2)")]
         public decimal MinAmount { get; set; }
@@ -33,14 +34,15 @@ namespace Loan_application_service.Models
         public decimal ProcessingFee { get; set; }
         
         [MaxLength(500)]
-        public string EligibilityCriteria { get; set; }
+        public required string EligibilityCriteria { get; set; }
         
         public bool IsActive { get; set; } = true;
         
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime UpdatedAt { get; set; } 
         
-        // Navigation Properties
         public virtual ICollection<LoanApplication> LoanApplications { get; set; } = new List<LoanApplication>();
+
+        public ICollection<LoanCharge> LoanCharges { get; set; } = new List<LoanCharge>();
     }
 }
