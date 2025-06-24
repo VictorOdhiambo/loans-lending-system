@@ -1,0 +1,41 @@
+@{  
+    Layout = "~/Views/Shared/_Layout.cshtml";  
+}  
+
+@model IEnumerable<LendingApp.Models.Notification>  
+
+@{  
+    ViewData["Title"] = "Notifications";  
+}  
+
+<h1>Notifications</h1>  
+
+<table class="table">  
+    <thead>  
+        <tr>  
+            <th>Title</th>  
+            <th>Message</th>  
+            <th>Recipient</th>  
+            <th>Is Read</th>  
+            <th>Sent At</th>  
+            <th>Created At</th>  
+            <th>Success</th>  
+            <th>Error Message</th>  
+            <th></th>  
+        </tr>  
+    </thead>  
+    <tbody>  
+        @foreach (var item in Model) {  
+        <tr>  
+            <td>@item.Title</td>  
+            <td>@item.Message</td>  
+            <td>@item.Recipient</td>  
+            <td>@item.IsRead</td>  
+            <td>@item.SentAt</td>  
+            <td>@item.CreatedAt</td>  
+            <td>@item.Success</td>  
+            <td>@item.ErrorMessage</td>  
+        </tr>  
+        }  
+    </tbody>  
+</table>
