@@ -1,53 +1,19 @@
-namespace Loan_application_service.Models;
-
-public class Notification
+﻿namespace LendingApp.Models
 {
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Key]
-    public int NotificationId { get; set; }
-        
-    public int? CustomerId { get; set; }
-        
-    public int? UserId { get; set; }
-        
-    public int? ApplicationId { get; set; }
-        
-    public int? AccountId { get; set; }
-        
-    [Required]
-    [MaxLength(50)]
-    public string NotificationType { get; set; }
-        
-    [Required]
-    [MaxLength(200)]
-    public string Title { get; set; }
-        
-    [Required]
-    [MaxLength(1000)]
-    public string Message { get; set; }
-        
-    [Required]
-    [MaxLength(20)]
-    public string Channel { get; set; } = "Email";
-        
-    public bool IsRead { get; set; } = false;
-        
-    public DateTime SentAt { get; set; } = DateTime.UtcNow;
-        
-    public DateTime? ReadAt { get; set; }
-        
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        
-    // Navigation Properties
-    [ForeignKey("CustomerId")]
-    public virtual Customer Customer { get; set; }
-        
-    [ForeignKey("UserId")]
-    public virtual User User { get; set; }
-        
-    [ForeignKey("ApplicationId")]
-    public virtual LoanApplication LoanApplication { get; set; }
-        
-    [ForeignKey("AccountId")]
-    public virtual Account Account { get; set; }
+    public class Notification
+    {
+        public int NotificationId { get; set; }
+        public int CustomerId { get; set; }
+        public string? NotificationType { get; set; }
+        public string? Channel { get; set; }
+        public string? Title { get; set; }
+        public string? Message { get; set; }
+        public bool IsRead { get; set; } 
+        public DateTime? SentAt { get; set; }
+        public DateTime? ReadAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool Success { get; set; } 
+        public string? ErrorMessage { get; set; }
+        public string? Recipient { get; set; }
+    }
 }

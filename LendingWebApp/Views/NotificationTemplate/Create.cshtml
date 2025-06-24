@@ -1,0 +1,33 @@
+@model LendingApp.Models.NotificationTemplate
+
+@{
+    ViewData["Title"] = "Create Notification Template";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Create Notification Template</h1>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="NotificationType" class="form-label">Notification Type</label>
+        <input asp-for="NotificationType" class="form-control" />
+        <span asp-validation-for="NotificationType" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Channel" class="form-label">Channel</label>
+        <input asp-for="Channel" class="form-control" />
+        <span asp-validation-for="Channel" class="text-danger"></span>
+    </div> 
+    <div class="mb-3">
+        <label asp-for="Subject" class="form-label">Subject</label>
+        <input asp-for="Subject" class="form-control" /> 
+        <span asp-validation-for="Subject" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="BodyText" class="form-label">Body Text</label>
+        <textarea asp-for="BodyText" class="form-control"></textarea>
+        <span asp-validation-for="BodyText" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a href="/NotificationTemplate" class="btn btn-secondary">Cancel</a>
+</form>

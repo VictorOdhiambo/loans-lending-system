@@ -1,0 +1,47 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model IEnumerable<LendingApp.Models.NotificationTemplate>
+
+@{
+    ViewData["Title"] = "Notification Templates";
+}
+
+<h1>Notification Templates</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>TemplateId</th>
+            <th>Notification Type</th>
+            <th>Channel</th>
+            <th>Subject</th>
+            <th>Body Text</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th></th>
+        </tr>
+    </thead>
+    <t>
+@foreach (var item in Model) {
+        <tr>
+            <td>@item.TemplateId</td>
+            <td>@item.NotificationType</td>
+            <td>@item.Channel</td> 
+            <td>@item.Subject</td>
+            <td>@item.BodyText</td>
+            <td>@item.CreatedAt</td>
+            <td>@item.UpdatedAt</td>
+            <td>
+                <a href="/NotificationTemplate/Edit/@item.TemplateId" class="btn btn-primary mb-1">Edit</a> 
+                <form asp-action="Delete" asp-route-id="@item.TemplateId" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger mb-1" onclick="return confirm('Are you sure you want to delete this template?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+}
+    </t>
+</table> 
+<a href="/NotificationTemplate/Create" class="btn btn-primary mb-2">Add New Template</a>
+ 
