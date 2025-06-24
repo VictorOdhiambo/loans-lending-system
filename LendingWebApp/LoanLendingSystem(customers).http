@@ -1,0 +1,6 @@
+@LoanLendingSystem_customers__HostAddress = http://localhost:5075
+
+GET {{LoanLendingSystem_customers__HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
