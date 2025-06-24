@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Loan_application_service.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Loan_application_service.Controllers
+namespace Loan_application_service.Controllers 
 {
     public class HomeController : Controller
     {
