@@ -1,0 +1,52 @@
+@model LendingApp.Models.NotificationTemplate
+@{
+    ViewData["Title"] = "Edit Notification Template";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h1>Edit Notification Template @Model.TemplateId</h1>
+<div class="mb-4">
+    <h4>Current Template </h4>
+    <table class="table table-bordered w-auto">
+        <tr>
+            <th>Notification Type</th>
+            <td>@Model.NotificationType</td>
+        </tr>
+        <tr>
+            <th>Channel</th>
+            <td>@Model.Channel</td>
+        </tr>
+        <tr>
+            <th>Subject</th>
+            <td>@Model.Subject</td>
+        </tr>
+        <tr>
+            <th>Body Text</th>
+            <td>@Model.BodyText</td>
+        </tr>
+    </table>
+</div>
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="TemplateId" />
+    <div class="mb-3">
+        <label asp-for="NotificationType" class="form-label">Notification Type</label>
+        <input asp-for="NotificationType" class="form-control" />
+        <span asp-validation-for="NotificationType" class="text-danger"></span>
+    </div>
+    <div class="mb-3"> 
+        <label asp-for="Channel" class="form-label">Channel</label>
+        <input asp-for="Channel" class="form-control" />
+        <span asp-validation-for="Channel" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Subject" class="form-label">Subject</label>
+        <input asp-for="Subject" class="form-control" />
+        <span asp-validation-for="Subject" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="BodyText" class="form-label">Body Text</label>
+        <textarea asp-for="BodyText" class="form-control"></textarea>
+        <span asp-validation-for="BodyText" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Edit</button>
+    <a href="/NotificationTemplate" asp-action="Index" asp-controller="NotificationTemplate" class="btn btn-secondary">Cancel</a>
+</form>
