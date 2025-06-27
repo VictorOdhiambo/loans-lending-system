@@ -2,7 +2,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@model IEnumerable<LendingApp.Models.NotificationTemplate>
+@model IEnumerable<LoanManagementApp.DTOs.NotificationTemplateDto>
 
 @{
     ViewData["Title"] = "Notification Templates";
@@ -13,26 +13,22 @@
 <table class="table">
     <thead>
         <tr>
-            <th>TemplateId</th>
+            <th>Template ID</th>
             <th>Notification Type</th>
             <th>Channel</th>
             <th>Subject</th>
             <th>Body Text</th>
-            <th>Created At</th>
-            <th>Updated At</th>
-            <th></th>
+            <th>Action</th>
         </tr>
     </thead>
-    <t>
+    <tbody>
 @foreach (var item in Model) {
         <tr>
             <td>@item.TemplateId</td>
             <td>@item.NotificationType</td>
-            <td>@item.Channel</td> 
+            <td>@item.Channel</td>
             <td>@item.Subject</td>
             <td>@item.BodyText</td>
-            <td>@item.CreatedAt</td>
-            <td>@item.UpdatedAt</td>
             <td>
                 <a href="/NotificationTemplate/Edit/@item.TemplateId" class="btn btn-primary mb-1">Edit</a> 
                 <form asp-action="Delete" asp-route-id="@item.TemplateId" method="post" style="display:inline;">
@@ -41,7 +37,7 @@
             </td>
         </tr>
 }
-    </t>
+    </tbody>
 </table> 
 <a href="/NotificationTemplate/Create" class="btn btn-primary mb-2">Add New Template</a>
  

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
+using LoanManagementApp.DTOs;
 
 namespace LendingApp.Services
 {
@@ -80,6 +81,27 @@ namespace LendingApp.Services
                 var key = match.Groups[1].Value.Trim();
                 return data.ContainsKey(key) ? data[key] : $"{{{{{key}}}}}";
             });
+        }
+
+        public NotificationDto ToDto(Notification notification)
+        {
+            return new NotificationDto
+            {
+                NotificationId = notification.NotificationId,
+                NotificationType = notification.NotificationType,
+                Channel = notification.Channel,
+                Title = notification.Title,
+                Message = notification.Message,
+                IsRead = notification.IsRead,
+                SentAt = notification.SentAt,
+                Recipient = notification.Recipient
+            };
+        }
+
+        public async Task<List<NotificationDto>> GetAllNotificationsAsync()
+        {
+            var notifications = await _context.Notifications.ToListAsync();
+            return notifications.Select(ToDto).ToList();
         }
     }
 }

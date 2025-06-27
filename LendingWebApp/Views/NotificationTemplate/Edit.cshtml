@@ -1,4 +1,4 @@
-@model LendingApp.Models.NotificationTemplate
+@model LoanManagementApp.DTOs.NotificationTemplateDto
 @{
     ViewData["Title"] = "Edit Notification Template";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -25,7 +25,9 @@
         </tr>
     </table>
 </div>
-<form asp-action="Edit" method="post">
+<form asp-action="Edit" asp-route-id="@Model.TemplateId" method="post">
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     <input type="hidden" asp-for="TemplateId" />
     <div class="mb-3">
         <label asp-for="NotificationType" class="form-label">Notification Type</label>
@@ -50,3 +52,6 @@
     <button type="submit" class="btn btn-primary">Edit</button>
     <a href="/NotificationTemplate" asp-action="Index" asp-controller="NotificationTemplate" class="btn btn-secondary">Cancel</a>
 </form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

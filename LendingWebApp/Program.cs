@@ -10,6 +10,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<NotificationSenderService>();
+builder.Services.AddScoped<NotificationTemplateService>();
 
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Smtp"));
