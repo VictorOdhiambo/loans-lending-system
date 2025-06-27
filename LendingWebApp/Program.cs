@@ -3,6 +3,7 @@ using Loan_application_service.Data;
 using AutoMapper;
 using Loan_application_service.Models;
 using Loan_application_service.DTOs;
+using Loan_application_service.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
@@ -13,6 +14,11 @@ builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddAutoMapper(typeof(Program));
+
+builder.Services.AddScoped<ILoanProductRepository, LoanProductRepository>();
+
+
+
 
 // Add auto mapper
 var app = builder.Build();

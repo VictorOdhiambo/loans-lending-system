@@ -17,7 +17,7 @@ namespace Loan_application_service.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -288,23 +288,39 @@ namespace Loan_application_service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("LatePaymentPenalty")
+                    b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsPenalty")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUpfront")
+                        .HasColumnType("bit");
 
                     b.Property<int>("LoanProductId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("PrepaymentPenalty")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProcessingFee")
-                        .HasColumnType("int");
+                    b.Property<string>("description")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.ToTable("LoanCharge");
+                });
+
+            modelBuilder.Entity("Loan_application_service.Models.LoanChargeMapper", b =>
+                {
+                    b.Property<int>("LoanChargeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LoanProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("LoanChargeId", "LoanProductId");
+
                     b.HasIndex("LoanProductId");
 
-                    b.ToTable("LoanCharge");
+                    b.ToTable("LoanChargeMapper");
                 });
 
             modelBuilder.Entity("Loan_application_service.Models.LoanProduct", b =>
@@ -341,9 +357,6 @@ namespace Loan_application_service.Migrations
                     b.Property<int>("MinTermMonths")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("ProcessingFee")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<string>("ProductName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -353,6 +366,10 @@ namespace Loan_application_service.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RepaymentFrequency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -551,13 +568,21 @@ namespace Loan_application_service.Migrations
                     b.Navigation("ProcessedByUser");
                 });
 
-            modelBuilder.Entity("Loan_application_service.Models.LoanCharge", b =>
+            modelBuilder.Entity("Loan_application_service.Models.LoanChargeMapper", b =>
                 {
-                    b.HasOne("Loan_application_service.Models.LoanProduct", "LoanProduct")
-                        .WithMany("LoanCharges")
-                        .HasForeignKey("LoanProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Loan_application_service.Models.LoanCharge", "LoanCharge")
+                        .WithMany("LoanChargeMap")
+                        .HasForeignKey("LoanChargeId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Loan_application_service.Models.LoanProduct", "LoanProduct")
+                        .WithMany("LoanChargeMap")
+                        .HasForeignKey("LoanProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LoanCharge");
 
                     b.Navigation("LoanProduct");
                 });
@@ -617,11 +642,16 @@ namespace Loan_application_service.Migrations
                     b.Navigation("Notifications");
                 });
 
+            modelBuilder.Entity("Loan_application_service.Models.LoanCharge", b =>
+                {
+                    b.Navigation("LoanChargeMap");
+                });
+
             modelBuilder.Entity("Loan_application_service.Models.LoanProduct", b =>
                 {
                     b.Navigation("LoanApplications");
 
-                    b.Navigation("LoanCharges");
+                    b.Navigation("LoanChargeMap");
                 });
 
             modelBuilder.Entity("Loan_application_service.Models.Users", b =>

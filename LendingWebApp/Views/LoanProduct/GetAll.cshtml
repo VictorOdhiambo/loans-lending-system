@@ -1,0 +1,76 @@
+﻿@model IEnumerable<Loan_application_service.DTOs.loanproductDto>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Loan Products</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ProductName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ProductType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MinAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.InterestRate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MinTermMonths)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxTermMonths)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EligibilityCriteria)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MinAmount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MaxAmount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.InterestRate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MinTermMonths)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MaxTermMonths)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EligibilityCriteria)
+                </td>
+                <td>
+                   
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

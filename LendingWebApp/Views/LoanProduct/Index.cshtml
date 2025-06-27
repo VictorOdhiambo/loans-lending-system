@@ -1,0 +1,83 @@
+﻿@model IEnumerable<Loan_application_service.Models.LoanProduct>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Loan Products</h1>
+<body>
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ProductName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ProductType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MinAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.InterestRate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MinTermMonths)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxTermMonths)
+            </th>
+            
+            <th>
+                @Html.DisplayNameFor(model => model.EligibilityCriteria)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="table_body">
+
+}
+    </tbody>
+    
+</table>
+
+<script>
+    fetch ('https://localhost:7017/loan_product')
+        .then (Response => Response.json())
+        .then (({rows}) =>
+        console.log(rows);
+        let table_data = "";
+        rows.forEach (values => {
+            table_data +=
+
+            <tr>
+            <td> $ {values.ProductName}</td>>
+            <td> $ {values.ProductType}</td>>
+            <td> $ {values.MinAmount}</td>>
+            <td> $ {values.MaxAmount}</td>>
+            <td> $ {values.InterestRate}</td>>
+            <td> $ {values.MinTermMonths}</td>>
+            <td> $ {values.MaxTermMonths}</td>>
+            <td> $ {values.ProcessingFee}</td>>
+            <td> $ {values.EligibilityCriteria}</td>
+
+
+
+
+            </tr>>
+
+        }))
+
+        document.getElementById("table_body").innerHTML = table_data
+
+        )
+
+</script>
+
+</body>

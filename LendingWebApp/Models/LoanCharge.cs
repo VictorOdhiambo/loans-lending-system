@@ -9,11 +9,19 @@ namespace Loan_application_service.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
         public int Id { get; set; }
-        public int ProcessingFee { get; set; }
-        public decimal PrepaymentPenalty { get; set; }
-        public decimal LatePaymentPenalty { get; set; }
+
+        public decimal Amount { get; set; } 
+       
+        public Boolean IsUpfront { get; set; }  
+
+        public string? description { get; set; } 
+
+        public Boolean IsPenalty {  get; set; } 
+
         public int LoanProductId { get; set; }
-        public required virtual LoanProduct LoanProduct { get; set; }
+
+        public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
+
     }
 }
 

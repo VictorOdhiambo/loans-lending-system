@@ -1,12 +1,14 @@
 ﻿using Loan_application_service.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Net.WebSockets;
+using Loan_application_service.DTOs;
 
 namespace Loan_application_service.Data
 {
     public class LoanApplicationServiceDbContext : DbContext
     {
-        public LoanApplicationServiceDbContext (DbContextOptions<LoanApplicationServiceDbContext> options)
+        public LoanApplicationServiceDbContext(DbContextOptions<LoanApplicationServiceDbContext> options)
             : base(options)
         {
         }
@@ -15,6 +17,23 @@ namespace Loan_application_service.Data
         public DbSet<Users> Users { get; set; } = default!;
         public DbSet<LoanApplication> LoanApplication { get; set; } = default!;
         public DbSet<LoanCharge> LoanCharge { get; set; } = default!;
+
+        public DbSet<LoanChargeMapper> LoanChargeMapper { get; set; } = default!;
+
+        // Many-to-many configuration for loan products and loan charges.
+        public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
+        {
+            public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)
+            {
+                builder.HasKey(s => new { s.LoanChargeId, s.LoanProductId });
+                builder.HasOne(ss => ss.LoanProduct)
+                    .WithMany(s => s.LoanChargeMap)
+                    .HasForeignKey(ss => ss.LoanProductId);
+                builder.HasOne(ss => ss.LoanCharge)
+                    .WithMany(s => s.LoanChargeMap)
+                    .HasForeignKey(ss => ss.LoanChargeId);
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,14 +44,14 @@ namespace Loan_application_service.Data
                 .HasOne(a => a.LoanApplication)
                 .WithOne(l => l.Account)
                 .HasForeignKey<Account>(a => a.ApplicationId)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Account to Customer
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Customer)
                 .WithMany(c => c.Accounts)
                 .HasForeignKey(a => a.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
 
             // LoanApplication to Customer
             modelBuilder.Entity<LoanApplication>()
@@ -41,20 +60,17 @@ namespace Loan_application_service.Data
                 .HasForeignKey(l => l.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //loanproduct to loancharge
+                // Explicitly specify the type argument for ApplyConfiguration
+            modelBuilder.ApplyConfiguration(new LoanChargeMapConfiguration());
 
-            modelBuilder.Entity<LoanCharge>()
-                .HasOne(lc => lc.LoanProduct)
-                .WithMany(lp => lp.LoanCharges)
-                .HasForeignKey(lc => lc.LoanProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+            
 
+            
 
-
-
-
-
+            modelBuilder.Entity<LoanProduct>()
+                .Property(c => c.RepaymentFrequency)
+                .HasConversion<string>();
         }
-
+        public DbSet<Loan_application_service.DTOs.loanproductDto> loanproductDto { get; set; } = default!;
     }
 }

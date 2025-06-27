@@ -6,7 +6,7 @@ namespace Loan_application_service.DTOs;
 public class loanproductDto
 
 {
-   
+    [Key]
     public int ProductId { get; set; }
 
     [Required]
@@ -29,8 +29,6 @@ public class loanproductDto
     public int MinTermMonths { get; set; }
     public int MaxTermMonths { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
-    public decimal ProcessingFee { get; set; }
 
     [MaxLength(500)]
     public required string EligibilityCriteria { get; set; }
