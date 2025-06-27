@@ -3,23 +3,24 @@ using LoanManagementApp.Data;
 using LoanManagementApp.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using LendingApp.Services;
 
 namespace LendingApp.Controllers
 {
     public class NotificationTemplateController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly NotificationTemplateService _service;
 
-        public NotificationTemplateController(ApplicationDbContext context)
+        public NotificationTemplateController(NotificationTemplateService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: /NotificationTemplate
         public async Task<IActionResult> Index()
         {
-            var templates = await _context.NotificationTemplates.ToListAsync();
-            return View(templates);
+            var dtos = await _service.GetAllAsync();
+            return View(dtos);
         }
 
         // GET: api/NotificationTemplate
@@ -27,8 +28,8 @@ namespace LendingApp.Controllers
         [Route("api/[controller]")]
         public async Task<IActionResult> GetTemplates()
         {
-            var templates = await _context.NotificationTemplates.ToListAsync();
-            return Ok(templates);
+            var dtos = await _service.GetAllAsync();
+            return Ok(dtos);
         }
 
         // POST: api/NotificationTemplate
@@ -36,20 +37,8 @@ namespace LendingApp.Controllers
         [Route("api/[controller]")]
         public async Task<IActionResult> CreateTemplate(NotificationTemplateDto dto)
         {
-            var template = new NotificationTemplate
-            {
-                NotificationType = dto.NotificationType,
-                Channel = dto.Channel,
-                Subject = dto.Subject,
-                BodyText = dto.BodyText,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
-
-            _context.NotificationTemplates.Add(template);
-            await _context.SaveChangesAsync();
-
-            return Ok(template);
+            var created = await _service.CreateAsync(dto);
+            return Ok(created);
         }
 
         // PUT: api/NotificationTemplate/{id}
@@ -57,20 +46,9 @@ namespace LendingApp.Controllers
         [Route("api/[controller]/{id}")]
         public async Task<IActionResult> UpdateTemplate(int id, NotificationTemplateDto dto)
         {
-            var template = await _context.NotificationTemplates.FindAsync(id);
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            template.NotificationType = dto.NotificationType;
-            template.Channel = dto.Channel;
-            template.Subject = dto.Subject;
-            template.BodyText = dto.BodyText;
-            template.UpdatedAt = DateTime.Now;
-
-            await _context.SaveChangesAsync();
-            return Ok(template); 
+            var updated = await _service.UpdateAsync(id, dto);
+            if (updated == null) return NotFound();
+            return Ok(updated);
         }
 
         // DELETE: api/NotificationTemplate/{id}
@@ -78,13 +56,8 @@ namespace LendingApp.Controllers
         [Route("api/[controller]/{id}")]
         public async Task<IActionResult> DeleteTemplate(int id)
         {
-            var template = await _context.NotificationTemplates.FindAsync(id);
-            if (template == null)
-            {
-                return NotFound();
-            }
-            _context.NotificationTemplates.Remove(template);
-            await _context.SaveChangesAsync();
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted) return NotFound();
             return NoContent();
         }
 
@@ -97,86 +70,48 @@ namespace LendingApp.Controllers
         // POST: NotificationTemplate/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("NotificationType,Channel,Subject,BodyText")] NotificationTemplate template)
+        public async Task<IActionResult> Create([Bind("NotificationType,Channel,Subject,BodyText")] NotificationTemplateDto dto)
         {
             if (ModelState.IsValid)
             {
-                template.CreatedAt = DateTime.Now;
-                template.UpdatedAt = DateTime.Now;
-                _context.Add(template);
-                await _context.SaveChangesAsync();
+                await _service.CreateAsync(dto);
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(template);
+            return View(dto);
         }
 
         // GET: NotificationTemplate/Edit
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var template = await _context.NotificationTemplates.FindAsync(id);
-            if (template == null)
-            {
-                return NotFound();
-            }
-            return View(template);
+            if (id == null) return NotFound();
+            var template = await _service.GetByIdAsync(id.Value);
+            if (template == null) return NotFound();
+            var dto = _service.ToDto(template);
+            return View(dto);
         }
 
         // POST: NotificationTemplate/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TemplateId,NotificationType,Channel,Subject,BodyText,CreatedAt,UpdatedAt")] NotificationTemplate template)
+        public async Task<IActionResult> Edit(int id, [Bind("TemplateId,NotificationType,Channel,Subject,BodyText")] NotificationTemplateDto dto)
         {
-            if (id != template.TemplateId)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                try
-                {
-                    template.UpdatedAt = DateTime.Now;
-                    _context.Update(template);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.NotificationTemplates.Any(e => e.TemplateId == id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                var updated = await _service.UpdateAsync(id, dto);
+                if (updated == null) return NotFound();
                 return RedirectToAction(nameof(Index));
             }
-            return View(template);
+            return View(dto);
         }
 
         // GET: NotificationTemplate/Delete/
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var template = await _context.NotificationTemplates
-                .FirstOrDefaultAsync(m => m.TemplateId == id);
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            return View(template);
+            if (id == null) return NotFound();
+            var template = await _service.GetByIdAsync(id.Value);
+            if (template == null) return NotFound();
+            var dto = _service.ToDto(template);
+            return View(dto);
         }
 
         // POST: NotificationTemplate/Delete/
@@ -184,12 +119,7 @@ namespace LendingApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var template = await _context.NotificationTemplates.FindAsync(id);
-            if (template != null)
-            {
-                _context.NotificationTemplates.Remove(template);
-                await _context.SaveChangesAsync();
-            }
+            await _service.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }
