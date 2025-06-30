@@ -1,68 +1,81 @@
 ﻿@model Loan_application_service.DTOs.loanproductDto
 
 @{
-    ViewData["Title"] = "CreateLoan";
+    ViewData["Title"] = "Create Loan";
 }
 
-<h1>CreateLoan</h1>
+<div class="container mt-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create New Loan Product</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="CreateLoan">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-<h4>loanproductDto</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="CreateLoan">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="ProductName" class="control-label"></label>
-                <input asp-for="ProductName" class="form-control" />
-                <span asp-validation-for="ProductName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ProductType" class="control-label"></label>
-                <input asp-for="ProductType" class="form-control" />
-                <span asp-validation-for="ProductType" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MinAmount" class="control-label"></label>
-                <input asp-for="MinAmount" class="form-control" />
-                <span asp-validation-for="MinAmount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MaxAmount" class="control-label"></label>
-                <input asp-for="MaxAmount" class="form-control" />
-                <span asp-validation-for="MaxAmount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="InterestRate" class="control-label"></label>
-                <input asp-for="InterestRate" class="form-control" />
-                <span asp-validation-for="InterestRate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MinTermMonths" class="control-label"></label>
-                <input asp-for="MinTermMonths" class="form-control" />
-                <span asp-validation-for="MinTermMonths" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MaxTermMonths" class="control-label"></label>
-                <input asp-for="MaxTermMonths" class="form-control" />
-                <span asp-validation-for="MaxTermMonths" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EligibilityCriteria" class="control-label"></label>
-                <input asp-for="EligibilityCriteria" class="form-control" />
-                <span asp-validation-for="EligibilityCriteria" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+                <div class="mb-3">
+                    <label asp-for="ProductName" class="form-label fw-semibold"></label>
+                    <input asp-for="ProductName" class="form-control" />
+                    <span asp-validation-for="ProductName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ProductType" class="form-label fw-semibold"></label>
+                    <input asp-for="ProductType" class="form-control" />
+                    <span asp-validation-for="ProductType" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MinAmount" class="form-label fw-semibold"></label>
+                        <input asp-for="MinAmount" class="form-control" />
+                        <span asp-validation-for="MinAmount" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MaxAmount" class="form-label fw-semibold"></label>
+                        <input asp-for="MaxAmount" class="form-control" />
+                        <span asp-validation-for="MaxAmount" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="InterestRate" class="form-label fw-semibold"></label>
+                    <input asp-for="InterestRate" class="form-control" />
+                    <span asp-validation-for="InterestRate" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MinTermMonths" class="form-label fw-semibold"></label>
+                        <input asp-for="MinTermMonths" class="form-control" />
+                        <span asp-validation-for="MinTermMonths" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MaxTermMonths" class="form-label fw-semibold"></label>
+                        <input asp-for="MaxTermMonths" class="form-control" />
+                        <span asp-validation-for="MaxTermMonths" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EligibilityCriteria" class="form-label fw-semibold"></label>
+                    <textarea asp-for="EligibilityCriteria" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="EligibilityCriteria" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Create
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

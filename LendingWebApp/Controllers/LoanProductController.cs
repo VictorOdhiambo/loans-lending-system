@@ -95,6 +95,7 @@ namespace Loan_application_service.Controllers
 
         //update loan product
         [HttpPost("/loan_product/{id:long}")]
+        
         public ActionResult EditLoanProduct (loanproductDto dto)
         {
 
