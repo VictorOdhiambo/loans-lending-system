@@ -2,11 +2,14 @@
 using Loan_application_service.Data;
 using Loan_application_service.DTOs;
 using Loan_application_service.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 using Loan_application_service.Models;
 using Loan_application_service.Repository;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using static Loan_application_service.Enums.RepaymentFrequency;
 
 namespace Loan_application_service.Controllers
 {
@@ -35,12 +38,17 @@ namespace Loan_application_service.Controllers
         {
 
             var products =  _loanProductRepository.GetAll();
+
+           
             List<loanproductDto> dto = _mapper.Map<List<loanproductDto>>(products);
             
             return View(dto);
 
            
         }
+
+        
+
 
 
         //get loan product by id
@@ -51,6 +59,17 @@ namespace Loan_application_service.Controllers
             LoanProduct loanproduct = _loanProductRepository.GetById(id);
            
             loanproductDto loandto = _mapper.Map<loanproductDto>(loanproduct);
+
+            ViewData["RepaymentFrequencyList"] = Enum.GetValues(typeof(paymentFrequency))
+    .Cast<paymentFrequency>()
+    .Select(e => new SelectListItem
+    {
+        Value = e.ToString(),
+        Text = e.ToString()
+    }).ToList();
+
+
+
             return View(loandto);
             
 
@@ -58,10 +77,17 @@ namespace Loan_application_service.Controllers
 
         }
 
-
+        [Authorize(Roles ="user")]
         [HttpGet("/loan_product/create")]
         public ActionResult CreateLoan ()
         {
+            ViewData["RepaymentFrequencyList"] = Enum.GetValues(typeof(paymentFrequency))
+    .Cast<paymentFrequency>()
+    .Select(e => new SelectListItem
+    {
+        Value = e.ToString(),
+        Text = e.ToString()
+    }).ToList();
             return View();
         }
 
@@ -91,7 +117,6 @@ namespace Loan_application_service.Controllers
             
 
         }
-
 
         //update loan product
         [HttpPost("/loan_product/{id:long}")]

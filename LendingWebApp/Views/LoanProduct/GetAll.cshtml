@@ -21,9 +21,12 @@
                     <th>@Html.DisplayNameFor(model => model.MinAmount)</th>
                     <th>@Html.DisplayNameFor(model => model.MaxAmount)</th>
                     <th>@Html.DisplayNameFor(model => model.InterestRate)</th>
+         
                     <th>@Html.DisplayNameFor(model => model.MinTermMonths)</th>
                     <th>@Html.DisplayNameFor(model => model.MaxTermMonths)</th>
+                    <th>@Html.DisplayNameFor(Model => Model.RepaymentFrequency)</th>
                     <th>@Html.DisplayNameFor(model => model.EligibilityCriteria)</th>
+                    
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -38,7 +41,9 @@
                         <td>@Html.DisplayFor(modelItem => item.InterestRate)</td>
                         <td>@Html.DisplayFor(modelItem => item.MinTermMonths)</td>
                         <td>@Html.DisplayFor(modelItem => item.MaxTermMonths)</td>
+                        <td>@Html.DisplayFor(modelItem => item.RepaymentFrequency)</td>
                         <td>@Html.DisplayFor(modelItem => item.EligibilityCriteria)</td>
+                       
                         <td class="text-end">
                             <a href="/loan_product/@item.ProductId" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="bi bi-pencil-square"></i> Edit

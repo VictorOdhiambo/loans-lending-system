@@ -7,9 +7,7 @@ namespace Loan_application_service.Models
 
 
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Key]
-        int id {  get; set; }
+        
         public int LoanProductId { get; set; }
 
         public required LoanProduct LoanProduct { get; set; } 

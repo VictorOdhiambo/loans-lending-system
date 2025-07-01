@@ -1,6 +1,8 @@
 
+using Loan_application_service.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static Loan_application_service.Enums.RepaymentFrequency;
 
 namespace Loan_application_service.DTOs;
 public class loanproductDto
@@ -29,9 +31,13 @@ public class loanproductDto
     public int MinTermMonths { get; set; }
     public int MaxTermMonths { get; set; }
 
+    public paymentFrequency RepaymentFrequency { get; set; }
+
 
     [MaxLength(500)]
     public required string EligibilityCriteria { get; set; }
+
+
 
 
     

@@ -44,9 +44,13 @@ namespace Loan_application_service.Models
         public bool IsActive { get; set; } = true;
         
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } 
+        public DateTime UpdatedAt { get; set; }
 
-        public paymentFrequency RepaymentFrequency { get; set; } 
+        public paymentFrequency RepaymentFrequency { get; set; }                
+
+
+
+
 
         public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
         

@@ -10,8 +10,8 @@
             <h4 class="mb-0">Create New Loan Product</h4>
         </div>
         <div class="card-body">
-            <form asp-action="CreateLoan">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+      <form asp-action="CreateLoan" method="post">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                 <div class="mb-3">
                     <label asp-for="ProductName" class="form-label fw-semibold"></label>
@@ -42,6 +42,14 @@
                     <label asp-for="InterestRate" class="form-label fw-semibold"></label>
                     <input asp-for="InterestRate" class="form-control" />
                     <span asp-validation-for="InterestRate" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="RepaymentFrequency" class="form-label fw-semibold"></label>
+                    <select asp-for="RepaymentFrequency" class="form-control" asp-items="@(ViewData["RepaymentFrequencyList"] as List<SelectListItem>)">
+                        <option value="">-- Select Frequency --</option>
+                    </select>
+                    <span asp-validation-for="RepaymentFrequency" class="text-danger"></span>
                 </div>
 
                 <div class="row">
