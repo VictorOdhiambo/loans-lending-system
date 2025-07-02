@@ -1,169 +1,93 @@
-﻿using AutoMapper;
-using Loan_application_service.Data;
-using Loan_application_service.DTOs;
-using Loan_application_service.Models;
+﻿using LoanApplicationService.Core.Models;
+using LoanApplicationService.Service.DTOs.LoanModule;
+using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
-namespace Loan_application_service.Controllers
+namespace LoanApplicationService.Web.Controllers
 {
-    [Route("/loan_product/")]
-    public class LoanProductController : Controller
+    [Route("/loan-products")]
+    public class LoanProductController(ILoanProductService loanProductService) : Controller
     {
+        private readonly ILoanProductService _loanProductService = loanProductService;
 
-        private IMapper _mapper;
 
-        private readonly LoanApplicationServiceDbContext _context;
-
-        public LoanProductController(LoanApplicationServiceDbContext context, IMapper mapper)
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-
-            _context = context;
-
-            _mapper = mapper;
-        }
-
-        //list all the loan products
-
-        [HttpGet("/loan_product/")]
-        public IActionResult GetAll()
-        {
-            var product = _context.LoanProduct.ToList();
-            List<loanproductDto> dto = _mapper.Map<List<loanproductDto>>(product);
-            return Ok(dto);
-
+            var loanProducts = await _loanProductService.GetAllProducts();
+            return View(loanProducts);
         }
 
 
-        //get loan product by id
-        [HttpGet("/loan_product/{id:long}")]
-        public async Task<ActionResult<loanproductDto>> GetById(int id)
+        [HttpGet("/{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            var loanproduct = await _context.FindAsync<LoanProduct>(id);
-            if (loanproduct == null)
-            {
-                return NotFound();
-            }
-            loanproductDto loandto = _mapper.Map<loanproductDto>(loanproduct);
-            return Ok(loandto);
-
+            var loanProducts = await _loanProductService.GetLoanProductById(id);
+            return View(loanProducts);
         }
 
-        //create a loan product
-        [HttpPost("/loan_product/create")]
-        public async Task<ActionResult<loanproductDto>> Create([FromBody] loanproductDto dto)
+        [HttpGet("/create")]
+        public IActionResult Create()
         {
+            return View();
+        }
 
+        [HttpGet("/modify")]
+        public IActionResult Modify()
+        {
+            return View();
+        }
+
+        [HttpPost("/create")]
+        public async Task<IActionResult> Create(LoanProductDto loanProductDto)
+        {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                TempData["Error"] = "Loan product creation failed. All fields are required!";
 
-            var entity = _mapper.Map<LoanProduct>(dto);
-            _context.LoanProduct.Add(entity);
-            await _context.SaveChangesAsync();
+                return RedirectToAction("Create");
+            }
 
-            var resultDto = _mapper.Map<loanproductDto>(entity);
-            return CreatedAtAction(nameof(GetById), new { id = resultDto.ProductId }, resultDto);
+            var isSuccess = await _loanProductService.AddLoanProduct(loanProductDto);
+            if (isSuccess)
+            {
+                TempData["Success"] = "Loan product created successfully!";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["Error"] = "Loan product creation failed. Please try again.";
+                return RedirectToAction("Create");
+            }
 
         }
-
 
         //update loan product
-        [HttpPut("/loan_product/update/{id:long}")]
-        public async Task<IActionResult> Update(int id, [FromBody] loanproductDto dto)
+        [HttpPut("/modify/{id}")]
+        public async Task<IActionResult> Modify(int id, LoanProductDto loanProductDto)
         {
 
-            if (!ModelState.IsValid || id != dto.ProductId)
-                return BadRequest(ModelState);
-
-            var existing = await _context.LoanProduct.FindAsync(id);
-            if (existing == null)
-                return NotFound();
-
-            _mapper.Map(dto, existing);
-
-            try
-            {
-                existing.UpdatedAt = DateTime.Now;
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return StatusCode(500, "A database error occurred.");
-            }
-
-            return Ok(dto);
-
-        }
-
-
-        //delete a loan product
-        [HttpDelete("/loan_product/delete/{id:long}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-
-            var product = await _context.LoanProduct.FindAsync(id);
-            if (product == null)
-                return NotFound();
-
-            _context.LoanProduct.Remove(product);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Product has been deleted" });
-
-        }
-
-
-        // get loan charge
-        [HttpGet("/loan_product/charges")]
-        public async Task<IActionResult> GetCharge()
-
-        {
-            var charges = await _context.LoanCharge.ToListAsync();
-            
-            List <LoanChargeDto> dto = _mapper.Map<List<LoanChargeDto>>(charges);
-            return Ok(dto);
-
-
-        }
-
-        //Get loan charges by loan product id 
-
-        [HttpGet("/loan_product/{id}/charges")]
-        public async Task<IActionResult> GetChargeById(int id)
-        {
-            var charge = await _context.LoanCharge.FirstOrDefaultAsync(charge => charge.Id == id);
-
-            if (charge == null)
-            {
-                return NotFound();
-            }
-
-            LoanChargeDto dto = _mapper.Map<LoanChargeDto>(charge);
-            return Ok(dto);
-        }
-        // add a loan charge
-        [HttpPost("/loan_product/charge/create")]
-       public async Task<IActionResult> AddCharge( [FromBody]LoanChargeDto dto)
-        {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                TempData["Error"] = "Loan product modification failed. All fields are required!";
+                return RedirectToAction("Modify");
             }
-            var id = dto.LoanProductId;
-            var loanproduct = await _context.LoanProduct.FindAsync(id);
-            if (loanproduct == null)
+
+            var isSuccess = await _loanProductService.ModifyLoanProduct(id, loanProductDto);
+            if (isSuccess)
             {
-                return NotFound();
+                TempData["Success"] = "Loan product modified successfully!";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["Error"] = "Loan product modify failed. Please try again.";
+                return RedirectToAction("Modify");
             }
 
-            LoanCharge charge = _mapper.Map<LoanCharge>(dto);
-            await _context.LoanCharge.AddAsync(charge);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("GetChargeById", charge.Id );
         }
+
     }
-
-
 
 }

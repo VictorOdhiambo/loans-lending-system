@@ -1,13 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Loan_application_service.Data;
-using AutoMapper;
-using Loan_application_service.Models;
-using Loan_application_service.DTOs;
+﻿using LoanApplicationService.Core.Repository;
+using LoanApplicationService.Service.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Loan_application_serviceContext") ?? throw new InvalidOperationException("Connection string 'Loan_application_serviceContext' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection") ?? throw new InvalidOperationException("Connection string 'Loan_application_serviceContext' not found.")));
 
+builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
+
+// Add services to the container.
+builder.Services.AddRazorPages();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -24,17 +26,19 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-app.UseAuthorization();
+
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
 
-
-
-app.MapStaticAssets();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=LoanProductController}/{action=GetAl}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapRazorPages();
+
 
 app.Run();
