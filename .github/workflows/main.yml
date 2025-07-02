@@ -12,9 +12,6 @@ jobs:
   validate-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Validate PR Title and Description
         uses: actions/github-script@v7
         with:
@@ -28,40 +25,37 @@ jobs:
             const prTitle = pullRequest.title;
             const prBody = pullRequest.body || '';
             
+            console.log('🔍 Validating PR...');
             console.log('PR Title:', prTitle);
-            console.log('PR Body length:', prBody.length);
+            console.log('PR Description length:', prBody.trim().length);
 
+            let isValid = true;
             let errors = [];
 
             // Validate PR title format: feature/issue-16-loan-product-configuration
             const titleRegex = /^(feature|bugfix|hotfix|chore)\/issue-\d+-[a-z0-9-]+$/;
             if (!titleRegex.test(prTitle)) {
-              errors.push(`❌ PR title "${prTitle}" does not match required format: feature/issue-16-loan-product-configuration`);
+              isValid = false;
+              errors.push(`❌ Invalid PR title: "${prTitle}"`);
+              errors.push('   Required format: <prefix>/issue-<number>-<description>');
               errors.push('   Valid prefixes: feature, bugfix, hotfix, chore');
-              errors.push('   Format: <prefix>/issue-<number>-<description-with-hyphens>');
-            } else {
-              console.log('✅ PR title format is valid');
+              errors.push('   Example: feature/issue-16-loan-product-configuration');
             }
 
             // Validate PR description length (minimum 100 characters)
             if (prBody.trim().length < 100) {
-              errors.push(`❌ PR description is too short (${prBody.trim().length} characters). Minimum required: 100 characters`);
-              errors.push('   Please provide a detailed description of the changes made.');
-            } else {
-              console.log('✅ PR description length is sufficient');
+              isValid = false;
+              errors.push(`❌ PR description too short: ${prBody.trim().length} characters`);
+              errors.push('   Minimum required: 100 characters');
             }
 
-            // If there are errors, fail the check
-            if (errors.length > 0) {
-              const errorMessage = errors.join('\n');
-              console.log('\n❌ PR Validation Failed:\n' + errorMessage);
-              console.log('\n📋 Requirements:');
-              console.log('- PR Title Format: <prefix>/issue-<number>-<description>');
-              console.log('  Valid prefixes: feature, bugfix, hotfix, chore');
-              console.log('  Example: feature/issue-16-loan-product-configuration');
-              console.log('- PR Description: Minimum 100 characters describing the changes made');
-              
-              core.setFailed('PR validation failed. Check the action logs for details.');
+            // Output results
+            if (isValid) {
+              console.log('✅ PR validation passed!');
+              console.log('   ✓ Title format is correct');
+              console.log('   ✓ Description meets minimum length requirement');
             } else {
-              console.log('✅ All PR validation checks passed!');
+              console.log('❌ PR validation failed:');
+              errors.forEach(error => console.log(error));
+              core.setFailed('PR does not meet validation requirements');
             }
