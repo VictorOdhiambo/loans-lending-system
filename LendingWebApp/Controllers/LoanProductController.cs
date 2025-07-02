@@ -1,157 +1,93 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using LoanApplicationService.Core.Models;
+using LoanApplicationService.Service.DTOs.LoanModule;
+using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Loan_application_service.Data;
-using Loan_application_service.Models;
 
-namespace Loan_application_service.Controllers
+namespace LoanApplicationService.Web.Controllers
 {
-    public class LoanProductController : Controller
+    [Route("/loan-products")]
+    public class LoanProductController(ILoanProductService loanProductService) : Controller
     {
-        private readonly LoanApplicationServiceDbContext _context;
+        private readonly ILoanProductService _loanProductService = loanProductService;
 
-        public LoanProductController(LoanApplicationServiceDbContext context)
-        {
-            _context = context;
-        }
 
-        // GET: loan_product
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.LoanProducts.ToListAsync());
+            var loanProducts = await _loanProductService.GetAllProducts();
+            return View(loanProducts);
         }
 
-        // GET: loan_product/Details/5
-        public async Task<IActionResult> Details(long? id)
+
+        [HttpGet("/{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var loan_product = await _context.LoanProducts
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (loan_product == null)
-            {
-                return NotFound();
-            }
-
-            return View(loan_product);
+            var loanProducts = await _loanProductService.GetLoanProductById(id);
+            return View(loanProducts);
         }
 
-        // GET: loan_product/Create
+        [HttpGet("/create")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: loan_product/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,LoanName,InterestRate,MinimumAmount,MaximumAmount,RepaymentPeriodMonths")] LoanProduct loan_product)
+        [HttpGet("/modify")]
+        public IActionResult Modify()
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(loan_product);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(loan_product);
+            return View();
         }
 
-        // GET: loan_product/Edit/5
-        public async Task<IActionResult> Edit(long? id)
+        [HttpPost("/create")]
+        public async Task<IActionResult> Create(LoanProductDto loanProductDto)
         {
-            if (id == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                TempData["Error"] = "Loan product creation failed. All fields are required!";
+
+                return RedirectToAction("Create");
             }
 
-            var loan_product = await _context.LoanProducts.FindAsync(id);
-            if (loan_product == null)
+            var isSuccess = await _loanProductService.AddLoanProduct(loanProductDto);
+            if (isSuccess)
             {
-                return NotFound();
+                TempData["Success"] = "Loan product created successfully!";
+                return RedirectToAction("Index");
             }
-            return View(loan_product);
+            else
+            {
+                TempData["Error"] = "Loan product creation failed. Please try again.";
+                return RedirectToAction("Create");
+            }
+
         }
 
-        // POST: loan_product/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, [Bind("Id,LoanName,InterestRate,MinimumAmount,MaximumAmount,RepaymentPeriodMonths")] LoanProduct loan_product)
+        //update loan product
+        [HttpPut("/modify/{id}")]
+        public async Task<IActionResult> Modify(int id, LoanProductDto loanProductDto)
         {
-            if (id != loan_product.Id)
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                TempData["Error"] = "Loan product modification failed. All fields are required!";
+                return RedirectToAction("Modify");
             }
 
-            if (ModelState.IsValid)
+            var isSuccess = await _loanProductService.ModifyLoanProduct(id, loanProductDto);
+            if (isSuccess)
             {
-                try
-                {
-                    _context.Update(loan_product);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!loan_productExists(loan_product.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                TempData["Success"] = "Loan product modified successfully!";
+                return RedirectToAction("Index");
             }
-            return View(loan_product);
+            else
+            {
+                TempData["Error"] = "Loan product modify failed. Please try again.";
+                return RedirectToAction("Modify");
+            }
+
         }
 
-        // GET: loan_product/Delete/5
-        public async Task<IActionResult> Delete(long? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var loan_product = await _context.LoanProducts
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (loan_product == null)
-            {
-                return NotFound();
-            }
-
-            return View(loan_product);
-        }
-
-        // POST: loan_product/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(long id)
-        {
-            var loan_product = await _context.LoanProducts.FindAsync(id);
-            if (loan_product != null)
-            {
-                _context.LoanProducts.Remove(loan_product);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool loan_productExists(long id)
-        {
-            return _context.LoanProducts.Any(e => e.Id == id);
-        }
     }
+
 }

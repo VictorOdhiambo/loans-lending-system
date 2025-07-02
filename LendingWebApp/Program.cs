@@ -1,36 +1,44 @@
-using LendingApp.Services;
-using LoanManagementApp.Data;
-using LoanManagementApp.Models;
+﻿using LoanApplicationService.Core.Repository;
+using LoanApplicationService.Service.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection") ?? throw new InvalidOperationException("Connection string 'Loan_application_serviceContext' not found.")));
 
-//  Services configuration
+builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
+
+// Add services to the container.
+builder.Services.AddRazorPages();
+
+// Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<NotificationSenderService>();
 
-builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("Smtp"));
+builder.Services.AddAutoMapper(typeof(Program));
 
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+// Add auto mapper
 var app = builder.Build();
 
-// HTTP request pipeline configuration
-if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
 app.UseAuthorization();
-app.MapControllers();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.Run(); 
+
+app.MapRazorPages();
+
+
+app.Run();
