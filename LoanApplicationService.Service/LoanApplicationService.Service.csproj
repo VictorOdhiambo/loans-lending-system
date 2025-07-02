@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LoanApplicationService.Core\LoanApplicationService.Core.csproj" />
+    <ProjectReference Include="..\LoanApplicationService.CrossCutting\LoanApplicationService.CrossCutting.csproj" />
   </ItemGroup>
 
 </Project>

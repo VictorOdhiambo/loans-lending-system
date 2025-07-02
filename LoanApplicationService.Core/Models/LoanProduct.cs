@@ -16,7 +16,7 @@ namespace LoanApplicationService.Core.Models
 
         [Required]
         [MaxLength(50)]
-        public required string ProductType { get; set; }
+        public required int LoanProductType { get; set; }
 
         [Column(TypeName = "decimal(15,2)")]
         public decimal MinAmount { get; set; }

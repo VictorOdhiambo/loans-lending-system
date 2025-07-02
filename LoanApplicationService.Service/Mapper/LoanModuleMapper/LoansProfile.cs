@@ -7,7 +7,9 @@ public class LoansProfile : Profile
 {
     public LoansProfile()
     {
-        CreateMap<LoanProduct, LoanProductDto>().ReverseMap();
+        CreateMap<LoanProduct, LoanProductDto>()
+            .ForMember(dest => dest.LoanProductTypeDescription, opt => opt.Ignore())
+            .ReverseMap();
         CreateMap<LoanCharge, LoanChargeDto>().ReverseMap();
     }
 }

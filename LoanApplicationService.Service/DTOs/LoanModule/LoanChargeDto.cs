@@ -2,12 +2,11 @@
 {
     public class LoanChargeDto
     {
-        public int ProcessingFee { get; set; }
-
-        public decimal PrepaymentPenalty { get; set; }
-
-        public decimal LatePaymentPenalty { get; set; }
-
-        public int LoanProductId { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public bool IsPenalty { get; set; }
+        public bool IsUpfront { get; set; }
+        public decimal Amount { get; set; }
     }
 }

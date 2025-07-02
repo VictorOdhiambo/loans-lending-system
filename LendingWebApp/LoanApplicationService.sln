@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoanApplicationService.Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoanApplicationService.Service", "..\LoanApplicationService.Service\LoanApplicationService.Service.csproj", "{18A2C616-B9A8-40BC-9ADB-F22A83C2242B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoanApplicationService.CrossCutting", "..\LoanApplicationService.CrossCutting\LoanApplicationService.CrossCutting.csproj", "{86BE4750-E187-4CD0-B887-5FA9C3054959}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{18A2C616-B9A8-40BC-9ADB-F22A83C2242B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18A2C616-B9A8-40BC-9ADB-F22A83C2242B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18A2C616-B9A8-40BC-9ADB-F22A83C2242B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86BE4750-E187-4CD0-B887-5FA9C3054959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86BE4750-E187-4CD0-B887-5FA9C3054959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86BE4750-E187-4CD0-B887-5FA9C3054959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86BE4750-E187-4CD0-B887-5FA9C3054959}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
