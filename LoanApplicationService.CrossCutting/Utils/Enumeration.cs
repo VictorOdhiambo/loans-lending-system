@@ -14,4 +14,14 @@ namespace LoanApplicationService.CrossCutting.Utils
         [Description("LogBook")]
         LogBook = 1 
     }
+
+    public enum NotificationType
+    {
+        [Description("Email")]
+        Email = 0,
+        [Description("SMS")]
+        SMS = 1,
+        [Description("Push Notification")]
+        PushNotification = 2
+    }
 }
