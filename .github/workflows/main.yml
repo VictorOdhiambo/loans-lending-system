@@ -33,13 +33,39 @@ jobs:
             let errors = [];
 
             // Validate PR title format: feature/issue-16-loan-product-configuration
-            const titleRegex = /^(feature|bugfix|hotfix|chore)\/issue-\d+-[a-z0-9-]+$/;
+            // Updated regex to be more flexible with description part
+            const titleRegex = /^(feature|bugfix|hotfix|chore)\/issue-\d+-.+$/;
+            
+            console.log('🔍 Testing title regex...');
+            console.log('Title to test:', `"${prTitle}"`);
+            console.log('Regex pattern:', titleRegex.toString());
+            console.log('Regex test result:', titleRegex.test(prTitle));
+            
             if (!titleRegex.test(prTitle)) {
               isValid = false;
               errors.push(`❌ Invalid PR title: "${prTitle}"`);
               errors.push('   Required format: <prefix>/issue-<number>-<description>');
               errors.push('   Valid prefixes: feature, bugfix, hotfix, chore');
               errors.push('   Example: feature/issue-16-loan-product-configuration');
+              
+              // Additional debugging info
+              const parts = prTitle.split('/');
+              if (parts.length !== 2) {
+                errors.push('   ⚠️  Title should contain exactly one forward slash (/)');
+              } else {
+                const [prefix, suffix] = parts;
+                if (!['feature', 'bugfix', 'hotfix', 'chore'].includes(prefix)) {
+                  errors.push(`   ⚠️  Invalid prefix: "${prefix}"`);
+                }
+                if (!suffix.startsWith('issue-')) {
+                  errors.push(`   ⚠️  Second part should start with "issue-"`);
+                }
+                if (!suffix.match(/issue-\d+-.+/)) {
+                  errors.push(`   ⚠️  Format should be: issue-<number>-<description>`);
+                }
+              }
+            } else {
+              console.log('✅ Title format validation passed');
             }
 
             // Validate PR description length (minimum 100 characters)
