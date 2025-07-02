@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection") ?? throw new InvalidOperationException("Connection string 'Loan_application_serviceContext' not found.")));
 
+builder.Services.AddMvc();
+
 builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
 
 // Add services to the container.
