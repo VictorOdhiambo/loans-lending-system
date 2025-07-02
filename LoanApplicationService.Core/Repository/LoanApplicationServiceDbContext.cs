@@ -38,11 +38,7 @@ namespace LoanApplicationService.Core.Repository
 
             //loanproduct to loancharge
 
-            modelBuilder.Entity<LoanCharge>()
-                .HasOne(lc => lc.LoanProduct)
-                .WithMany(lp => lp.LoanCharges)
-                .HasForeignKey(lc => lc.LoanProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<LoanCharge>();
 
         }
 
