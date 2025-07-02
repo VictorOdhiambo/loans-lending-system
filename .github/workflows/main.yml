@@ -1,0 +1,127 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate PR Title and Description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const prTitle = pullRequest.title;
+            const prBody = pullRequest.body || '';
+            
+            console.log('PR Title:', prTitle);
+            console.log('PR Body length:', prBody.length);
+
+            let errors = [];
+
+            // Validate PR title format: feature/issue-16-loan-product-configuration
+            const titleRegex = /^(feature|bugfix|hotfix|chore)\/issue-\d+-[a-z0-9-]+$/;
+            if (!titleRegex.test(prTitle)) {
+              errors.push(`❌ PR title "${prTitle}" does not match required format: feature/issue-16-loan-product-configuration`);
+              errors.push('   Valid prefixes: feature, bugfix, hotfix, chore');
+              errors.push('   Format: <prefix>/issue-<number>-<description-with-hyphens>');
+            } else {
+              console.log('✅ PR title format is valid');
+            }
+
+            // Validate PR description length (minimum 100 characters)
+            if (prBody.trim().length < 100) {
+              errors.push(`❌ PR description is too short (${prBody.trim().length} characters). Minimum required: 100 characters`);
+              errors.push('   Please provide a detailed description of the changes made.');
+            } else {
+              console.log('✅ PR description length is sufficient');
+            }
+
+            // If there are errors, fail the check
+            if (errors.length > 0) {
+              const errorMessage = errors.join('\n');
+              console.log('\n❌ PR Validation Failed:\n' + errorMessage);
+              
+              // Create or update a comment on the PR
+              const commentBody = `## ❌ PR Validation Failed
+
+${errorMessage}
+
+### Requirements:
+- **PR Title Format**: \`<prefix>/issue-<number>-<description>\`
+  - Valid prefixes: \`feature\`, \`bugfix\`, \`hotfix\`, \`chore\`
+  - Example: \`feature/issue-16-loan-product-configuration\`
+- **PR Description**: Minimum 100 characters describing the changes made
+
+Please update your PR title and/or description to meet these requirements.`;
+
+              // Check if there's already a validation comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const existingComment = comments.find(comment => 
+                comment.user.login === 'github-actions[bot]' && 
+                comment.body.includes('PR Validation Failed')
+              );
+
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: commentBody,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: commentBody,
+                });
+              }
+
+              core.setFailed('PR validation failed. Check the requirements above.');
+            } else {
+              console.log('✅ All PR validation checks passed!');
+              
+              // Remove validation comment if it exists (since validation now passes)
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const existingComment = comments.find(comment => 
+                comment.user.login === 'github-actions[bot]' && 
+                comment.body.includes('PR Validation Failed')
+              );
+
+              if (existingComment) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                });
+              }
+
+              // Add success comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '## ✅ PR Validation Passed\n\nYour PR title and description meet all requirements. Great job! 🎉',
+              });
+            }
