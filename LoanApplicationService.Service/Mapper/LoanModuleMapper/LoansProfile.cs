@@ -8,9 +8,9 @@ public class LoansProfile : Profile
 {
     public LoansProfile()
     {
-        CreateMap<LoanProductDto, LoanProduct>(); // POST mapping
+        CreateMap<LoanProductDto, LoanProduct>(); 
 
-        CreateMap<LoanProduct, LoanProductDto>()  // GET/display mapping
+        CreateMap<LoanProduct, LoanProductDto>()  
             .ForMember(dest => dest.LoanProductTypeDescription, opt => opt.MapFrom(src =>
                 Enum.IsDefined(typeof(LoanProductType), src.LoanProductType)
                     ? EnumHelper.GetDescription((LoanProductType)src.LoanProductType)
