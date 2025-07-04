@@ -9,4 +9,6 @@ public interface ILoanProductService
     Task<LoanProductDto> GetLoanProductWithChargesById(int loanProductId);
     Task<bool> AddLoanProduct(LoanProductDto loanProductDto);
     Task<bool> ModifyLoanProduct(int loanProductId, LoanProductDto loanProductDto);
+
+    Task<bool> DeleteLoanProduct(int loanProductId);
 }
