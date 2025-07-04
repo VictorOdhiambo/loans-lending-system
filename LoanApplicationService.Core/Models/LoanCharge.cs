@@ -15,6 +15,10 @@ namespace LoanApplicationService.Core.Models
         public bool IsUpfront { get; set; }
         public decimal Amount { get; set; }
 
+        public bool IsDeleted { get; set; } = false;
+
+        public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
+
     }
 }
 
