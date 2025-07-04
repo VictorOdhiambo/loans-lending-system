@@ -19,7 +19,7 @@ public class Notification
 
     [Required]
     [MaxLength(50)]
-    public string? NotificationType { get; set; }
+    public int NotificationType { get; set; }
 
     [Required]
     [MaxLength(200)]
