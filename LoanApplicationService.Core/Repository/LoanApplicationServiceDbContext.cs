@@ -10,6 +10,8 @@ namespace LoanApplicationService.Core.Repository
         public DbSet<Users> Users { get; set; } = default!;
         public DbSet<LoanApplication> LoanApplications { get; set; } = default!;
         public DbSet<LoanCharge> LoanCharges { get; set; } = default!;
+        public DbSet<LendingApp.Models.Notification> Notifications { get; set; }
+        public DbSet<LendingApp.Models.NotificationTemplate> NotificationTemplates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,7 +40,9 @@ namespace LoanApplicationService.Core.Repository
 
             //loanproduct to loancharge
 
-            modelBuilder.Entity<LoanCharge>();
+            modelBuilder.Entity<LoanCharge>()
+                .Property(p => p.Amount)
+                .HasColumnType("decimal(18,2)");
 
         }
 
