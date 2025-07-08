@@ -1,0 +1,69 @@
+@model IEnumerable<LoanManagementApp.DTOs.NotificationDto>
+@{  
+    Layout = "~/Views/Shared/_Layout.cshtml";  
+}  
+
+@{  
+    ViewData["Title"] = "Notifications";  
+}  
+
+<h1>Notifications</h1>  
+
+<table class="table">  
+    <thead>  
+        <tr>  
+            <th>Notification ID</th>
+            <th>Channel</th>
+            <th>Notification Header</th>
+            <th>Message</th>  
+            <th>Recipient</th>  
+            <th>Status</th>  
+            <th>Sent At</th>  
+            <th>Actions</th>
+        </tr>  
+    </thead>  
+    <tbody>  
+        @foreach (var item in Model) {  
+        <tr>  
+            <td>@item.NotificationId</td>
+            <td>@item.Channel</td>
+            <td>@item.NotificationHeader</td>  
+            <td>@item.Message</td>  
+            <td>@item.Recipient</td>  
+            <td>@item.Status</td>  
+            <td>@item.SentAtFormatted</td>  
+            <td>
+                <button class="btn btn-sm btn-primary resend-btn" data-id="@item.NotificationId">Resend</button>
+            </td>
+        </tr>  
+        }  
+    </tbody>  
+</table> 
+
+<div id="resend-message" style="margin-top:20px;"></div>
+
+@section Scripts {
+<script>
+    document.querySelectorAll('.resend-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-id');
+            fetch('/Notification/Resend/' + id, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(result => {
+                var msgDiv = document.getElementById('resend-message');
+                if (result.ok) {
+                    msgDiv.innerHTML = '<div class="alert alert-success">' + result.data.message + '</div>';
+                } else {
+                    msgDiv.innerHTML = '<div class="alert alert-danger">' + result.data.message + '</div>';
+                }
+            })
+            .catch(() => {
+                document.getElementById('resend-message').innerHTML = '<div class="alert alert-danger">Failed to resend notification.</div>';
+            });
+        });
+    });
+</script>
+} 
