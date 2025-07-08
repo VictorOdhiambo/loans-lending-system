@@ -1,8 +1,6 @@
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using LoanApplicationService.CrossCutting.Utils;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LoanApplicationService.Service.DTOs.LoanModule;
 public class LoanProductDto

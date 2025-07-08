@@ -6,12 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection") ?? throw new InvalidOperationException("Connection string 'Loan_application_serviceContext' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection") ?? throw new InvalidOperationException("Connection string 'DbConnection' not found.")));
 
 builder.Services.AddMvc();
 
 builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
 builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
+builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
+builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -29,6 +31,9 @@ builder.Services.AddAutoMapper(typeof(LoansProfile));
 
 
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 // Add auto mapper
 var app = builder.Build();
 
@@ -42,6 +47,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
