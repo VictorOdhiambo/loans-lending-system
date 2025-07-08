@@ -1,49 +1,67 @@
 ﻿@model IEnumerable<LoanApplicationService.Service.DTOs.LoanModule.LoanProductDto>
+
 @{
-    ViewBag.Title = "All Products";
+    ViewData["Title"] = "Index";
 }
 
-<h2>Loan Products</h2>
+<h1>Loan Products</h1>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">Loan Products</h2>
+        <a href="/LoanProduct/Create" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i> Create New
+        </a>
+    </div>
 
-<div class="mb-3">
-    <a href="@Url.Action("Create", "LoanProduct")" class="btn btn-primary">Create New Product</a>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover shadow-sm border rounded">
+            <thead class="table-dark">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.ProductName)</th>
+                    <th>@Html.DisplayNameFor(model => model.LoanProductType)</th>
+                    <th>@Html.DisplayNameFor(model => model.MinAmount)</th>
+                    <th>@Html.DisplayNameFor(model => model.MaxAmount)</th>
+                    <th>@Html.DisplayNameFor(model => model.LoanProductTypeDescription)</th>
+                    <th>@Html.DisplayNameFor(model => model.PaymentFrequency)</th>
+                    <th>@Html.DisplayNameFor(model => model.PaymentFrequencyDescription)</th>
+
+                    <th>@Html.DisplayNameFor(model => model.MinTermMonths)</th>
+                    <th>@Html.DisplayNameFor(model => model.MaxTermMonths)</th>
+                    <th>@Html.DisplayNameFor(model => model.EligibilityCriteria)</th>
+
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.ProductName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.LoanProductType)</td>
+                        <td>@Html.DisplayFor(modelItem => item.MinAmount)</td>
+                        <td>@Html.DisplayFor(modelItem => item.MaxAmount)</td>
+                        <td>@Html.DisplayFor(modelItem => item.LoanProductTypeDescription)</td>
+                        <td>@Html.DisplayFor(modelItem => item.PaymentFrequency)</td>
+                        <td>@Html.DisplayFor(modelItem => item.PaymentFrequencyDescription)</td>
+
+
+
+                        <td>@Html.DisplayFor(modelItem => item.InterestRate)</td>
+                        <td>@Html.DisplayFor(modelItem => item.MinTermMonths)</td>
+                        <td>@Html.DisplayFor(modelItem => item.MaxTermMonths)</td>
+                        <td>@Html.DisplayFor(modelItem => item.EligibilityCriteria)</td>
+
+                        <td class="text-end">
+                            <a href="/LoanProduct/Modify/@item.ProductId" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                            <a href="/LoanProduct/Delete/@item.ProductId" class="btn btn-sm btn-outline-danger me-1">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Product Name</th>
-            <th>Product Type</th>
-            <th>Min Amount</th>
-            <th>Max Amount</th>
-            <th>Interest Rate (%)</th>
-            <th>Min Term (Months)</th>
-            <th>Max Term (Months)</th>
-            <th>Processing Fee</th>
-            <th>Eligibility</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var product in Model)
-        {
-            <tr>
-                <td>@product.ProductName</td>
-                <td>@product.LoanProductTypeDescription</td>
-                <td>@product.MinAmount.ToString("N2")</td>
-                <td>@product.MaxAmount.ToString("N2")</td>
-                <td>@(product.InterestRate * 100).ToString("F2")</td>
-                <td>@product.MinTermMonths</td>
-                <td>@product.MaxTermMonths</td>
-                <td>@product.ProcessingFee.ToString("N2")</td>
-                <td>@product.EligibilityCriteria</td>
-                <td>
-                    <a class="btn btn-info btn-sm" href="@Url.Action("Details", "LoanProduct", new { id = product.ProductId })">View</a>
-                    <a class="btn btn-warning btn-sm" href="@Url.Action("Edit", "LoanProduct", new { id = product.ProductId })">Edit</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-

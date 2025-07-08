@@ -1,23 +1,22 @@
-﻿using LendingApp.Models;
-using LoanApplicationService.Core.Repository;
+﻿using LoanApplicationService.Core.Repository;
 using LoanManagementApp.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LendingApp.Services;
 using Microsoft.Extensions.Logging;
+using LoanApplicationService.Service.Services;
 
 namespace LendingApp.Controllers
 {
     public class NotificationTemplateController : Controller
     {
-        private readonly NotificationTemplateService _service;
-        private readonly NotificationSenderService _notificationSenderService;
+        private readonly INotificationTemplateService _service;
+        private readonly INotificationSenderService _notificationSenderService;
         private readonly LoanApplicationServiceDbContext _context;
         private readonly ILogger<NotificationTemplateController> _logger;
 
         public NotificationTemplateController(
-            NotificationTemplateService service, 
-            NotificationSenderService notificationSenderService, 
+            INotificationTemplateService service,
+            INotificationSenderService notificationSenderService,
             LoanApplicationServiceDbContext context,
             ILogger<NotificationTemplateController> logger)
         {
@@ -85,9 +84,9 @@ namespace LendingApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("NotificationHeader,Channel,Subject,BodyText")] NotificationTemplateDto dto)
         {
-            var sanitizedHeader = dto.NotificationHeader?.Replace("\r", "").Replace("\n", "");
-            var sanitizedChannel = dto.Channel?.Replace("\r", "").Replace("\n", "");
-            var sanitizedSubject = dto.Subject?.Replace("\r", "").Replace("\n", "");
+            var sanitizedHeader = SanitizeForLog(dto.NotificationHeader);
+            var sanitizedChannel = SanitizeForLog(dto.Channel);
+            var sanitizedSubject = SanitizeForLog(dto.Subject);
             _logger.LogInformation("Create POST action called with data: Header={Header}, Channel={Channel}, Subject={Subject}", 
                 sanitizedHeader, sanitizedChannel, sanitizedSubject);
             
@@ -194,6 +193,22 @@ namespace LendingApp.Controllers
             if (result.StartsWith("Failed"))
                 return BadRequest(result);
             return Ok(new { message = result });
+        }
+
+        // GET: api/NotificationTemplate/all-sent
+        [HttpGet("all-sent")]
+        public async Task<IActionResult> GetAllSentNotifications()
+        {
+            var notifications = await _notificationSenderService.GetAllNotificationsAsync();
+            return Ok(notifications);
+        }
+
+        // Helper function to sanitize log input
+        private static string SanitizeForLog(string? input)
+        {
+            if (input == null) return string.Empty;
+            var sanitized = input.Replace("\n", " ").Replace("\r", " ").Replace(Environment.NewLine, " ");
+            return sanitized;
         }
     }
 }

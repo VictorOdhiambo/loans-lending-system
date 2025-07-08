@@ -1,0 +1,91 @@
+﻿@model LoanApplicationService.Service.DTOs.LoanModule.LoanProductDto
+
+@{
+    ViewData["Title"] = "Create Loan Product";
+    var loanProductTypes = ViewBag.LoanProductTypes as List<SelectListItem>;
+    var paymentFrequencies = ViewBag.PaymentFrequencies as List<SelectListItem>;
+}
+
+<h2>Create Loan Product</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        @using (Html.BeginForm("Create", "LoanProduct", FormMethod.Post))
+        {
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.ProductName, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.ProductName, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ProductName, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.LoanProductType, "Loan Product Type", new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.LoanProductType, loanProductTypes, "-- Select Loan Product Type --", new { @class = "form-select" })
+                @Html.ValidationMessageFor(model => model.LoanProductType, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.PaymentFrequency, "Payment Frequency", new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.PaymentFrequency, paymentFrequencies, "-- Select Payment Frequency --", new { @class = "form-select" })
+                @Html.ValidationMessageFor(model => model.PaymentFrequency, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.MinAmount, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.MinAmount, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(model => model.MinAmount, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.MaxAmount, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.MaxAmount, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(model => model.MaxAmount, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.InterestRate, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.InterestRate, new { @class = "form-control", type = "number", step = "0.0001" })
+                @Html.ValidationMessageFor(model => model.InterestRate, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.MinTermMonths, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.MinTermMonths, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(model => model.MinTermMonths, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.MaxTermMonths, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.MaxTermMonths, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(model => model.MaxTermMonths, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.ProcessingFee, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.ProcessingFee, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(model => model.ProcessingFee, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.EligibilityCriteria, new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.EligibilityCriteria, new { @class = "form-control", rows = "3" })
+                @Html.ValidationMessageFor(model => model.EligibilityCriteria, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-check mb-3">
+                @Html.CheckBoxFor(model => model.IsActive, new { @class = "form-check-input" })
+                @Html.LabelFor(model => model.IsActive, new { @class = "form-check-label" })
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

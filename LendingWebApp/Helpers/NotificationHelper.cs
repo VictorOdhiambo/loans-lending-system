@@ -1,7 +1,7 @@
-using LendingApp.Models;
+using LoanApplicationService.Core.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace LendingWebApp.Helpers
+namespace LoanApplicationService.Web.Helpers
 {
     public static class NotificationHelper
     {

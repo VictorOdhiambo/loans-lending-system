@@ -1,14 +1,13 @@
-﻿using LendingApp.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LendingApp.Services;
+using LoanApplicationService.Service.Services;
 
 namespace LoanManagementApp.Controllers
 {
     public class NotificationController : Controller
     {
-        private readonly NotificationSenderService _notificationService;
-        public NotificationController(NotificationSenderService notificationService)
+        private readonly INotificationSenderService _notificationService;
+        public NotificationController(INotificationSenderService notificationService)
         {
             _notificationService = notificationService;
         } 
