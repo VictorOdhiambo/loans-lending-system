@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using LendingApp.Models;
+﻿using LoanApplicationService.Core.Models;
+using System.ComponentModel.DataAnnotations;
+
 
 namespace LoanManagementApp.DTOs
 {

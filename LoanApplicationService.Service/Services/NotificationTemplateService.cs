@@ -1,12 +1,12 @@
+using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanManagementApp.DTOs;
-using LendingApp.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace LendingApp.Services
+namespace LoanApplicationService.Service.Services
 {
-    public class NotificationTemplateService
+    public class NotificationTemplateService : INotificationTemplateService
     {
         private readonly LoanApplicationServiceDbContext _context;
         private readonly ILogger<NotificationTemplateService> _logger;

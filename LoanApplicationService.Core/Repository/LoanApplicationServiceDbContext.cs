@@ -12,18 +12,10 @@ public class LoanApplicationServiceDbContext(DbContextOptions<LoanApplicationSer
     public DbSet<LoanApplication> LoanApplications { get; set; } = default!;
     public DbSet<LoanCharge> LoanCharges { get; set; } = default!;
     public DbSet<LoanChargeMapper> LoanChargeMapper { get; set; } = default!;
-namespace LoanApplicationService.Core.Repository
-{
-    public class LoanApplicationServiceDbContext(DbContextOptions<LoanApplicationServiceDbContext> options) : DbContext(options)
-    {
-        public DbSet<LoanProduct> LoanProducts { get; set; } = default!;
-        public DbSet<Users> Users { get; set; } = default!;
-        public DbSet<LoanApplication> LoanApplications { get; set; } = default!;
-        public DbSet<LoanCharge> LoanCharges { get; set; } = default!;
-        public DbSet<LendingApp.Models.Notification> Notifications { get; set; }
-        public DbSet<LendingApp.Models.NotificationTemplate> NotificationTemplates { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
-    
+
     public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
     {
         public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)
@@ -70,9 +62,9 @@ namespace LoanApplicationService.Core.Repository
 
         modelBuilder.Entity<LoanCharge>().Property(p => p.IsDeleted).HasDefaultValue(false);
         modelBuilder.Entity<LoanCharge>().HasQueryFilter(p => !p.IsDeleted);
-            modelBuilder.Entity<LoanCharge>()
-                .Property(p => p.Amount)
-                .HasColumnType("decimal(18,2)");
+        modelBuilder.Entity<LoanCharge>()
+            .Property(p => p.Amount)
+            .HasColumnType("decimal(18,2)");
 
     }
 

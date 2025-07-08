@@ -12,8 +12,8 @@ builder.Services.AddMvc();
 
 builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
 builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
-builder.Services.AddScoped<LendingApp.Services.NotificationSenderService>();
-builder.Services.AddScoped<LendingApp.Services.NotificationTemplateService>();
+builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
+builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();

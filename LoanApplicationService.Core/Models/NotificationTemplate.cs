@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LendingApp.Models
+namespace LoanApplicationService.Core.Models
 {
  
     public class NotificationTemplate

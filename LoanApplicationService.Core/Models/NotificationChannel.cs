@@ -1,4 +1,4 @@
-namespace LendingApp.Models
+namespace LoanApplicationService.Core.Models
 {
     public enum NotificationChannel
     {

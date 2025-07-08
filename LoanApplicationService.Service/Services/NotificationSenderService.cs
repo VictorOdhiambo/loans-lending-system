@@ -1,5 +1,4 @@
-﻿using LendingApp.Models;
-using LoanApplicationService.Core.Repository;
+﻿using LoanApplicationService.Core.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -7,10 +6,11 @@ using System.Net.Mail;
 using System.Text.RegularExpressions;
 using LoanManagementApp.DTOs;
 using LoanManagementApp.Models;
+using LoanApplicationService.Core.Models;
 
-namespace LendingApp.Services
+namespace LoanApplicationService.Service.Services
 {
-    public class NotificationSenderService
+    public class NotificationSenderService : INotificationSenderService
     {
         private readonly LoanApplicationServiceDbContext _context;
         private readonly EmailSettings _emailSettings;
@@ -146,5 +146,6 @@ namespace LendingApp.Services
             var data = new Dictionary<string, string> { ["Email"] = notification.Recipient };
             return await SendNotificationAsync(notification.NotificationHeader, notification.Channel, data);
         }
+
     }
 }
