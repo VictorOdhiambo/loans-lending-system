@@ -1,39 +1,60 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Reflection;
 using LoanApplicationService.CrossCutting.Utils;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LoanApplicationService.Service.DTOs.LoanModule;
 public class LoanProductDto
-
 {
-
     public int ProductId { get; set; }
 
     [Required]
     [MaxLength(100)]
-    public required string ProductName { get; set; }
+    [Display(Name = "Product Name")]
+    public string ProductName { get; set; }
+
+    [Required(ErrorMessage = "Please select a loan product type.")]
+    public int? LoanProductType { get; set; }  
+
+    public string LoanProductTypeDescription =>
+        LoanProductType.HasValue && Enum.IsDefined(typeof(LoanProductType), LoanProductType.Value)
+        ? EnumHelper.GetDescription((LoanProductType)LoanProductType.Value)
+        : string.Empty;
+
+    [Required(ErrorMessage = "Please select a payment frequency.")]
+    public int? PaymentFrequency { get; set; }  
+
+    public string PaymentFrequencyDescription =>
+        PaymentFrequency.HasValue && Enum.IsDefined(typeof(PaymentFrequency), PaymentFrequency.Value)
+        ? EnumHelper.GetDescription((PaymentFrequency)PaymentFrequency.Value)
+        : string.Empty;
 
     [Required]
-    [MaxLength(50)]
-    public required int LoanProductType { get; set; }
-    public string LoanProductTypeDescription => Enum.IsDefined(typeof(LoanProductType), LoanProductType) ? EnumHelper.GetDescription((LoanProductType)LoanProductType) : string.Empty;
-
-    [Column(TypeName = "decimal(15,2)")]
     public decimal MinAmount { get; set; }
-    [Column(TypeName = "decimal(15,2)")]
+
+    [Required]
     public decimal MaxAmount { get; set; }
-    [Column(TypeName = "decimal(5,4)")]
+
+    [Required]
     public decimal InterestRate { get; set; }
+
+    [Required]
     public int MinTermMonths { get; set; }
+
+    [Required]
     public int MaxTermMonths { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Required]
     public decimal ProcessingFee { get; set; }
 
-    [MaxLength(500)]
-    public required string EligibilityCriteria { get; set; }
+    public bool IsActive { get; set; } = true;
 
+    [Required]
+    [MaxLength(500)]
+    public string EligibilityCriteria { get; set; }
+
+    
 }
+
 

@@ -24,4 +24,18 @@ namespace LoanApplicationService.CrossCutting.Utils
         [Description("Push Notification")]
         PushNotification = 2
     }
+
+    public enum PaymentFrequency
+    {
+        [Description("Daily")]
+        Daily = 0,
+        [Description("Weekly")]
+        Weekly =1,
+        [Description("FortNightly")]
+        FortNightly = 2,
+        [Description("Monthly")]
+        Monthly =3
+        
+
+    }
 }

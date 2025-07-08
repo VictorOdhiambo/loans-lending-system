@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using LoanApplicationService.CrossCutting.Utils;
 namespace LoanApplicationService.Core.Models
 {
     public class LoanProduct
@@ -15,8 +15,9 @@ namespace LoanApplicationService.Core.Models
         public required string ProductName { get; set; }
 
         [Required]
-        [MaxLength(50)]
         public required int LoanProductType { get; set; }
+
+        public int PaymentFrequency { get; set; }
 
         [Column(TypeName = "decimal(15,2)")]
         public decimal MinAmount { get; set; }
@@ -33,6 +34,7 @@ namespace LoanApplicationService.Core.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal ProcessingFee { get; set; }
 
+
         [MaxLength(500)]
         public required string EligibilityCriteria { get; set; }
 
@@ -40,6 +42,12 @@ namespace LoanApplicationService.Core.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; }
+
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedOn { get; set; }
+
+        public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
+
 
         public virtual ICollection<LoanApplication> LoanApplications { get; set; } = new List<LoanApplication>();
 

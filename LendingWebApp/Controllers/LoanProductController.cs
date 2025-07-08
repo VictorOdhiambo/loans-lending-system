@@ -1,12 +1,16 @@
 ﻿using LoanApplicationService.Core.Models;
+using LoanApplicationService.CrossCutting.Utils;
 using LoanApplicationService.Service.DTOs.LoanModule;
 using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
+
 
 namespace LoanApplicationService.Web.Controllers
 {
-    [Route("/loan-products")]
     public class LoanProductController(ILoanProductService loanProductService) : Controller
     {
         private readonly ILoanProductService _loanProductService = loanProductService;
@@ -20,74 +24,133 @@ namespace LoanApplicationService.Web.Controllers
         }
 
 
-        [HttpGet("/{id}")]
+        [HttpGet]
         public async Task<IActionResult> GetById(int id)
         {
             var loanProducts = await _loanProductService.GetLoanProductById(id);
             return View(loanProducts);
         }
 
-        [HttpGet("/create")]
+        [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            PopulateDropdowns();
+            return View(new LoanProductDto());
         }
 
-        [HttpGet("/modify")]
-        public IActionResult Modify()
-        {
-            return View();
-        }
-
-        [HttpPost("/create")]
+        [HttpPost]
         public async Task<IActionResult> Create(LoanProductDto loanProductDto)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                TempData["Error"] = "Loan product creation failed. All fields are required!";
+                var result = await _loanProductService.AddLoanProduct(loanProductDto);
+                if (result)
+                {
+                    TempData["Success"] = "Loan product created successfully!";
+                    return RedirectToAction("Index");
+                }
 
-                return RedirectToAction("Create");
+                TempData["Error"] = "Unexpected error occurred while saving.";
             }
 
-            var isSuccess = await _loanProductService.AddLoanProduct(loanProductDto);
-            if (isSuccess)
-            {
-                TempData["Success"] = "Loan product created successfully!";
-                return RedirectToAction("Index");
-            }
-            else
-            {
-                TempData["Error"] = "Loan product creation failed. Please try again.";
-                return RedirectToAction("Create");
-            }
-
+            TempData["Error"] = "Loan product creation failed. Please check validation errors.";
+            PopulateDropdowns();
+            return View(loanProductDto);
         }
 
-        //update loan product
-        [HttpPut("/modify/{id}")]
-        public async Task<IActionResult> Modify(int id, LoanProductDto loanProductDto)
+
+
+
+
+        [HttpGet]
+        public async Task<ActionResult> Modify(int id)
         {
+            var LoanProduct = await _loanProductService.GetLoanProductById(id);
+            PopulateDropdowns();
+            return View(LoanProduct);
+        }
 
-            if (!ModelState.IsValid)
-            {
-                TempData["Error"] = "Loan product modification failed. All fields are required!";
-                return RedirectToAction("Modify");
-            }
 
-            var isSuccess = await _loanProductService.ModifyLoanProduct(id, loanProductDto);
-            if (isSuccess)
+        [HttpPost]
+        public async Task<ActionResult> Modify(LoanProductDto loanProductDto)
+        {
+            if (ModelState.IsValid)
             {
-                TempData["Success"] = "Loan product modified successfully!";
-                return RedirectToAction("Index");
+                var result = await _loanProductService.ModifyLoanProduct(loanProductDto.ProductId, loanProductDto);
+                if (result)
+                {
+                    TempData["Success"] = "Loan product updated successfully!";
+                    return RedirectToAction("Index");
+                }
+                TempData["Error"] = "Failed to update loan product. Please try again.";
             }
             else
             {
-                TempData["Error"] = "Loan product modify failed. Please try again.";
-                return RedirectToAction("Modify");
+                TempData["Error"] = "Validation failed. Please check the form for errors.";
             }
+            PopulateDropdowns();
+            return View(loanProductDto);
+        }
 
+        [HttpPost]
+        public async Task<ActionResult> DeleteConfirmed(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["Error"] = "Invalid loan product ID.";
+                return RedirectToAction("Index");
+            }
+            var result = await _loanProductService.DeleteLoanProduct(id);
+            if (result)
+            {
+                TempData["Success"] = "Loan product deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Failed to delete loan product. Please try again.";
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public  async Task<ActionResult> Delete(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["Error"] = "Invalid loan product ID.";
+                return RedirectToAction("Index");
+            }
+            var loanProduct = await _loanProductService.GetLoanProductById(id);
+            if (loanProduct == null)
+            {
+                TempData["Error"] = "Loan product not found.";
+                return RedirectToAction("Index");
+            }
+            return View(loanProduct);
+        }
+
+
+
+        private void PopulateDropdowns()
+        {
+            ViewBag.LoanProductTypes = Enum.GetValues(typeof(LoanProductType))
+                .Cast<LoanProductType>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = EnumHelper.GetDescription(e)
+                }).ToList();
+
+            ViewBag.PaymentFrequencies = Enum.GetValues(typeof(PaymentFrequency))
+                .Cast<PaymentFrequency>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = EnumHelper.GetDescription(e)
+                }).ToList();
         }
 
     }
-
 }
+
+

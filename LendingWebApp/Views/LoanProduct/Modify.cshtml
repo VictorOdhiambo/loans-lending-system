@@ -1,0 +1,83 @@
+﻿@model LoanApplicationService.Service.DTOs.LoanModule.LoanProductDto
+
+@{
+    ViewData["Title"] = "Modify Loan Product";
+    var loanProductTypes = ViewBag.LoanProductTypes as List<SelectListItem>;
+    var paymentFrequencies = ViewBag.PaymentFrequencies as List<SelectListItem>;
+}
+
+<h1>Modify Loan Product</h1>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+@using (Html.BeginForm(
+    actionName: "Modify",
+    controllerName: "LoanProduct",
+    routeValues: new { id = Model.ProductId },
+    method: FormMethod.Post,
+    antiforgery: true,
+    htmlAttributes: new { @class = "form-horizontal" }))            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(model => model.ProductId)
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.ProductName, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.ProductName, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.ProductName, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.LoanProductType, "Loan Product Type", new { @class = "form-label" })
+                    @Html.DropDownListFor(model => model.LoanProductType, loanProductTypes, "-- Select Loan Product Type --", new { @class = "form-select" })
+                    @Html.ValidationMessageFor(model => model.LoanProductType, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.PaymentFrequency, "Payment Frequency", new { @class = "form-label" })
+                    @Html.DropDownListFor(model => model.PaymentFrequency, paymentFrequencies, "-- Select Payment Frequency --", new { @class = "form-select" })
+                    @Html.ValidationMessageFor(model => model.PaymentFrequency, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.MinAmount, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.MinAmount, new { @class = "form-control", type = "number", step = "0.01" })
+                    @Html.ValidationMessageFor(model => model.MinAmount, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.MaxAmount, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.MaxAmount, new { @class = "form-control", type = "number", step = "0.01" })
+                    @Html.ValidationMessageFor(model => model.MaxAmount, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.InterestRate, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.InterestRate, new { @class = "form-control", type = "number", step = "0.0001" })
+                    @Html.ValidationMessageFor(model => model.InterestRate, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.MinTermMonths, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.MinTermMonths, new { @class = "form-control", type = "number" })
+                    @Html.ValidationMessageFor(model => model.MinTermMonths, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.MaxTermMonths, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.MaxTermMonths, new { @class = "form-control", type = "number" })
+                    @Html.ValidationMessageFor(model => model.MaxTermMonths, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.EligibilityCriteria, new { @class = "form-label" })
+                    @Html.TextAreaFor(model => model.EligibilityCriteria, new { @class = "form-control", rows = 4 })
+                    @Html.ValidationMessageFor(model => model.EligibilityCriteria, "", new { @class = "text-danger" })
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            }
+        </div>
+    </div>
+</div>
