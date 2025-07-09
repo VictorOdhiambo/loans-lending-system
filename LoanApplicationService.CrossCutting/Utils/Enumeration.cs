@@ -15,7 +15,7 @@ namespace LoanApplicationService.CrossCutting.Utils
         LogBook = 1 
     }
 
-    public enum NotificationType
+    public enum NotificationHeader
     {
         [Description("Email")]
         Email = 0,

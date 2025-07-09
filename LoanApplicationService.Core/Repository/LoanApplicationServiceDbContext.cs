@@ -12,8 +12,10 @@ public class LoanApplicationServiceDbContext(DbContextOptions<LoanApplicationSer
     public DbSet<LoanApplication> LoanApplications { get; set; } = default!;
     public DbSet<LoanCharge> LoanCharges { get; set; } = default!;
     public DbSet<LoanChargeMapper> LoanChargeMapper { get; set; } = default!;
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
-    
+
     public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
     {
         public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)
@@ -60,6 +62,9 @@ public class LoanApplicationServiceDbContext(DbContextOptions<LoanApplicationSer
 
         modelBuilder.Entity<LoanCharge>().Property(p => p.IsDeleted).HasDefaultValue(false);
         modelBuilder.Entity<LoanCharge>().HasQueryFilter(p => !p.IsDeleted);
+        modelBuilder.Entity<LoanCharge>()
+            .Property(p => p.Amount)
+            .HasColumnType("decimal(18,2)");
 
     }
 

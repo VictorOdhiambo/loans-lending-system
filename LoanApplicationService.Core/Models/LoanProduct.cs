@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using LoanApplicationService.CrossCutting.Utils;
 namespace LoanApplicationService.Core.Models
 {
     public class LoanProduct
