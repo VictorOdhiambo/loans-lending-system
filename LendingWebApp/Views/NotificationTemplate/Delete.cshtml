@@ -1,0 +1,38 @@
+@model LoanManagementApp.DTOs.NotificationTemplateDto
+
+@{
+    ViewData["Title"] = "Delete Notification Template";
+}
+
+<h2>Delete Notification Template</h2>
+
+<div class="alert alert-warning">
+    <strong>Are you sure you want to delete this notification template?</strong>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-4">Notification Header</dt>
+            <dd class="col-sm-8">@Model.NotificationHeader</dd>
+
+            <dt class="col-sm-4">Channel</dt>
+            <dd class="col-sm-8">@Model.Channel</dd>
+
+            <dt class="col-sm-4">Subject</dt>
+            <dd class="col-sm-8">@Model.Subject</dd>
+
+            <dt class="col-sm-4">Body Text</dt>
+            <dd class="col-sm-8">@Model.BodyText</dd>
+        </dl>
+    </div>
+</div>
+
+@using (Html.BeginForm("Delete", "NotificationTemplate", new { id = Model.TemplateId }, FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="@Url.Action("Index", "NotificationTemplate")" class="btn btn-secondary">Cancel</a>
+    </div>
+} 

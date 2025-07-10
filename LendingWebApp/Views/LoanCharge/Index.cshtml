@@ -4,55 +4,56 @@
     ViewData["Title"] = "Loan Charges";
 }
 
-<h2 class="mb-4">Loan Charges</h2>
-
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
-<p>
-    <a asp-action="Create" class="btn btn-success">Add New Charge</a>
-</p>
-
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Is Penalty</th>
-            <th>Is Upfront</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            foreach (var charge in Model)
-            {
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white px-3 py-2 rounded" style="background: #1565c0;">Loan Charges</h2>
+        <a asp-action="Create" class="btn btn-primary btn-lg shadow">Add New Charge</a>
+    </div>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 border rounded" style="background: #e3f2fd;">
+            <thead style="background: #1976d2; color: #fff;">
                 <tr>
-                    <td>@charge.Name</td>
-                    <td>@charge.Description</td>
-                    <td>@charge.Amount.ToString("C")</td>
-                    <td>@(charge.IsPenalty ? "Yes" : "No")</td>
-                    <td>@(charge.IsUpfront ? "Yes" : "No")</td>
-                    <td>
-                        <a href="/LoanCharge/Update/@charge.Id" class="btn btn-sm btn-primary">Edit</a>
-                        <a href="/LoanCharge/Delete/@charge.Id" class="btn btn-sm btn-danger">Delete</a>
-                    </td>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Is Penalty</th>
+                    <th>Is Upfront</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="6" class="text-center">No loan charges found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var charge in Model)
+                    {
+                        <tr style="transition: background 0.2s;" onmouseover="this.style.background='#bbdefb'" onmouseout="this.style.background=''">
+                            <td>@charge.Name</td>
+                            <td>@charge.Description</td>
+                            <td>@charge.Amount.ToString("C")</td>
+                            <td>@(charge.IsPenalty ? "Yes" : "No")</td>
+                            <td>@(charge.IsUpfront ? "Yes" : "No")</td>
+                            <td>
+                                <a href="/LoanCharge/Update/@charge.Id" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                                <a href="/LoanCharge/Delete/@charge.Id" class="btn btn-sm btn-outline-danger me-1">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center">No loan charges found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -8,202 +8,39 @@
 
 <h1>Create Notification Template</h1>
 
-<form id="createTemplateForm">
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-    <div class="mb-3">
-        <label asp-for="NotificationHeader" class="form-label">Notification Header</label>
-        <select asp-for="NotificationHeader" class="form-control" id="notificationHeader" required>
-            <option value="">-- Select Notification Header --</option>
-            @foreach (var option in NotificationHelper.GetNotificationHeaderOptions())
-            {
-                <option value="@option.Value">@option.Text</option>
-            }
-        </select>
-        <span asp-validation-for="NotificationHeader" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Channel" class="form-label">Channel</label>
-        <select asp-for="Channel" class="form-control" id="channel" required>
-            <option value="">-- Select Channel --</option>
-            @foreach (var option in NotificationHelper.GetChannelOptions())
-            {
-                <option value="@option.Value">@option.Text</option>
-            }
-        </select>
-        <span asp-validation-for="Channel" class="text-danger"></span>
-    </div> 
-    <div class="mb-3">
-        <label asp-for="Subject" class="form-label">Subject</label>
-        <input asp-for="Subject" class="form-control" id="subject" required /> 
-        <span asp-validation-for="Subject" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="BodyText" class="form-label">Body Text</label>
-        <textarea asp-for="BodyText" class="form-control" id="bodyText" required></textarea>
-        <span asp-validation-for="BodyText" class="text-danger"></span>
-    </div>
-    <button type="button" class="btn btn-primary" id="createBtn" onclick="createTemplate()">
-        <span id="btnText">Create</span>
-        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
-    </button>
-    <a href="/NotificationTemplate" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="row">
+    <div class="col-md-8">
+        @using (Html.BeginForm("Create", "NotificationTemplate", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-<div id="alertContainer"></div>
+            <div class="mb-3">
+                @Html.LabelFor(model => model.NotificationHeader, new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.NotificationHeader, NotificationHelper.GetNotificationHeaderOptions(), "-- Select Notification Header --", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.NotificationHeader, "", new { @class = "text-danger" })
+            </div>
+            <div class="mb-3">
+                @Html.LabelFor(model => model.Channel, new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.Channel, NotificationHelper.GetChannelOptions(), "-- Select Channel --", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Channel, "", new { @class = "text-danger" })
+            </div>
+            <div class="mb-3">
+                @Html.LabelFor(model => model.Subject, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.Subject, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Subject, "", new { @class = "text-danger" })
+            </div>
+            <div class="mb-3">
+                @Html.LabelFor(model => model.BodyText, new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.BodyText, new { @class = "form-control", rows = 4 })
+                @Html.ValidationMessageFor(model => model.BodyText, "", new { @class = "text-danger" })
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a href="/NotificationTemplate" class="btn btn-secondary">Cancel</a>
+        }
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    
-    <script>
-        function showAlert(message, type = 'success') {
-            const alertContainer = document.getElementById('alertContainer');
-            const alertHtml = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            alertContainer.innerHTML = alertHtml;
-        }
-
-        function setButtonLoading(isLoading) {
-            const btn = document.getElementById('createBtn');
-            const btnText = document.getElementById('btnText');
-            const btnSpinner = document.getElementById('btnSpinner');
-            
-            if (isLoading) {
-                btn.disabled = true;
-                btnText.textContent = 'Creating...';
-                btnSpinner.classList.remove('d-none');
-            } else {
-                btn.disabled = false;
-                btnText.textContent = 'Create';
-                btnSpinner.classList.add('d-none');
-            }
-        }
-
-        function validateForm() {
-            const notificationHeader = document.getElementById('notificationHeader').value.trim();
-            const channel = document.getElementById('channel').value;
-            const subject = document.getElementById('subject').value.trim();
-            const bodyText = document.getElementById('bodyText').value.trim();
-            
-            let isValid = true;
-            let errorMessage = '';
-            
-            if (!notificationHeader) {
-                errorMessage += 'Notification Header is required.\n';
-                isValid = false;
-            }
-            
-            if (!channel) {
-                errorMessage += 'Channel is required.\n';
-                isValid = false;
-            }
-            
-            if (!subject) {
-                errorMessage += 'Subject is required.\n';
-                isValid = false;
-            }
-            
-            if (!bodyText) {
-                errorMessage += 'Body Text is required.\n';
-                isValid = false;
-            }
-            
-            if (!isValid) {
-                showAlert(errorMessage, 'danger');
-            }
-            
-            return isValid;
-        }
-
-        async function createTemplate() {
-            // Clear previous alerts
-            document.getElementById('alertContainer').innerHTML = '';
-            
-            // Validate form
-            if (!validateForm()) {
-                return;
-            }
-            
-            // Show loading state
-            setButtonLoading(true);
-            
-            try {
-                // Get form data
-                const formData = {
-                    NotificationHeader: document.getElementById('notificationHeader').value.trim(),
-                    Channel: document.getElementById('channel').value,
-                    Subject: document.getElementById('subject').value.trim(),
-                    BodyText: document.getElementById('bodyText').value.trim()
-                };
-                
-                // Get anti-forgery token
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                
-                // Make API call
-                const response = await fetch('/NotificationTemplate/Create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                if (response.ok) {
-                    showAlert('Notification template created successfully!', 'success');
-                    // Redirect after a short delay
-                    setTimeout(() => {
-                        window.location.href = '/NotificationTemplate';
-                    }, 1500);
-                } else {
-                    const errorData = await response.text();
-                    showAlert(`Error creating template: ${errorData}`, 'danger');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('An unexpected error occurred. Please try again.', 'danger');
-            } finally {
-                setButtonLoading(false);
-            }
-        }
-
-        // Using form submission with enhanced validation
-        function createTemplateAlternative() {
-            if (!validateForm()) {
-                return;
-            }
-            
-            setButtonLoading(true);
-            
-            // Create a temporary form and submit it
-            const form = document.getElementById('createTemplateForm');
-            const originalAction = form.action;
-            const originalMethod = form.method;
-            
-            form.action = '/NotificationTemplate/Create';
-            form.method = 'post';
-            
-            // Hidden input for the submit type
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'submitType';
-            hiddenInput.value = 'create';
-            form.appendChild(hiddenInput);
-            
-            // Submit the form
-            form.submit();
-        }
-
-        // Event listener for Enter key
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.target.matches('textarea')) {
-                e.preventDefault();
-                createTemplate();
-            }
-        });
-    </script>
 }
