@@ -7,40 +7,44 @@
     ViewData["Title"] = "Notifications";  
 }  
 
-<h1>Notifications</h1>  
-
-<table class="table">  
-    <thead>  
-        <tr>  
-            <th>Notification ID</th>
-            <th>Channel</th>
-            <th>Notification Header</th>
-            <th>Message</th>  
-            <th>Recipient</th>  
-            <th>Status</th>  
-            <th>Sent At</th>  
-            <th>Actions</th>
-        </tr>  
-    </thead>  
-    <tbody>  
-        @foreach (var item in Model) {  
-        <tr>  
-            <td>@item.NotificationId</td>
-            <td>@item.Channel</td>
-            <td>@item.NotificationHeader</td>  
-            <td>@item.Message</td>  
-            <td>@item.Recipient</td>  
-            <td>@item.Status</td>  
-            <td>@item.SentAtFormatted</td>  
-            <td>
-                <button class="btn btn-sm btn-primary resend-btn" data-id="@item.NotificationId">Resend</button>
-            </td>
-        </tr>  
-        }  
-    </tbody>  
-</table> 
-
-<div id="resend-message" style="margin-top:20px;"></div>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white px-3 py-2 rounded" style="background: #1565c0;">Notifications</h2>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle table-bordered" style="background: #e3f2fd;">
+            <thead style="background: #1976d2; color: #fff;">
+                <tr>
+                    <th>Notification ID</th>
+                    <th>Channel</th>
+                    <th>Notification Header</th>
+                    <th>Message</th>
+                    <th>Recipient</th>
+                    <th>Status</th>
+                    <th>Sent At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {  
+                <tr style="transition: background 0.2s;" onmouseover="this.style.background='#bbdefb'" onmouseout="this.style.background=''">
+                    <td>@item.NotificationId</td>
+                    <td>@item.Channel</td>
+                    <td>@item.NotificationHeader</td>
+                    <td>@item.Message</td>
+                    <td>@item.Recipient</td>
+                    <td>@item.Status</td>
+                    <td>@item.SentAtFormatted</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary resend-btn" data-id="@item.NotificationId">Resend</button>
+                    </td>
+                </tr>  
+                }  
+            </tbody>
+        </table>
+    </div>
+    <div id="resend-message" style="margin-top:20px;"></div>
+</div>
 
 @section Scripts {
 <script>

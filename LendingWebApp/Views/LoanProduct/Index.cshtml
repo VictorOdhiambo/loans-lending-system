@@ -1,21 +1,19 @@
 ﻿@model IEnumerable<LoanApplicationService.Service.DTOs.LoanModule.LoanProductDto>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Loan Products";
 }
 
-<h1>Loan Products</h1>
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary">Loan Products</h2>
-        <a href="/LoanProduct/Create" class="btn btn-success">
+        <h2 class="text-white px-3 py-2 rounded" style="background: #1565c0;">Loan Products</h2>
+        <a href="/LoanProduct/Create" class="btn btn-primary btn-lg shadow">
             <i class="bi bi-plus-circle me-1"></i> Create New
         </a>
     </div>
-
     <div class="table-responsive">
-        <table class="table table-striped table-hover shadow-sm border rounded">
-            <thead class="table-dark">
+        <table class="table table-hover align-middle table-bordered" style="background: #e3f2fd;">
+            <thead style="background: #1976d2; color: #fff;">
                 <tr>
                     <th>@Html.DisplayNameFor(model => model.ProductName)</th>
                     <th>@Html.DisplayNameFor(model => model.LoanProductType)</th>
@@ -24,18 +22,17 @@
                     <th>@Html.DisplayNameFor(model => model.LoanProductTypeDescription)</th>
                     <th>@Html.DisplayNameFor(model => model.PaymentFrequency)</th>
                     <th>@Html.DisplayNameFor(model => model.PaymentFrequencyDescription)</th>
-
+                    <th>@Html.DisplayNameFor(model => model.InterestRate)</th>
                     <th>@Html.DisplayNameFor(model => model.MinTermMonths)</th>
                     <th>@Html.DisplayNameFor(model => model.MaxTermMonths)</th>
                     <th>@Html.DisplayNameFor(model => model.EligibilityCriteria)</th>
-
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
-                    <tr>
+                    <tr style="transition: background 0.2s;" onmouseover="this.style.background='#bbdefb'" onmouseout="this.style.background=''">
                         <td>@Html.DisplayFor(modelItem => item.ProductName)</td>
                         <td>@Html.DisplayFor(modelItem => item.LoanProductType)</td>
                         <td>@Html.DisplayFor(modelItem => item.MinAmount)</td>
@@ -43,14 +40,10 @@
                         <td>@Html.DisplayFor(modelItem => item.LoanProductTypeDescription)</td>
                         <td>@Html.DisplayFor(modelItem => item.PaymentFrequency)</td>
                         <td>@Html.DisplayFor(modelItem => item.PaymentFrequencyDescription)</td>
-
-
-
                         <td>@Html.DisplayFor(modelItem => item.InterestRate)</td>
                         <td>@Html.DisplayFor(modelItem => item.MinTermMonths)</td>
                         <td>@Html.DisplayFor(modelItem => item.MaxTermMonths)</td>
                         <td>@Html.DisplayFor(modelItem => item.EligibilityCriteria)</td>
-
                         <td class="text-end">
                             <a href="/LoanProduct/Modify/@item.ProductId" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="bi bi-pencil-square"></i> Edit

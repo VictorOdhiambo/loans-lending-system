@@ -1,0 +1,58 @@
+<div class="d-flex flex-column flex-shrink-0 p-3 position-fixed vh-100" style="width: 220px; background: #1565c0;">
+    <a href="/Home/Index" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <span class="fs-4 fw-bold">Admin</span>
+    </a>
+    <hr class="border-light">
+    <ul class="nav nav-pills flex-column mb-auto">
+        <!-- Loans Dropdown -->
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="loansDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
+                <i class="bi bi-cash-stack me-2"></i> Loans
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="loansDropdown">
+                <li><a class="dropdown-item text-white" href="/LoanProduct">View All Loans</a></li>
+                <li><a class="dropdown-item text-white" href="/LoanProduct/Pending">Pending Approvals</a></li>
+                <li><a class="dropdown-item text-white" href="/LoanProduct/Approved">Approved Loans</a></li>
+                <li><a class="dropdown-item text-white" href="/LoanProduct/Rejected">Rejected Loans</a></li>
+                <li><a class="dropdown-item text-white" href="/LoanProduct/Disbursed">Disbursed Loans</a></li>
+                <li><a class="dropdown-item text-white" href="/LoanProduct/Overdue">Overdue Loans</a></li>
+            </ul>
+        </li>
+        <!-- Users Dropdown -->
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="usersDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
+                <i class="bi bi-people me-2"></i> Users
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="usersDropdown">
+                <li><a class="dropdown-item text-white" href="/Users">All Users</a></li>
+                <li><a class="dropdown-item text-white" href="/Users/Admins">Admins</a></li>
+                <li><a class="dropdown-item text-white" href="/Users/Borrowers">Customers</a></li>
+                <li><a class="dropdown-item text-white" href="/Users/Add">Add New User</a></li>
+            </ul>
+        </li>
+        <!-- Reports Dropdown -->
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="reportsDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
+                <i class="bi bi-graph-up me-2"></i> Reports
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="reportsDropdown">
+                <li><a class="dropdown-item text-white" href="/Reports/LoanSummary">Loan Summary</a></li>
+                <li><a class="dropdown-item text-white" href="/Reports/SMSDeliveryLogs">SMS Delivery Logs</a></li>
+            </ul>
+        </li>
+        <!-- Notifications Dropdown -->
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
+                <i class="bi bi-bell me-2"></i> Notifications
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="notificationsDropdown">
+                <li><a class="dropdown-item text-white" href="/NotificationTemplate">Templates</a></li>
+                <li><a class="dropdown-item text-white" href="/Notification">Sent Notifications</a></li>
+                <li><a class="dropdown-item text-white" href="/Notification/Failed">Failed Deliveries</a></li>
+                <li><a class="dropdown-item text-white" href="/NotificationTemplate/Add">Add New Template</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+<!-- Bootstrap Icons CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" /> 
