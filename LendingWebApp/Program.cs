@@ -1,57 +1,55 @@
 ﻿using LoanApplicationService.Core.Repository;
 using LoanApplicationService.Service.Mapper.LoanModuleMapper;
 using LoanApplicationService.Service.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection") ?? throw new InvalidOperationException("Connection string 'DbConnection' not found.")));
 
-builder.Services.AddMvc();
-
-builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
-builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
-builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
-builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
-
-// Add services to the container.
-builder.Services.AddRazorPages();
-
-// Add services to the container.
+// ✅ Add services to the container
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddAutoMapper(typeof(Program));
+// ✅ Add AutoMapper
+builder.Services.AddAutoMapper(typeof(LoansProfile).Assembly);
 
+// ✅ Register EF Core DbContext
+builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
+});
 
+// ✅ Dependency Injection for services
+builder.Services.AddScoped<IUserService, UserServiceImpl>();
+builder.Services.AddScoped<ICustomerService, CustomerServiceImpl>();
+builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
+builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
+builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
+builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
+builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
+// Add others here if needed
 
-builder.Services.AddAutoMapper(typeof(LoansProfile));
-
-
-
-
-
+// Add Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add auto mapper
+// ✅ Enable Session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// ✅ Optional: Enable Razor runtime compilation (only if package is installed)
+// builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+
 var app = builder.Build();
 
-
-
-
+// ✅ Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-}
-
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -59,13 +57,42 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthorization();
 
+// Enable Swagger in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// ✅ Default Route: Home/Index (Login)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapRazorPages();
 
+// ✅ Auto-seed admin user on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<LoanApplicationServiceDbContext>();
+
+    if (!db.Users.Any(u => u.Email == "admin@lms.com"))
+    {
+        var admin = new LoanApplicationService.Core.Models.Users
+        {
+            Id = Guid.NewGuid(),
+            Username = "SuperAdmin",
+            Email = "admin@lms.com",
+            Role = "Admin",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+            IsDeleted = false
+        };
+
+        db.Users.Add(admin);
+        db.SaveChanges();
+    }
+}
 
 app.Run();

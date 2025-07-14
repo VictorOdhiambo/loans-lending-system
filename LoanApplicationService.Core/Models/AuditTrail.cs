@@ -9,7 +9,7 @@ public class AuditTrail
     [Key]
     public int AuditId { get; set; }
 
-    public int? UserId { get; set; }
+    public Guid? UserId { get; set; }
 
     public int? CustomerId { get; set; }
 
@@ -43,7 +43,7 @@ public class AuditTrail
 
     // Navigation Properties
     [ForeignKey("UserId")]
-    public virtual required Users User { get; set; }
+    public virtual Users? User { get; set; }
 
     [ForeignKey("CustomerId")]
     public required virtual Customer Customer { get; set; }

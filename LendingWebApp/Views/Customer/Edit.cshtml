@@ -1,0 +1,16 @@
+﻿@model LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto
+@{
+    ViewData["Title"] = "Edit Customer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2>Edit Customer</h2>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="CustomerId" />
+        @Html.Partial("CustomerFormFields", Model)
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>
