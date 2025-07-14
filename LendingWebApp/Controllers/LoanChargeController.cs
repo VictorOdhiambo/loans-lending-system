@@ -35,7 +35,7 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> Update( int id)
+        public async Task<ActionResult> Update(int id)
         {
             var dto = await _loanChargeService.GetLoanChargeById(id);
             return View(dto);
@@ -76,6 +76,15 @@ namespace LoanApplicationService.Web.Controllers
             await _loanChargeService.DeleteLoanCharge(id);
             return RedirectToAction("Index");
         }
-    }
 
+        [HttpGet]
+        //get charges for a loan product
+        public async Task<IActionResult> GetChargesForLoanProduct(int loanProductId)
+        {
+            var charges = await _loanChargeService.GetAllChargesForLoanProduct(loanProductId);
+            return View(charges.ToList());
+
+        }
+
+    }
 }

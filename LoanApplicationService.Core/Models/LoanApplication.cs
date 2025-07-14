@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace LoanApplicationService.Core.Models
 {
     public class LoanApplication
@@ -25,9 +26,7 @@ namespace LoanApplicationService.Core.Models
         [MaxLength(200)]
         public string? Purpose { get; set; }
 
-        [Required]
-        [MaxLength(20)]
-        public string Status { get; set; } = "Pending";
+        public int Status { get; set; } 
 
         [Column(TypeName = "decimal(15,2)")]
         public decimal? ApprovedAmount { get; set; }

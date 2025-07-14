@@ -22,103 +22,6 @@ namespace LoanApplicationService.Core.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("LendingApp.Models.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
-
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Channel")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("LoanApplicationApplicationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Message")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NotificationHeader")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Recipient")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("SentAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Success")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("UsersUserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("LoanApplicationApplicationId");
-
-                    b.HasIndex("UsersUserId");
-
-                    b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("LendingApp.Models.NotificationTemplate", b =>
-                {
-                    b.Property<int>("TemplateId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TemplateId"));
-
-                    b.Property<string>("BodyText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Channel")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NotificationHeader")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Subject")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("TemplateId");
-
-                    b.ToTable("NotificationTemplates");
-                });
-
             modelBuilder.Entity("LoanApplicationService.Core.Models.Account", b =>
                 {
                     b.Property<int>("AccountId")
@@ -355,10 +258,8 @@ namespace LoanApplicationService.Core.Migrations
                     b.Property<decimal>("RequestedAmount")
                         .HasColumnType("decimal(15,2)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<int>("TermMonths")
                         .HasColumnType("int");
@@ -392,6 +293,11 @@ namespace LoanApplicationService.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsPenalty")
                         .HasColumnType("bit");
 
@@ -412,6 +318,21 @@ namespace LoanApplicationService.Core.Migrations
                     b.ToTable("LoanCharges");
                 });
 
+            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanChargeMapper", b =>
+                {
+                    b.Property<int>("LoanChargeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LoanProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("LoanChargeId", "LoanProductId");
+
+                    b.HasIndex("LoanProductId");
+
+                    b.ToTable("LoanChargeMapper");
+                });
+
             modelBuilder.Entity("LoanApplicationService.Core.Models.LoanProduct", b =>
                 {
                     b.Property<int>("ProductId")
@@ -421,6 +342,9 @@ namespace LoanApplicationService.Core.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EligibilityCriteria")
@@ -434,8 +358,12 @@ namespace LoanApplicationService.Core.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("LoanProductType")
-                        .HasMaxLength(50)
                         .HasColumnType("int");
 
                     b.Property<decimal>("MaxAmount")
@@ -448,6 +376,9 @@ namespace LoanApplicationService.Core.Migrations
                         .HasColumnType("decimal(15,2)");
 
                     b.Property<int>("MinTermMonths")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentFrequency")
                         .HasColumnType("int");
 
                     b.Property<decimal>("ProcessingFee")
@@ -464,6 +395,103 @@ namespace LoanApplicationService.Core.Migrations
                     b.HasKey("ProductId");
 
                     b.ToTable("LoanProducts");
+                });
+
+            modelBuilder.Entity("LoanApplicationService.Core.Models.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Channel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LoanApplicationApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NotificationHeader")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Recipient")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UsersUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("LoanApplicationApplicationId");
+
+                    b.HasIndex("UsersUserId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("LoanApplicationService.Core.Models.NotificationTemplate", b =>
+                {
+                    b.Property<int>("TemplateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TemplateId"));
+
+                    b.Property<string>("BodyText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Channel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NotificationHeader")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TemplateId");
+
+                    b.ToTable("NotificationTemplates");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.Users", b =>
@@ -517,27 +545,6 @@ namespace LoanApplicationService.Core.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("LendingApp.Models.Notification", b =>
-                {
-                    b.HasOne("LoanApplicationService.Core.Models.Account", null)
-                        .WithMany("Notifications")
-                        .HasForeignKey("AccountId");
-
-                    b.HasOne("LoanApplicationService.Core.Models.Customer", null)
-                        .WithMany("Notifications")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LoanApplicationService.Core.Models.LoanApplication", null)
-                        .WithMany("Notifications")
-                        .HasForeignKey("LoanApplicationApplicationId");
-
-                    b.HasOne("LoanApplicationService.Core.Models.Users", null)
-                        .WithMany("SentNotifications")
-                        .HasForeignKey("UsersUserId");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.Account", b =>
@@ -618,6 +625,46 @@ namespace LoanApplicationService.Core.Migrations
                         .HasForeignKey("LoanProductProductId");
                 });
 
+            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanChargeMapper", b =>
+                {
+                    b.HasOne("LoanApplicationService.Core.Models.LoanCharge", "LoanCharge")
+                        .WithMany("LoanChargeMap")
+                        .HasForeignKey("LoanChargeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LoanApplicationService.Core.Models.LoanProduct", "LoanProduct")
+                        .WithMany("LoanChargeMap")
+                        .HasForeignKey("LoanProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LoanCharge");
+
+                    b.Navigation("LoanProduct");
+                });
+
+            modelBuilder.Entity("LoanApplicationService.Core.Models.Notification", b =>
+                {
+                    b.HasOne("LoanApplicationService.Core.Models.Account", null)
+                        .WithMany("Notifications")
+                        .HasForeignKey("AccountId");
+
+                    b.HasOne("LoanApplicationService.Core.Models.Customer", null)
+                        .WithMany("Notifications")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LoanApplicationService.Core.Models.LoanApplication", null)
+                        .WithMany("Notifications")
+                        .HasForeignKey("LoanApplicationApplicationId");
+
+                    b.HasOne("LoanApplicationService.Core.Models.Users", null)
+                        .WithMany("SentNotifications")
+                        .HasForeignKey("UsersUserId");
+                });
+
             modelBuilder.Entity("LoanApplicationService.Core.Models.Account", b =>
                 {
                     b.Navigation("AuditTrails");
@@ -646,9 +693,16 @@ namespace LoanApplicationService.Core.Migrations
                     b.Navigation("Notifications");
                 });
 
+            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanCharge", b =>
+                {
+                    b.Navigation("LoanChargeMap");
+                });
+
             modelBuilder.Entity("LoanApplicationService.Core.Models.LoanProduct", b =>
                 {
                     b.Navigation("LoanApplications");
+
+                    b.Navigation("LoanChargeMap");
 
                     b.Navigation("LoanCharges");
                 });

@@ -38,4 +38,21 @@ namespace LoanApplicationService.CrossCutting.Utils
         
 
     }
+
+    public enum LoanStatus
+    {
+        [Description("Pending")]
+        Pending = 0,
+        [Description("Approved")]
+        Approved = 1,
+        [Description("Rejected")]
+        Rejected = 2,
+        [Description("Disbursed")]
+        Disbursed = 3,
+        [Description("Customer Rejected")]   
+        CustomerRejected = 4,
+        [Description("Closed")]
+        Closed = 5
+         
+    }       
 }
