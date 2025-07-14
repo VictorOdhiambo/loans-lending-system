@@ -1,0 +1,60 @@
+﻿@model IEnumerable<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>;
+
+<h1>Loan Applications</h1>
+@if (TempData["Success"] != null)
+{
+ <div class="alert alert-success">
+        <strong>Success!</strong> @TempData["Success"]
+    </div>
+}
+
+
+<div class="table-responsive">
+
+    <table class="table table-striped-columns table-hover">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.ApplicationId)</th>
+                <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
+                <th>@Html.DisplayNameFor(model => model.ProductId)</th>
+                <th>@Html.DisplayNameFor(model => model.ProcessedBy)</th>
+                <th>@Html.DisplayNameFor(model => model.Status)</th>
+                <th>@Html.DisplayNameFor(model => model.TermMonths)</th>
+                <th>@Html.DisplayNameFor(model => model.RequestedAmount)</th>
+                <th>@Html.DisplayNameFor(model => model.ApprovedAmount)</th>
+                <th>@Html.DisplayNameFor(model => model.Purpose)</th>
+                <th>@Html.DisplayNameFor(model => model.ApplicationDate)</th>
+                <th>@Html.DisplayNameFor(model => model.DecisionDate)</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+           @foreach (var item in Model)
+            {
+                
+                    <tr>
+                        <td>@item.ApplicationId</td>
+                        <td>@item.CustomerId</td>
+                        <td>@item.ProductId</td>
+                        <td>@item.ProcessedBy</td>
+                        <td>@item.Status</td>
+                        <td>@item.TermMonths</td>
+                        <td>@item.RequestedAmount</td>
+                        <td>@item.ApprovedAmount</td>
+                        <td>@item.Purpose</td>
+                        <td>@item.ApplicationDate.ToString()</td>
+                      <td>@(item.DecisionDate?.ToString() ?? "")</td>
+                      <td>
+                    <a href="/LoanApplication/Approve/@item.ProductId" class="btn btn-sm btn-outline-primary me-1">
+                        <i class="bi bi-pencil-square"></i> Approve
+                    </a>
+                    <a href="/LoanProduct/Delete/@item.ProductId" class="btn btn-sm btn-outline-danger me-1">
+                        <i class="bi bi-trash"></i> Reject
+                    </a>
+                    </td>
+                </tr>
+               
+            }
+        </tbody>
+    </table>
+</div>

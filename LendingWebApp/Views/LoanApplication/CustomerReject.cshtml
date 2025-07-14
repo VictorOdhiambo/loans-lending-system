@@ -1,0 +1,31 @@
+﻿@model LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto;
+
+@{
+    ViewData["Title"] = "Customer View";
+    var customers = ViewBag.Customers as List<SelectListItem>;
+
+}
+
+<h2>Customer Reject</h2>
+<div class="row">
+    <div class="col-md-8">
+        @using (Html.BeginForm("CustomerReject", "LoanApplication", FormMethod.Post))
+        {
+            @Html.HiddenFor(model => model.ApplicationId)
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="mb-3">
+                @Html.LabelFor(model => model.CustomerId, "Customer", new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.CustomerId, new { @class = "form-control", type = "number", @readonly = "readonly" })
+                @Html.ValidationMessageFor(model => model.CustomerId, "", new { @class = "text-danger" })
+            </div>
+            <div class="mb-3">
+                @Html.LabelFor(model => model.DecisionNotes, new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.DecisionNotes, new { @class = "form-control", rows = 4 })
+                @Html.ValidationMessageFor(model => model.DecisionNotes, "", new { @class = "text-danger" })
+            </div>
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Reject</button>
+            </div>
+        }
+    </div>
+        
