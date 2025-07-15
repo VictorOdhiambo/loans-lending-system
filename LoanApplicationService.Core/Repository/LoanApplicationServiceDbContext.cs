@@ -15,6 +15,8 @@ public class LoanApplicationServiceDbContext(DbContextOptions<LoanApplicationSer
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
+   
+
 
     public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
     {

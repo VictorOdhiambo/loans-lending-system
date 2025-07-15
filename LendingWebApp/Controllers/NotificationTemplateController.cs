@@ -164,11 +164,11 @@ namespace LendingApp.Controllers
 
             // Determine recipient
             string recipientEmail = request.Email;
-            if (string.IsNullOrWhiteSpace(recipientEmail) && request.UserId.HasValue)
+            if (string.IsNullOrWhiteSpace(recipientEmail) && request.CustomerId.HasValue)
             {
                 // Try to get user info from DB if UserId is provided
-                // No Users table in context, so fallback to input only
-                return BadRequest("User lookup by UserId is not supported in this context. Please provide Email or PhoneNumber.");
+                // No Customer table in context, so fallback to input only
+                return BadRequest("User lookup by CustomerId is not supported in this context. Please provide Email or PhoneNumber.");
             }
             if (!string.IsNullOrWhiteSpace(recipientEmail))
             {

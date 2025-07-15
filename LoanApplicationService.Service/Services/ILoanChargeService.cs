@@ -14,5 +14,8 @@ namespace LoanApplicationService.Service.Services
         Task<bool> DeleteLoanCharge(int id);
         Task<LoanChargeDto?> GetLoanChargeById(int id);
         Task<IEnumerable<LoanChargeDto>> GetAllCharges();
+
+        Task<IEnumerable<LoanChargeDto>> GetAllChargesForLoanProduct(int loanProductId);
+        Task <bool>AddChargeToProduct ( LoanChargeMapperDto dto); 
     }
 }

@@ -14,6 +14,11 @@ builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
 builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
 builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
+builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
+builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
+builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
+builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
+
 
 // Add services to the container.
 builder.Services.AddRazorPages();
