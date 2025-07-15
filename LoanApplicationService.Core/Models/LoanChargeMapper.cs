@@ -10,12 +10,12 @@ namespace LoanApplicationService.Core.Models
     {
         public int LoanProductId { get; set; }
 
-        public required LoanProduct LoanProduct { get; set; }
+        public LoanProduct LoanProduct { get; set; }
 
 
 
         public int LoanChargeId { get; set; }
 
-        public required LoanCharge LoanCharge { get; set; }
+        public  LoanCharge LoanCharge { get; set; }
     }
 }

@@ -1,12 +1,15 @@
 ﻿using LoanApplicationService.Service.DTOs.LoanModule;
 using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace LoanApplicationService.Web.Controllers
 {
-    public class LoanChargeController(ILoanChargeService loanChargeService) : Controller
+    public class LoanChargeController(ILoanChargeService loanChargeService, ILoanProductService loanProductService) : Controller
     {
         private readonly ILoanChargeService _loanChargeService = loanChargeService;
+        private readonly ILoanProductService _loanProductService = loanProductService;
 
 
 
@@ -86,5 +89,53 @@ namespace LoanApplicationService.Web.Controllers
 
         }
 
+        [HttpGet]
+        public async Task<IActionResult> AddChargeToLoanProduct()
+        {
+            var LoanProducts = await _loanProductService.GetAllProducts();
+            ViewBag.LoanProducts = LoanProducts.Select(lp => new SelectListItem
+            {
+                Value = lp.ProductId.ToString(),
+                Text = $"{lp.ProductName} - {lp.InterestRate}%"
+            }).ToList();
+            var LoanCharges = await _loanChargeService.GetAllCharges();
+            ViewBag.LoanCharges = LoanCharges.Select(lc => new SelectListItem
+            {
+                Value = lc.Id.ToString(),
+                Text = $"{lc.Name} - {lc.Amount} {lc.Description}"
+            }).ToList();
+            return View();
+        }               
+
+        [HttpPost]
+        public async Task<IActionResult> AddChargeToLoanProduct(LoanChargeMapperDto LoanChargeMap)
+        {
+
+            var LoanProducts = await _loanProductService.GetAllProducts();
+            ViewBag.LoanProducts = LoanProducts.Select(lp => new SelectListItem
+            {
+                Value = lp.ProductId.ToString(),
+                Text = $"{lp.ProductName} - {lp.InterestRate}%"
+            }).ToList();
+            var LoanCharges = await _loanChargeService.GetAllCharges();
+            ViewBag.LoanCharges = LoanCharges.Select(lc => new SelectListItem
+            {
+                Value = lc.Id.ToString(),
+                Text = $"{lc.Name} - {lc.Amount} {lc.Description}"
+            }).ToList();
+
+            if (ModelState.IsValid)
+            {
+                var result = await _loanChargeService.AddChargeToProduct(LoanChargeMap);
+                if (result)
+                {
+                    TempData["Success"] = "Charge added to product successfully!";
+                    return RedirectToAction("Index");
+                }
+                TempData["Error"] = "Unexpected error occurred while adding charge to product.";
+            }
+            TempData["Error"] = "Failed to add charge to product. Please check validation errors.";
+            return RedirectToAction("Index");
+        }
     }
 }

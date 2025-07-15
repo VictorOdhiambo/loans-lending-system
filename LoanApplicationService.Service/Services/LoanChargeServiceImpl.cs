@@ -33,8 +33,8 @@ namespace LoanApplicationService.Service.Services
         {
             var loanCharge = await _context.LoanCharges.FindAsync(id);
             if (loanCharge == null) return false;
-            loanCharge.IsDeleted = true; 
-             _context.LoanCharges.Update(loanCharge); 
+            loanCharge.IsDeleted = true;
+            _context.LoanCharges.Update(loanCharge);
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -61,6 +61,13 @@ namespace LoanApplicationService.Service.Services
             if (loanProduct == null) return Enumerable.Empty<LoanChargeDto>();
 
             return _mapper.Map<IEnumerable<LoanChargeDto>>(loanProduct.LoanCharges);
+        }
+
+        public async Task<bool> AddChargeToProduct(LoanChargeMapperDto dto)
+        {
+           var LoanChargeMap = _mapper.Map<LoanChargeMapperDto, LoanChargeMapper>(dto);
+            _context.LoanChargeMapper.Add(LoanChargeMap);
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }
