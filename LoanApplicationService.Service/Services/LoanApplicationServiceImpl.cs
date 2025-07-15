@@ -62,10 +62,12 @@ namespace LoanApplicationService.Service.Services
         public async Task<LoanApplicationDto> GetByIdAsync(int applicationId)
         {
             var app = await _context.LoanApplications.FindAsync(applicationId);
-            if (app == null)
-                throw new KeyNotFoundException($"Loan application with ID {applicationId} not found.");
+            if (app != null)
+            {
 
-            return _mapper.Map<LoanApplicationDto>(app);
+                return _mapper.Map<LoanApplicationDto>(app);
+            }
+            return null;    
         }
 
 
