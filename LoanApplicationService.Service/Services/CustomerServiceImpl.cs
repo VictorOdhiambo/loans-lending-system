@@ -57,5 +57,44 @@ namespace LoanApplicationService.Service.Services
             _db.Customers.Update(customer);
             return await _db.SaveChangesAsync() > 0;
         }
+
+        public async Task<bool> UserExistsAsync(string email)
+        {
+            return await _db.Users.AnyAsync(u => u.Email == email && !u.IsDeleted);
+        }
+
+        public async Task<bool> CreateUserAndCustomerAsync(CustomerDto dto)
+        {
+            if (await UserExistsAsync(dto.Email))
+                return false;
+
+            var user = new Users
+            {
+                Id = Guid.NewGuid(),
+                Email = dto.Email,
+                Username = dto.FirstName + " " + dto.LastName,
+                Role = "Customer",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                IsDeleted = false
+            };
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+
+            var customer = new Customer
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
+                Address = dto.Address,
+                DateOfBirth = dto.DateOfBirth,
+                NationalId = dto.NationalId,
+                EmploymentStatus = dto.EmploymentStatus,
+                AnnualIncome = dto.AnnualIncome,
+                UserId = user.Id
+            };
+            _db.Customers.Add(customer);
+            return await _db.SaveChangesAsync() > 0;
+        }
     }
 }

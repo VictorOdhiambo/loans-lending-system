@@ -35,43 +35,13 @@ namespace LoanApplicationService.Web.Controllers
                 return View(dto);
             }
 
-            // Check if user already exists
-            var db = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-            if (db.Users.Any(u => u.Email == dto.Email))
+            if (await _customerService.UserExistsAsync(dto.Email))
             {
                 TempData["Error"] = "A user with this email already exists.";
                 return View(dto);
             }
 
-            // Create user
-            var user = new Users
-            {
-                Id = Guid.NewGuid(),
-                Email = dto.Email,
-                Username = dto.FirstName + " " + dto.LastName,
-                Role = "Customer",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                IsDeleted = false
-            };
-            db.Users.Add(user);
-            db.SaveChanges();
-
-            // Create customer and link to user
-            var customer = new LoanApplicationService.Core.Models.Customer
-            {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                Email = dto.Email,
-                PhoneNumber = dto.PhoneNumber,
-                Address = dto.Address,
-                DateOfBirth = dto.DateOfBirth,
-                NationalId = dto.NationalId,
-                EmploymentStatus = dto.EmploymentStatus,
-                AnnualIncome = dto.AnnualIncome,
-                UserId = user.Id
-            };
-
-            var result = await _customerService.CreateAsync(customer);
+            var result = await _customerService.CreateUserAndCustomerAsync(dto);
             if (result)
             {
                 TempData["Success"] = "Customer created successfully!";

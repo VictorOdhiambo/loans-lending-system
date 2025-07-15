@@ -10,5 +10,7 @@ namespace LoanApplicationService.Service.Services
         Task<bool> CreateAsync(Customer customer);
         Task<bool> UpdateAsync(CustomerDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<bool> UserExistsAsync(string email);
+        Task<bool> CreateUserAndCustomerAsync(CustomerDto dto);
     }
 }
