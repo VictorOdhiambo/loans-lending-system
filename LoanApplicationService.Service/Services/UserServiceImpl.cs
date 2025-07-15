@@ -51,5 +51,17 @@ namespace LoanApplicationService.Service.Services
 
             return true;
         }
+
+        public async Task<List<UserDTO>> GetAllUsersAsync()
+        {
+            var users = await _db.Users.Where(u => !u.IsDeleted).ToListAsync();
+            return _mapper.Map<List<UserDTO>>(users);
+        }
+
+        public async Task<List<UserDTO>> GetAdminsAsync()
+        {
+            var admins = await _db.Users.Where(u => !u.IsDeleted && u.Role == "Admin").ToListAsync();
+            return _mapper.Map<List<UserDTO>>(admins);
+        }
     }
 }

@@ -36,6 +36,6 @@
         <dd class="col-sm-9">@Model.AnnualIncome?.ToString("C")</dd>
     </dl>
 
-    <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-primary">Edit</a>
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <a href="/Customer/Edit/@Model.CustomerId">Edit</a>
+    <a href="/Customer/Index">Back to List</a>
 </div>

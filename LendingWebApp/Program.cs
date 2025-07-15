@@ -5,19 +5,19 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Add services to the container
+//  Add services to the container
 builder.Services.AddControllersWithViews();
 
-// ✅ Add AutoMapper
+//  Add AutoMapper
 builder.Services.AddAutoMapper(typeof(LoansProfile).Assembly);
 
-// ✅ Register EF Core DbContext
+//  Register EF Core DbContext
 builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
 });
 
-// ✅ Dependency Injection for services
+//  Dependency Injection for services
 builder.Services.AddScoped<IUserService, UserServiceImpl>();
 builder.Services.AddScoped<ICustomerService, CustomerServiceImpl>();
 builder.Services.AddScoped<ILoanProductService, LoanProductServiceImpl>();
@@ -25,13 +25,13 @@ builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
 builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
-// Add others here if needed
+// Add others here
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ✅ Enable Session
+//  Enable Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -40,12 +40,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// ✅ Optional: Enable Razor runtime compilation (only if package is installed)
+
 // builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 var app = builder.Build();
 
-// ✅ Middleware
+//  Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -67,13 +67,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// ✅ Default Route: Home/Index (Login)
+//  Default Route: Home/Index (Login)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
-// ✅ Auto-seed admin user on startup
+//  Auto-seed admin user on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LoanApplicationServiceDbContext>();

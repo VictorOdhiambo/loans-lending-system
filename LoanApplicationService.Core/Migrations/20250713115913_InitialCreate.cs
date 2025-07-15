@@ -6,35 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LoanApplicationService.Core.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialUnified : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Customer",
-                columns: table => new
-                {
-                    CustomerId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    NationalId = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    CreditScore = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
-                    EmploymentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    AnnualIncome = table.Column<decimal>(type: "decimal(15,2)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Customer", x => x.CustomerId);
-                });
-
             migrationBuilder.CreateTable(
                 name: "LoanProducts",
                 columns: table => new
@@ -42,7 +18,8 @@ namespace LoanApplicationService.Core.Migrations
                     ProductId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    LoanProductType = table.Column<int>(type: "int", maxLength: 50, nullable: false),
+                    LoanProductType = table.Column<int>(type: "int", nullable: false),
+                    PaymentFrequency = table.Column<int>(type: "int", nullable: false),
                     MinAmount = table.Column<decimal>(type: "decimal(15,2)", nullable: false),
                     MaxAmount = table.Column<decimal>(type: "decimal(15,2)", nullable: false),
                     InterestRate = table.Column<decimal>(type: "decimal(5,4)", nullable: false),
@@ -52,7 +29,9 @@ namespace LoanApplicationService.Core.Migrations
                     EligibilityCriteria = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    DeletedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -81,22 +60,16 @@ namespace LoanApplicationService.Core.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Username = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    LastLogin = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.UserId);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -110,6 +83,7 @@ namespace LoanApplicationService.Core.Migrations
                     IsPenalty = table.Column<bool>(type: "bit", nullable: false),
                     IsUpfront = table.Column<bool>(type: "bit", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     LoanProductProductId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -123,6 +97,55 @@ namespace LoanApplicationService.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Customers",
+                columns: table => new
+                {
+                    CustomerId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customers", x => x.CustomerId);
+                    table.ForeignKey(
+                        name: "FK_Customers_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LoanChargeMapper",
+                columns: table => new
+                {
+                    LoanProductId = table.Column<int>(type: "int", nullable: false),
+                    LoanChargeId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LoanChargeMapper", x => new { x.LoanChargeId, x.LoanProductId });
+                    table.ForeignKey(
+                        name: "FK_LoanChargeMapper_LoanCharges_LoanChargeId",
+                        column: x => x.LoanChargeId,
+                        principalTable: "LoanCharges",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LoanChargeMapper_LoanProducts_LoanProductId",
+                        column: x => x.LoanProductId,
+                        principalTable: "LoanProducts",
+                        principalColumn: "ProductId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "LoanApplications",
                 columns: table => new
                 {
@@ -130,7 +153,7 @@ namespace LoanApplicationService.Core.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CustomerId = table.Column<int>(type: "int", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
-                    ProcessedBy = table.Column<int>(type: "int", nullable: true),
+                    ProcessedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     RequestedAmount = table.Column<decimal>(type: "decimal(15,2)", nullable: false),
                     TermMonths = table.Column<int>(type: "int", nullable: false),
                     Purpose = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
@@ -147,9 +170,9 @@ namespace LoanApplicationService.Core.Migrations
                 {
                     table.PrimaryKey("PK_LoanApplications", x => x.ApplicationId);
                     table.ForeignKey(
-                        name: "FK_LoanApplications_Customer_CustomerId",
+                        name: "FK_LoanApplications_Customers_CustomerId",
                         column: x => x.CustomerId,
-                        principalTable: "Customer",
+                        principalTable: "Customers",
                         principalColumn: "CustomerId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -162,11 +185,11 @@ namespace LoanApplicationService.Core.Migrations
                         name: "FK_LoanApplications_Users_ProcessedBy",
                         column: x => x.ProcessedBy,
                         principalTable: "Users",
-                        principalColumn: "UserId");
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "Account",
+                name: "Accounts",
                 columns: table => new
                 {
                     AccountId = table.Column<int>(type: "int", nullable: false)
@@ -189,15 +212,15 @@ namespace LoanApplicationService.Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Account", x => x.AccountId);
+                    table.PrimaryKey("PK_Accounts", x => x.AccountId);
                     table.ForeignKey(
-                        name: "FK_Account_Customer_CustomerId",
+                        name: "FK_Accounts_Customers_CustomerId",
                         column: x => x.CustomerId,
-                        principalTable: "Customer",
+                        principalTable: "Customers",
                         principalColumn: "CustomerId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Account_LoanApplications_ApplicationId",
+                        name: "FK_Accounts_LoanApplications_ApplicationId",
                         column: x => x.ApplicationId,
                         principalTable: "LoanApplications",
                         principalColumn: "ApplicationId",
@@ -210,7 +233,7 @@ namespace LoanApplicationService.Core.Migrations
                 {
                     AuditId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: true),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CustomerId = table.Column<int>(type: "int", nullable: true),
                     ApplicationId = table.Column<int>(type: "int", nullable: true),
                     AccountId = table.Column<int>(type: "int", nullable: true),
@@ -227,14 +250,14 @@ namespace LoanApplicationService.Core.Migrations
                 {
                     table.PrimaryKey("PK_AuditTrail", x => x.AuditId);
                     table.ForeignKey(
-                        name: "FK_AuditTrail_Account_AccountId",
+                        name: "FK_AuditTrail_Accounts_AccountId",
                         column: x => x.AccountId,
-                        principalTable: "Account",
+                        principalTable: "Accounts",
                         principalColumn: "AccountId");
                     table.ForeignKey(
-                        name: "FK_AuditTrail_Customer_CustomerId",
+                        name: "FK_AuditTrail_Customers_CustomerId",
                         column: x => x.CustomerId,
-                        principalTable: "Customer",
+                        principalTable: "Customers",
                         principalColumn: "CustomerId");
                     table.ForeignKey(
                         name: "FK_AuditTrail_LoanApplications_ApplicationId",
@@ -245,7 +268,7 @@ namespace LoanApplicationService.Core.Migrations
                         name: "FK_AuditTrail_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserId");
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -267,44 +290,32 @@ namespace LoanApplicationService.Core.Migrations
                     ErrorMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Recipient = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AccountId = table.Column<int>(type: "int", nullable: true),
-                    LoanApplicationApplicationId = table.Column<int>(type: "int", nullable: true),
-                    UsersUserId = table.Column<int>(type: "int", nullable: true)
+                    LoanApplicationApplicationId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Notifications", x => x.NotificationId);
                     table.ForeignKey(
-                        name: "FK_Notifications_Account_AccountId",
+                        name: "FK_Notifications_Accounts_AccountId",
                         column: x => x.AccountId,
-                        principalTable: "Account",
+                        principalTable: "Accounts",
                         principalColumn: "AccountId");
-                    table.ForeignKey(
-                        name: "FK_Notifications_Customer_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "Customer",
-                        principalColumn: "CustomerId",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Notifications_LoanApplications_LoanApplicationApplicationId",
                         column: x => x.LoanApplicationApplicationId,
                         principalTable: "LoanApplications",
                         principalColumn: "ApplicationId");
-                    table.ForeignKey(
-                        name: "FK_Notifications_Users_UsersUserId",
-                        column: x => x.UsersUserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Account_ApplicationId",
-                table: "Account",
+                name: "IX_Accounts_ApplicationId",
+                table: "Accounts",
                 column: "ApplicationId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Account_CustomerId",
-                table: "Account",
+                name: "IX_Accounts_CustomerId",
+                table: "Accounts",
                 column: "CustomerId");
 
             migrationBuilder.CreateIndex(
@@ -328,6 +339,11 @@ namespace LoanApplicationService.Core.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Customers_UserId",
+                table: "Customers",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LoanApplications_CustomerId",
                 table: "LoanApplications",
                 column: "CustomerId");
@@ -343,6 +359,11 @@ namespace LoanApplicationService.Core.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LoanChargeMapper_LoanProductId",
+                table: "LoanChargeMapper",
+                column: "LoanProductId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LoanCharges_LoanProductProductId",
                 table: "LoanCharges",
                 column: "LoanProductProductId");
@@ -353,19 +374,9 @@ namespace LoanApplicationService.Core.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Notifications_CustomerId",
-                table: "Notifications",
-                column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_LoanApplicationApplicationId",
                 table: "Notifications",
                 column: "LoanApplicationApplicationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Notifications_UsersUserId",
-                table: "Notifications",
-                column: "UsersUserId");
         }
 
         /// <inheritdoc />
@@ -375,7 +386,7 @@ namespace LoanApplicationService.Core.Migrations
                 name: "AuditTrail");
 
             migrationBuilder.DropTable(
-                name: "LoanCharges");
+                name: "LoanChargeMapper");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
@@ -384,13 +395,16 @@ namespace LoanApplicationService.Core.Migrations
                 name: "NotificationTemplates");
 
             migrationBuilder.DropTable(
-                name: "Account");
+                name: "LoanCharges");
+
+            migrationBuilder.DropTable(
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "LoanApplications");
 
             migrationBuilder.DropTable(
-                name: "Customer");
+                name: "Customers");
 
             migrationBuilder.DropTable(
                 name: "LoanProducts");

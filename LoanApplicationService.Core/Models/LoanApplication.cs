@@ -15,7 +15,7 @@ namespace LoanApplicationService.Core.Models
         [Required]
         public int ProductId { get; set; }
 
-        public int? ProcessedBy { get; set; }
+        public Guid? ProcessedBy { get; set; }
 
         [Column(TypeName = "decimal(15,2)")]
         public decimal RequestedAmount { get; set; }
@@ -53,9 +53,10 @@ namespace LoanApplicationService.Core.Models
         public required virtual LoanProduct LoanProduct { get; set; }
 
         [ForeignKey("ProcessedBy")]
-        public required virtual Users ProcessedByUser { get; set; }
+        public virtual Users? ProcessedByUser { get; set; }
 
-        public virtual required Account Account { get; set; }
+        public virtual Account? Account { get; set; }
+
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public virtual ICollection<AuditTrail> AuditTrails { get; set; } = new List<AuditTrail>();
     }
