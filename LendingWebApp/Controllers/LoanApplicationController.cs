@@ -1,4 +1,5 @@
-﻿using LoanApplicationService.CrossCutting.Utils;
+﻿using LoanApplicationService.Core.Models;
+using LoanApplicationService.CrossCutting.Utils;
 using LoanApplicationService.Service.DTOs.LoanApplicationModule;
 using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +16,27 @@ namespace LoanApplicationService.Web.Controllers
         private readonly ILoanProductService _loanProductService = loanProductService;
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? Status)
         {
             var applications = await _loanApplicationService.GetAllAsync();
+
+            if (Status.HasValue)
+            {
+                applications = applications.Where(a => a.Status == (LoanStatus)Status.Value);
+            }
+
+            var statusList = Enum.GetValues(typeof(LoanStatus))
+                .Cast<LoanStatus>()
+                .Select(s => new SelectListItem
+                {
+                    Value = ((int)s).ToString(),
+                    Text = s.ToString(),
+                    Selected = Status.HasValue && (int)s == Status.Value
+                }).ToList();
+
+            ViewBag.StatusList = statusList;
+            ViewBag.SelectedStatus = Status;
+
             return View(applications);
         }
 
@@ -27,7 +46,7 @@ namespace LoanApplicationService.Web.Controllers
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
             return View(application);
         }
@@ -77,7 +96,7 @@ namespace LoanApplicationService.Web.Controllers
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
             //get loan products name and interest rate for dropdown
             var LoanProducts = await _loanProductService.GetAllProducts();
@@ -116,7 +135,7 @@ namespace LoanApplicationService.Web.Controllers
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
             //get loan products name and interest rate for dropdown
             var LoanProducts = await _loanProductService.GetAllProducts();
@@ -182,7 +201,7 @@ namespace LoanApplicationService.Web.Controllers
         {
             var application = await _loanApplicationService.GetByIdAsync(id);
 
-         //check if application exists, is disbursed or  approved
+            //check if application exists, is disbursed or  approved
             if (application != null)
             {
                 return View(application);
@@ -195,5 +214,6 @@ namespace LoanApplicationService.Web.Controllers
 
         }
 
+        
     }
 }
