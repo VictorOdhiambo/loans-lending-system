@@ -4,6 +4,7 @@ using LoanApplicationService.Core.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoanApplicationService.Core.Migrations
 {
     [DbContext(typeof(LoanApplicationServiceDbContext))]
-    partial class LoanApplicationServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250713173657_AddCustomerExtraFields")]
+    partial class AddCustomerExtraFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -88,7 +91,7 @@ namespace LoanApplicationService.Core.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Account");
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.AuditTrail", b =>
@@ -140,8 +143,8 @@ namespace LoanApplicationService.Core.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("AuditId");
 
@@ -165,54 +168,52 @@ namespace LoanApplicationService.Core.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CustomerId"));
 
                     b.Property<string>("Address")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("AnnualIncome")
-                        .HasColumnType("decimal(15,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("CreditScore")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<DateTime>("DateOfBirth")
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EmploymentStatus")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NationalId")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("CustomerId");
 
-                    b.ToTable("Customer");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.LoanApplication", b =>
@@ -245,8 +246,8 @@ namespace LoanApplicationService.Core.Migrations
                     b.Property<decimal?>("InterestRate")
                         .HasColumnType("decimal(5,4)");
 
-                    b.Property<int?>("ProcessedBy")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("ProcessedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -258,8 +259,10 @@ namespace LoanApplicationService.Core.Migrations
                     b.Property<decimal>("RequestedAmount")
                         .HasColumnType("decimal(15,2)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("TermMonths")
                         .HasColumnType("int");
@@ -447,18 +450,11 @@ namespace LoanApplicationService.Core.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UsersUserId")
-                        .HasColumnType("int");
-
                     b.HasKey("NotificationId");
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("CustomerId");
-
                     b.HasIndex("LoanApplicationApplicationId");
-
-                    b.HasIndex("UsersUserId");
 
                     b.ToTable("Notifications");
                 });
@@ -496,53 +492,30 @@ namespace LoanApplicationService.Core.Migrations
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.Users", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastLogin")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
@@ -577,11 +550,11 @@ namespace LoanApplicationService.Core.Migrations
                         .HasForeignKey("ApplicationId");
 
                     b.HasOne("LoanApplicationService.Core.Models.Customer", "Customer")
-                        .WithMany("AuditTrails")
+                        .WithMany()
                         .HasForeignKey("CustomerId");
 
                     b.HasOne("LoanApplicationService.Core.Models.Users", "User")
-                        .WithMany("AuditTrails")
+                        .WithMany()
                         .HasForeignKey("UserId");
 
                     b.Navigation("Account");
@@ -589,6 +562,17 @@ namespace LoanApplicationService.Core.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("LoanApplication");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LoanApplicationService.Core.Models.Customer", b =>
+                {
+                    b.HasOne("LoanApplicationService.Core.Models.Users", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -602,7 +586,7 @@ namespace LoanApplicationService.Core.Migrations
                         .IsRequired();
 
                     b.HasOne("LoanApplicationService.Core.Models.Users", "ProcessedByUser")
-                        .WithMany("ProcessedApplications")
+                        .WithMany()
                         .HasForeignKey("ProcessedBy");
 
                     b.HasOne("LoanApplicationService.Core.Models.LoanProduct", "LoanProduct")
@@ -650,19 +634,9 @@ namespace LoanApplicationService.Core.Migrations
                         .WithMany("Notifications")
                         .HasForeignKey("AccountId");
 
-                    b.HasOne("LoanApplicationService.Core.Models.Customer", null)
-                        .WithMany("Notifications")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("LoanApplicationService.Core.Models.LoanApplication", null)
                         .WithMany("Notifications")
                         .HasForeignKey("LoanApplicationApplicationId");
-
-                    b.HasOne("LoanApplicationService.Core.Models.Users", null)
-                        .WithMany("SentNotifications")
-                        .HasForeignKey("UsersUserId");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.Account", b =>
@@ -676,17 +650,12 @@ namespace LoanApplicationService.Core.Migrations
                 {
                     b.Navigation("Accounts");
 
-                    b.Navigation("AuditTrails");
-
                     b.Navigation("LoanApplications");
-
-                    b.Navigation("Notifications");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.LoanApplication", b =>
                 {
-                    b.Navigation("Account")
-                        .IsRequired();
+                    b.Navigation("Account");
 
                     b.Navigation("AuditTrails");
 
@@ -705,15 +674,6 @@ namespace LoanApplicationService.Core.Migrations
                     b.Navigation("LoanChargeMap");
 
                     b.Navigation("LoanCharges");
-                });
-
-            modelBuilder.Entity("LoanApplicationService.Core.Models.Users", b =>
-                {
-                    b.Navigation("AuditTrails");
-
-                    b.Navigation("ProcessedApplications");
-
-                    b.Navigation("SentNotifications");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,25 +2,36 @@
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.CrossCutting.Utils;
 using LoanApplicationService.Service.DTOs.LoanModule;
-namespace LoanApplicationService.Service.Mapper.LoanModuleMapper;
+using LoanApplicationService.Service.DTOs.UserModule;
+using LoanApplicationService.Service.DTOs.CustomerModule;
 
-public class LoansProfile : Profile
+namespace LoanApplicationService.Service.Mapper.LoanModuleMapper
 {
-    public LoansProfile()
+    public class LoansProfile : Profile
     {
-        CreateMap<LoanProductDto, LoanProduct>(); 
+        public LoansProfile()
+        {
+            // LoanProduct mapping
+            CreateMap<LoanProductDto, LoanProduct>();
 
-        CreateMap<LoanProduct, LoanProductDto>()  
-            .ForMember(dest => dest.LoanProductTypeDescription, opt => opt.MapFrom(src =>
-                Enum.IsDefined(typeof(LoanProductType), src.LoanProductType)
-                    ? EnumHelper.GetDescription((LoanProductType)src.LoanProductType)
-                    : string.Empty))
-            .ForMember(dest => dest.PaymentFrequencyDescription, opt => opt.MapFrom(src =>
-                Enum.IsDefined(typeof(PaymentFrequency), src.PaymentFrequency)
-                    ? EnumHelper.GetDescription((PaymentFrequency)src.PaymentFrequency)
-                    : string.Empty));
+            CreateMap<LoanProduct, LoanProductDto>()
+                .ForMember(dest => dest.LoanProductTypeDescription, opt => opt.MapFrom(src =>
+                    Enum.IsDefined(typeof(LoanProductType), src.LoanProductType)
+                        ? EnumHelper.GetDescription((LoanProductType)src.LoanProductType)
+                        : string.Empty))
+                .ForMember(dest => dest.PaymentFrequencyDescription, opt => opt.MapFrom(src =>
+                    Enum.IsDefined(typeof(PaymentFrequency), src.PaymentFrequency)
+                        ? EnumHelper.GetDescription((PaymentFrequency)src.PaymentFrequency)
+                        : string.Empty));
 
+            // LoanCharge mapping
+            CreateMap<LoanCharge, LoanChargeDto>().ReverseMap();
 
+            // ✅ Users mapping
+            CreateMap<Users, UserDTO>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
+            CreateMap<UserDTO, Users>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.UserId));
 
         CreateMap<LoanCharge, LoanChargeDto>().ReverseMap();
 
@@ -28,13 +39,8 @@ public class LoansProfile : Profile
             .ForMember(dest => dest.LoanProductId, opt => opt.MapFrom(src => src.LoanProductId))
             .ForMember(dest => dest.LoanChargeId, opt => opt.MapFrom(src => src.LoanChargeId))
             .ReverseMap();         
+            // ✅ Customer mapping
+            CreateMap<Customer, CustomerDto>().ReverseMap();
+        }
     }
 }
-
-
-
-
-
-
-
-

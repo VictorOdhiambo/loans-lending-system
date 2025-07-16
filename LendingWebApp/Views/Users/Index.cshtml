@@ -1,0 +1,32 @@
+@model List<LoanApplicationService.Service.DTOs.UserModule.UserDTO>
+@{
+    ViewData["Title"] = "All Users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2>All Users</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Username</td>
+                    <td>@user.Email</td>
+                    <td>@user.Role</td>
+                    <td>
+                        <a href="/Users/Details/@user.UserId" class="btn btn-sm btn-outline-info">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div> 
