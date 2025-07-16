@@ -1,0 +1,51 @@
+﻿@model List<LoanApplicationService.Service.DTOs.LoanModule.LoanChargeDto>
+
+@{
+    ViewData["Title"] = "Charges for Loan Product";
+    var productId = ViewBag.LoanProductId ?? "Unknown";
+}
+
+<h2 class="mb-4">Charges for Loan Product @productId</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No charges are associated with this loan product.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Is Penalty</th>
+                <th>Is Upfront</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var charge in Model)
+            {
+                <tr>
+                    <td>@charge.Name</td>
+                    <td>@charge.Description</td>
+                    <td>@charge.Amount.ToString("C")</td>
+                    <td>@(charge.IsPenalty ? "Yes" : "No")</td>
+                    <td>@(charge.IsUpfront ? "Yes" : "No")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<a asp-action="Index" class="btn btn-secondary">Back to Products</a>

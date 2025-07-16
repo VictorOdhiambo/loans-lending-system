@@ -17,6 +17,25 @@ namespace LoanApplicationService.Core.Repository
         public DbSet<Customer> Customers { get; set; } = default!;
         public DbSet<Account> Accounts { get; set; } = default!;
 
+   
+
+
+    public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
+    {
+        public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)
+        {
+            builder.HasKey(s => new { s.LoanChargeId, s.LoanProductId });
+            builder.HasOne(ss => ss.LoanProduct)
+                .WithMany(s => s.LoanChargeMap)
+                .HasForeignKey(ss => ss.LoanProductId);
+            builder.HasOne(ss => ss.LoanCharge)
+                .WithMany(s => s.LoanChargeMap)
+                .HasForeignKey(ss => ss.LoanChargeId);
+        }
+    }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
         // ✅ Relationship config for LoanChargeMapper
         public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
         {

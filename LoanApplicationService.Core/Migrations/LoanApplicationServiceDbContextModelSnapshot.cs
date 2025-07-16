@@ -256,10 +256,8 @@ namespace LoanApplicationService.Core.Migrations
                     b.Property<decimal>("RequestedAmount")
                         .HasColumnType("decimal(15,2)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<int>("TermMonths")
                         .HasColumnType("int");
@@ -447,6 +445,104 @@ namespace LoanApplicationService.Core.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("UsersUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("LoanApplicationApplicationId");
+
+                    b.HasIndex("UsersUserId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("LoanApplicationService.Core.Models.NotificationTemplate", b =>
+                {
+                    b.Property<int>("TemplateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TemplateId"));
+
+                    b.Property<string>("BodyText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Channel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NotificationHeader")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TemplateId");
+
+                    b.ToTable("NotificationTemplates");
+                });
+
+            modelBuilder.Entity("LoanApplicationService.Core.Models.Users", b =>
+            modelBuilder.Entity("LoanApplicationService.Core.Models.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Channel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LoanApplicationApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NotificationHeader")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Recipient")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("NotificationId");
 
                     b.HasIndex("AccountId");
@@ -515,6 +611,14 @@ namespace LoanApplicationService.Core.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+                        .WithMany("Notifications")
+                        .HasForeignKey("LoanApplicationApplicationId");
+
+                    b.HasOne("LoanApplicationService.Core.Models.Users", null)
+                        .WithMany("SentNotifications")
+                        .HasForeignKey("UsersUserId");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.Account", b =>
@@ -598,14 +702,6 @@ namespace LoanApplicationService.Core.Migrations
 
                     b.Navigation("ProcessedByUser");
                 });
-
-            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanCharge", b =>
-                {
-                    b.HasOne("LoanApplicationService.Core.Models.LoanProduct", null)
-                        .WithMany("LoanCharges")
-                        .HasForeignKey("LoanProductProductId");
-                });
-
             modelBuilder.Entity("LoanApplicationService.Core.Models.LoanChargeMapper", b =>
                 {
                     b.HasOne("LoanApplicationService.Core.Models.LoanCharge", "LoanCharge")
@@ -636,6 +732,14 @@ namespace LoanApplicationService.Core.Migrations
                         .HasForeignKey("LoanApplicationApplicationId");
                 });
 
+
+            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanCharge", b =>
+                {
+                    b.HasOne("LoanApplicationService.Core.Models.LoanProduct", null)
+                        .WithMany("LoanCharges")
+                        .HasForeignKey("LoanProductProductId");
+                });
+
             modelBuilder.Entity("LoanApplicationService.Core.Models.Account", b =>
                 {
                     b.Navigation("AuditTrails");
@@ -651,17 +755,17 @@ namespace LoanApplicationService.Core.Migrations
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.LoanApplication", b =>
-                {
+            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanCharge", b =>
                     b.Navigation("Account");
-
-                    b.Navigation("AuditTrails");
-
+                    b.Navigation("LoanChargeMap");
                     b.Navigation("Notifications");
                 });
 
-            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanCharge", b =>
+            modelBuilder.Entity("LoanApplicationService.Core.Models.LoanProduct", b =>
                 {
-                    b.Navigation("LoanChargeMap");
+                    b.Navigation("LoanApplications");
+
+                    b.Navigation("LoanCharges");
                 });
 
             modelBuilder.Entity("LoanApplicationService.Core.Models.LoanProduct", b =>

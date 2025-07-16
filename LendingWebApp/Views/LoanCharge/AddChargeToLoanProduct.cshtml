@@ -1,0 +1,29 @@
+﻿@model LoanApplicationService.Service.DTOs.LoanModule.LoanChargeMapperDto
+
+@{
+     ViewData["Title"] = "Add Charge to Product";
+    var loanProducts = ViewBag.LoanProducts as List<SelectListItem>;
+    var charges = ViewBag.LoanCharges as List<SelectListItem>;
+}
+
+<div class="row">
+    @using (Html.BeginForm ("AddChargeToProduct", "LoanCharge", FormMethod.Post))
+    {
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        
+        <div class="mb-3">
+            @Html.LabelFor(model => model.LoanProductId, "Loan Product", new { @class = "form-label" })
+            @Html.DropDownListFor(model => model.LoanProductId, loanProducts, "-- Select Loan Product --", new { @class = "form-select" })
+            @Html.ValidationMessageFor(model => model.LoanProductId, "", new { @class = "text-danger" })
+        </div>
+        <div class="mb-3">
+            @Html.LabelFor(model => model.LoanChargeId, "Charge", new { @class = "form-label" })
+            @Html.DropDownListFor(model => model.LoanChargeId, charges, "-- Select Charge --", new { @class = "form-select" })
+            @Html.ValidationMessageFor(model => model.LoanChargeId, "", new { @class = "text-danger" })
+        </div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Add Charge</button>
+        </div>
+    }
+
+</div>

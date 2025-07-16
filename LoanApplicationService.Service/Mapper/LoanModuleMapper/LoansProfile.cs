@@ -33,6 +33,12 @@ namespace LoanApplicationService.Service.Mapper.LoanModuleMapper
             CreateMap<UserDTO, Users>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.UserId));
 
+        CreateMap<LoanCharge, LoanChargeDto>().ReverseMap();
+
+        CreateMap<LoanChargeMapperDto, LoanChargeMapper>()
+            .ForMember(dest => dest.LoanProductId, opt => opt.MapFrom(src => src.LoanProductId))
+            .ForMember(dest => dest.LoanChargeId, opt => opt.MapFrom(src => src.LoanChargeId))
+            .ReverseMap();         
             // ✅ Customer mapping
             CreateMap<Customer, CustomerDto>().ReverseMap();
         }
