@@ -9,8 +9,17 @@
 
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-white px-3 py-2 rounded" style="background: #1565c0;">Notifications</h2>
+    <h2 class="text-white px-3 py-2 rounded" style="background: #1565c0;">Notifications</h2>
+    <div>
+        <label for="statusFilter" class="me-2">Filter by Status:</label>
+        <select id="statusFilter" class="form-select d-inline-block w-auto">
+            <option value="All">All</option>
+            <option value="Sent">Sent</option>
+            <option value="Failed">Failed</option>
+            <option value="Read">Read</option>
+        </select>
     </div>
+</div>
     <div class="table-responsive">
         <table class="table table-hover align-middle table-bordered" style="background: #e3f2fd;">
             <thead style="background: #1976d2; color: #fff;">
@@ -48,6 +57,19 @@
 
 @section Scripts {
 <script>
+    // Filter notifications by status
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        var selected = this.value;
+        document.querySelectorAll('tbody tr').forEach(function(row) {
+            var status = row.querySelector('td:nth-child(6)')?.innerText?.trim();
+            if (!selected || selected === 'All' || status === selected) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
     document.querySelectorAll('.resend-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var id = this.getAttribute('data-id');

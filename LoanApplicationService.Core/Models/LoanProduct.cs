@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using LoanApplicationService.CrossCutting.Utils;
 namespace LoanApplicationService.Core.Models
 {
     public class LoanProduct
@@ -51,5 +52,8 @@ namespace LoanApplicationService.Core.Models
         public virtual ICollection<LoanApplication> LoanApplications { get; set; } = new List<LoanApplication>();
 
         public ICollection<LoanCharge> LoanCharges { get; set; } = new List<LoanCharge>();
+
+        [Required]
+        public LoanRiskLevel RiskLevel { get; set; }
     }
 }

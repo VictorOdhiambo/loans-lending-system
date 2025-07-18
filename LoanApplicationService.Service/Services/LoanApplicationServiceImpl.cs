@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.CrossCutting.Utils;
@@ -21,11 +21,24 @@ namespace LoanApplicationService.Service.Services
         public async Task<bool> CreateAsync(LoanApplicationDto dto)
         {
             var application = _mapper.Map<LoanApplication>(dto);
-            //get customer ID from jwt token or session
-            // check if customer exists
-            //var customerExists = await _context.Customer.AnyAsync(c => c.CustomerId == dto.CustomerId);
-            // if (!customerExists)
-            //  throw new KeyNotFoundException($"Customer with ID {dto.CustomerId} not found.");
+            // Fetch customer
+            var customer = await _context.Customers.FindAsync(dto.CustomerId);
+            if (customer == null)
+                throw new KeyNotFoundException($"Customer with ID {dto.CustomerId} not found.");
+            // Check age
+            if (!customer.DateOfBirth.HasValue)
+                throw new ArgumentException("Customer date of birth is required for eligibility.");
+            var today = DateTime.UtcNow;
+            var age = today.Year - customer.DateOfBirth.Value.Year;
+            if (customer.DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+            if (age < 18)
+                throw new ArgumentException("Customer must be at least 18 years old to apply for a loan.");
+            // Check employment status
+            if (string.IsNullOrWhiteSpace(customer.EmploymentStatus))
+                throw new ArgumentException("Employment status is required for loan eligibility.");
+            // Check annual income
+            if (!customer.AnnualIncome.HasValue || customer.AnnualIncome.Value < 0)
+                throw new ArgumentException("Annual income must be provided and non-negative for loan eligibility.");
             // check if requested amount is within product limits
             var product = await _context.LoanProducts.FindAsync(dto.ProductId);
             if (product == null)
@@ -75,17 +88,13 @@ namespace LoanApplicationService.Service.Services
 
 
 
-        public async Task<bool> ApproveAsync(int applicationId)
+        public async Task<bool> ApproveAsync(int applicationId, decimal approvedAmount)
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
             if (application == null) return false;
 
             application.Status = (int)LoanStatus.Approved;
-            if (application.ApprovedAmount == null)
-            {
-                application.ApprovedAmount = application.RequestedAmount;
-            }
-
+            application.ApprovedAmount = approvedAmount;
             application.DecisionDate = DateTime.UtcNow;
             application.UpdatedAt = DateTime.UtcNow;
 
@@ -132,6 +141,14 @@ namespace LoanApplicationService.Service.Services
             application.Status = (int)LoanStatus.CustomerRejected;
             application.DecisionNotes = reason;
             application.DecisionDate = DateTime.UtcNow;
+            application.UpdatedAt = DateTime.UtcNow;
+            return await _context.SaveChangesAsync() > 0;
+        }
+        public async Task<bool> DisburseAsync(int applicationId)
+        {
+            var application = await _context.LoanApplications.FindAsync(applicationId);
+            if (application == null) return false;
+            application.Status = (int)LoanStatus.Disbursed;
             application.UpdatedAt = DateTime.UtcNow;
             return await _context.SaveChangesAsync() > 0;
         }

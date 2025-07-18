@@ -18,4 +18,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\LoanApplicationService.CrossCutting\LoanApplicationService.CrossCutting.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -93,6 +93,20 @@ namespace LoanApplicationService.Service.Services
                 AnnualIncome = dto.AnnualIncome,
                 UserId = user.Id
             };
+            // Set RiskLevel
+            int age = 0;
+            if (dto.DateOfBirth.HasValue)
+            {
+                var today = DateTime.UtcNow;
+                age = today.Year - dto.DateOfBirth.Value.Year;
+                if (dto.DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+            }
+            bool isEmployed = !string.IsNullOrWhiteSpace(dto.EmploymentStatus) && dto.EmploymentStatus.ToLower() == "employed";
+            decimal income = dto.AnnualIncome ?? 0;
+            if (age > 0 && dto.EmploymentStatus != null && dto.AnnualIncome.HasValue)
+                customer.RiskLevel = LoanApplicationService.CrossCutting.Utils.RiskScoringUtil.GetRiskLevel(age, isEmployed, income);
+            else
+                customer.RiskLevel = LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh;
             _db.Customers.Add(customer);
             return await _db.SaveChangesAsync() > 0;
         }

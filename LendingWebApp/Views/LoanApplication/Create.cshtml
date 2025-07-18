@@ -7,8 +7,12 @@
 
 }
 
-<h2>Create Loan Application</h2>
+<h2>Loan Application</h2>
 
+@if (ViewBag.CustomerName != null)
+{
+    <div class="alert alert-info mb-3"><strong>Customer:</strong> @ViewBag.CustomerName</div>
+}
 
 <div class=" row">
     <div class=" colcol-md-8"> 
@@ -16,31 +20,60 @@
         {
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 <div class=" mb-3">
-            @Html.LabelFor(model => model.CustomerId, "Customer", new { @class = "form-label" })
-            @Html.TextBoxFor(model => model.CustomerId, new { @class = "form-control", type = "number" })
+            @Html.LabelFor(model => model.CustomerId, "CustomerId", new { @class = "form-label" })
+            @if (Model.CustomerId != 0)
+            {
+                @Html.TextBoxFor(model => model.CustomerId, new { @class = "form-control", type = "number", @readonly = "readonly" })
+            }
+            else
+            {
+                @Html.TextBoxFor(model => model.CustomerId, new { @class = "form-control", type = "number" })
+            }
             @Html.ValidationMessageFor(model => model.CustomerId, "", new { @class = "text-danger" })
     
 </div>
 
 <div class="mb-3">
-            @Html.LabelFor(model => model.ProductId, "Loan Product", new { @class = "form-label" })
-            @Html.DropDownListFor(model => model.ProductId, loanProducts, "-- Select Loan Product --", new { @class = "form-select" })
-            @Html.ValidationMessageFor(model => model.ProductId, "", new { @class = "text-danger" })
+    @Html.LabelFor(model => model.ProductId, "Loan Product", new { @class = "form-label" })
+    @if (Model.ProductId != 0)
+    {
+        var selectedProduct = loanProducts?.FirstOrDefault(p => p.Value == Model.ProductId.ToString());
+        <input type="text" class="form-control" value="@(selectedProduct != null ? selectedProduct.Text.Split('|')[0] : "")" readonly />
+        @Html.HiddenFor(model => model.ProductId)
+    }
+    else
+    {
+        <select id="ProductId" name="ProductId" class="form-select">
+            <option value="">-- Select Loan Product --</option>
+            @if (loanProducts != null)
+            {
+                foreach (var product in loanProducts)
+                {
+                    <text>
+                        <option value="@product.Value" @(product.Selected ? "selected" : "")>@product.Text</option>
+                    </text>
+                }
+            }
+        </select>
+    }
+    @Html.ValidationMessageFor(model => model.ProductId, "", new { @class = "text-danger" })
 </div>
 
 <div class="mb-3">
-            @Html.LabelFor(model => model.TermMonths, new { @class = "form-label" })
-            @Html.TextBoxFor(model => model.TermMonths, new { @class = "form-control", type = "number" })
-            @Html.ValidationMessageFor(model => model.TermMonths, "", new { @class = "text-danger" })
+    @Html.LabelFor(model => model.TermMonths, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.TermMonths, new { @class = "form-control", type = "number", id = "TermMonths" })
+    <div id="termRangeHint" class="form-text"></div>
+    @Html.ValidationMessageFor(model => model.TermMonths, "", new { @class = "text-danger" })
+</div>
 
-    </div>
+<div class="mb-3">
+    @Html.LabelFor(model => model.RequestedAmount, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.RequestedAmount, new { @class = "form-control", type = "number", step = "0.01", id = "RequestedAmount" })
+    <div id="amountRangeHint" class="form-text"></div>
+    @Html.ValidationMessageFor(model => model.RequestedAmount, "", new { @class = "text-danger" })
+</div>
 
     <div class="mb-3">
-            @Html.LabelFor(model => model.RequestedAmount, new { @class = "form-label" })
-            @Html.TextBoxFor(model => model.RequestedAmount, new { @class = "form-control", type = "number", step = "0.01" })
-            @Html.ValidationMessageFor(model => model.RequestedAmount, "", new { @class = "text-danger" })
-    </div>
-    <div class=" mb-3">
             @Html.LabelFor(model => model.Purpose, new { @class = "form-label" })
             @Html.TextBoxFor(model => model.Purpose, new { @class = "form-control" })
             @Html.ValidationMessageFor(model => model.Purpose, "", new { @class = "text-danger" })
@@ -50,6 +83,93 @@
    
     <div class="mb-3">
         <button type="submit" class="btn btn-primary">Create</button>
-        </div>
+        <button type="button" class="btn btn-secondary" onclick="window.history.back();">Cancel</button>
+    </div>
         }
 </div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        function updateProductDetails() {
+            var productSelect = document.getElementById('ProductId');
+            var selectedOption = productSelect.options[productSelect.selectedIndex];
+            var parts = selectedOption.text.split('|');
+            // parts: [0]=name+rate, [1]=minTerm, [2]=maxTerm, [3]=minAmount, [4]=maxAmount, [5]=interestRate
+            var minTerm = parts[1] || '';
+            var maxTerm = parts[2] || '';
+            var minAmount = parts[3] || '';
+            var maxAmount = parts[4] || '';
+            var interestRate = parts[5] || '';
+
+            // TermMonths
+            var termInput = document.getElementById('TermMonths');
+            if (minTerm && maxTerm) {
+                termInput.min = minTerm;
+                termInput.max = maxTerm;
+                document.getElementById('termRangeHint').innerText = `Allowed: ${minTerm} - ${maxTerm} months`;
+            } else {
+                termInput.removeAttribute('min');
+                termInput.removeAttribute('max');
+                document.getElementById('termRangeHint').innerText = '';
+            }
+
+            // RequestedAmount
+            var amountInput = document.getElementById('RequestedAmount');
+            if (minAmount && maxAmount) {
+                amountInput.min = minAmount;
+                amountInput.max = maxAmount;
+                document.getElementById('amountRangeHint').innerText = `Allowed: ${parseFloat(minAmount).toLocaleString()} - ${parseFloat(maxAmount).toLocaleString()}`;
+            } else {
+                amountInput.removeAttribute('min');
+                amountInput.removeAttribute('max');
+                document.getElementById('amountRangeHint').innerText = '';
+            }
+
+            // Interest Rate
+            document.getElementById('InterestRateDisplay').value = interestRate ? interestRate + '%' : '';
+        }
+
+        function validateLoanForm(e) {
+            var productSelect = document.getElementById('ProductId');
+            var selectedOption = productSelect.options[productSelect.selectedIndex];
+            var parts = selectedOption.text.split('|');
+            var minTerm = parseInt(parts[1] || '');
+            var maxTerm = parseInt(parts[2] || '');
+            var minAmount = parseFloat(parts[3] || '');
+            var maxAmount = parseFloat(parts[4] || '');
+            var termInput = document.getElementById('TermMonths');
+            var amountInput = document.getElementById('RequestedAmount');
+            var termValue = parseInt(termInput.value);
+            var amountValue = parseFloat(amountInput.value);
+            var valid = true;
+            var termError = '';
+            var amountError = '';
+            if (!isNaN(minTerm) && !isNaN(maxTerm)) {
+                if (termValue < minTerm || termValue > maxTerm) {
+                    termError = `Term must be between ${minTerm} and ${maxTerm} months.`;
+                    valid = false;
+                }
+            }
+            if (!isNaN(minAmount) && !isNaN(maxAmount)) {
+                if (amountValue < minAmount || amountValue > maxAmount) {
+                    amountError = `Requested amount must be between ${minAmount.toLocaleString()} and ${maxAmount.toLocaleString()}.`;
+                    valid = false;
+                }
+            }
+            document.getElementById('termRangeHint').innerText = termError;
+            document.getElementById('amountRangeHint').innerText = amountError;
+            if (!valid) {
+                e.preventDefault();
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProductDetails();
+            document.getElementById('ProductId').addEventListener('change', updateProductDetails);
+            var form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', validateLoanForm);
+            }
+        });
+    </script>
+}

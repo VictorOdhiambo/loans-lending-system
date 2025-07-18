@@ -1,4 +1,4 @@
-﻿@model LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto
+@model LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto
 @{
     ViewData["Title"] = "Create Customer";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -31,25 +31,26 @@
 
         <div class="form-group mb-3">
             <label for="Email" class="form-label">Email</label>
-            <input id="Email" name="Email" class="form-control" />
+            <input id="Email" name="Email" class="form-control" type="email" required />
             <span asp-validation-for="Email" class="text-danger"></span>
         </div>
 
         <div class="form-group mb-3">
             <label for="PhoneNumber" class="form-label">Phone</label>
-            <input id="PhoneNumber" name="PhoneNumber" class="form-control" />
+            <input id="PhoneNumber" name="PhoneNumber" class="form-control" type="text" pattern="\d{10}" maxlength="10" minlength="10" required title="Phone number must be exactly 10 digits" />
             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
         </div>
 
         <div class="form-group mb-3">
             <label for="DateOfBirth" class="form-label">Date of Birth</label>
-            <input id="DateOfBirth" name="DateOfBirth" class="form-control" type="date" />
+            <input id="DateOfBirth" name="DateOfBirth" class="form-control" type="date" required max="2007-07-17" />
+<span id="dob-error" class="text-danger" style="display:none;"></span>
             <span asp-validation-for="DateOfBirth" class="text-danger"></span>
         </div>
 
         <div class="form-group mb-3">
             <label for="NationalId" class="form-label">National ID</label>
-            <input id="NationalId" name="NationalId" class="form-control" />
+            <input id="NationalId" name="NationalId" class="form-control" type="text" pattern="\d{8}" maxlength="8" minlength="8" required title="ID number must be exactly 8 digits" />
             <span asp-validation-for="NationalId" class="text-danger"></span>
         </div>
 
@@ -66,15 +67,29 @@
         </div>
 
         <div class="form-group mb-3">
-            <label for="Password" class="form-label">Password</label>
-            <input id="Password" name="Password" class="form-control" type="password" placeholder="Enter password" />
-        </div>
+    <label for="Password" class="form-label">Password</label>
+    <div class="input-group">
+        <input id="Password" name="Password" class="form-control" type="password" placeholder="Enter password" required />
+        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('Password', this)">Show</button>
+    </div>
+</div>
+<div class="form-group mb-3">
+    <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+    <div class="input-group">
+        <input id="ConfirmPassword" name="ConfirmPassword" class="form-control" type="password" placeholder="Confirm password" required />
+        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('ConfirmPassword', this)">Show</button>
+    </div>
+    <span id="password-match-error" class="text-danger" style="display:none;"></span>
+</div>
 
         <button type="submit" class="btn btn-success">Save</button>
-        <a href="/Customer/Index">Back</a>
+        <a href="/Customer/Index">Back To Customer List</a>
     </form>
 </div>
+
+<script src="~/js/customer-validation.js"></script>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+

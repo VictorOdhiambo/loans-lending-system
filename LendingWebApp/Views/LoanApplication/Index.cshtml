@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>;
+@model IEnumerable<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>;
 
 @{
     var statusList = ViewBag.StatusList as List<SelectListItem>;
@@ -11,6 +11,18 @@
 {
  <div class="alert alert-success">
         <strong>Success!</strong> @TempData["Success"]
+    </div>
+}
+@if (ViewBag.CustomerId != null && ViewBag.CustomerName != null)
+{
+    <div class="alert alert-info mb-3">
+        Showing loan history for: <strong>@ViewBag.CustomerName</strong> (Customer ID: @ViewBag.CustomerId)
+    </div>
+}
+else if (ViewBag.CustomerId != null)
+{
+    <div class="alert alert-info mb-3">
+        Showing loan history for Customer ID: @ViewBag.CustomerId
     </div>
 }
 
@@ -33,18 +45,17 @@
     <table class="table table-striped table-hover">
         <thead>
             <tr>
-                <th>@Html.DisplayNameFor(model => model.ApplicationId)</th>
-                <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
-                <th>@Html.DisplayNameFor(model => model.ProductId)</th>
-                <th>@Html.DisplayNameFor(model => model.ProcessedBy)</th>
-                <th>@Html.DisplayNameFor(model => model.Status)</th>
-                <th>@Html.DisplayNameFor(model => model.TermMonths)</th>
-                <th>@Html.DisplayNameFor(model => model.RequestedAmount)</th>
-                <th>@Html.DisplayNameFor(model => model.ApprovedAmount)</th>
-                <th>@Html.DisplayNameFor(model => model.Purpose)</th>
-                <th>@Html.DisplayNameFor(model => model.ApplicationDate)</th>
-                <th>@Html.DisplayNameFor(model => model.DecisionDate)</th>
-                <th class="text-end">Actions</th>
+                <th>Application ID</th>
+                <th>Customer Name</th>
+                <th>Product Name</th>
+                <th>Status</th>
+                <th>Term (Months)</th>
+                <th>Requested Amount</th>
+                <th>Approved Amount</th>
+                <th>Purpose</th>
+                <th>Application Date</th>
+                <th>Decision Date</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -53,9 +64,8 @@
                 
                     <tr>
                         <td>@item.ApplicationId</td>
-                        <td>@item.CustomerId</td>
-                        <td>@item.ProductId</td>
-                        <td>@item.ProcessedBy</td>
+                        <td>@item.FirstName @item.LastName</td>
+                        <td>@item.ProductName</td>
                         <td>@item.Status</td>
                         <td>@item.TermMonths</td>
                         <td>@item.RequestedAmount</td>
@@ -64,13 +74,28 @@
                         <td>@item.ApplicationDate.ToString()</td>
                       <td>@(item.DecisionDate?.ToString() ?? "")</td>
                       <td>
-                    <a href="/LoanApplication/Approve/@item.ProductId" class="btn btn-sm btn-outline-primary me-1">
-                        <i class="bi bi-pencil-square"></i> Approve
-                    </a>
-                    <a href="/LoanProduct/Delete/@item.ProductId" class="btn btn-sm btn-outline-danger me-1">
-                        <i class="bi bi-trash"></i> Reject
-                    </a>
-                    </td>
+                    @if (item.Status.ToString() != "Disbursed")
+{
+    if (item.Status.ToString() != "Approved" && item.Status.ToString() != "Rejected")
+    {
+        <a href="/LoanApplication/Approve/@item.ApplicationId" class="btn btn-sm btn-outline-primary me-1">
+            <i class="bi bi-pencil-square"></i> Approve
+        </a>
+        <a href="/LoanApplication/Reject/@item.ApplicationId" class="btn btn-sm btn-outline-danger me-1">
+            <i class="bi bi-trash"></i> Reject
+        </a>
+    }
+    if (item.Status.ToString() == "Approved")
+    {
+        using (Html.BeginForm("DisburseConfirmed", "LoanApplication", new { id = item.ApplicationId }, FormMethod.Post, null, new { @class = "d-inline" }))
+        {
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-sm btn-success me-1" onclick="return confirm('Disburse this loan application?');">
+                <i class="bi bi-cash-stack"></i> Disburse
+            </button>
+        }
+    }
+}                </td>
                 </tr>
                
             }

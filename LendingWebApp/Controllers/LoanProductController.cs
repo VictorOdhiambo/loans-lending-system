@@ -16,9 +16,60 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? customerId)
         {
+            ViewBag.CustomerId = customerId;
+            LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto customer = null;
+            if (customerId.HasValue)
+            {
+                // Fetch customer details for display
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
+                {
+                    customer = await customerService.GetByIdAsync(customerId.Value);
+                    if (customer != null)
+                    {
+                        ViewBag.CustomerName = customer.FirstName + " " + customer.LastName;
+                    }
+                }
+            }
             var loanProducts = await _loanProductService.GetAllProducts();
+            if (customer != null)
+            {
+                List<LoanProductDto> filtered;
+                var risk = customer.RiskLevel;
+                if (risk == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryLow)
+                {
+                    filtered = loanProducts.ToList();
+                }
+                else if (risk == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.Low)
+                {
+                    filtered = loanProducts.Where(lp => lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.Low ||
+                                                        lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.Medium ||
+                                                        lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.High ||
+                                                        lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh).ToList();
+                }
+                else if (risk == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.Medium)
+                {
+                    filtered = loanProducts.Where(lp => lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.Medium ||
+                                                        lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.High ||
+                                                        lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh).ToList();
+                }
+                else if (risk == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.High)
+                {
+                    filtered = loanProducts.Where(lp => lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.High ||
+                                                        lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh).ToList();
+                }
+                else // VeryHigh
+                {
+                    filtered = loanProducts.Where(lp => lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh).ToList();
+                }
+                if (!filtered.Any())
+                {
+                    ViewBag.NoProductsMessage = "No loan products match this customer's risk level.";
+                }
+                return View(filtered);
+            }
             return View(loanProducts);
         }
 
@@ -142,6 +193,14 @@ namespace LoanApplicationService.Web.Controllers
 
             ViewBag.PaymentFrequencies = Enum.GetValues(typeof(PaymentFrequency))
                 .Cast<PaymentFrequency>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = EnumHelper.GetDescription(e)
+                }).ToList();
+
+            ViewBag.RiskLevels = Enum.GetValues(typeof(LoanRiskLevel))
+                .Cast<LoanRiskLevel>()
                 .Select(e => new SelectListItem
                 {
                     Value = ((int)e).ToString(),

@@ -17,7 +17,10 @@ namespace LoanApplicationService.Service.Mapper.LoanApplicationModuleMapper
             CreateMap<LoanApplicationDto, LoanApplication>();
 
             CreateMap<LoanApplication, LoanApplicationDto>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (LoanStatus)src.Status));
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (LoanStatus)src.Status))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.Customer.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Customer.LastName))
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.LoanProduct.ProductName));
         }
     }
 }

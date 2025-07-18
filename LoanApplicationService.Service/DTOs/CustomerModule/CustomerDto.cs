@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace LoanApplicationService.Service.DTOs.CustomerModule
 {
     public class CustomerDto
     {
+        public string FullName => $"{FirstName} {LastName}";
         public int CustomerId { get; set; }
 
         [Required]
@@ -42,5 +43,7 @@ namespace LoanApplicationService.Service.DTOs.CustomerModule
         [Display(Name = "Password")]
         [DataType(DataType.Password)]
         public string? Password { get; set; }
+
+        public LoanApplicationService.CrossCutting.Utils.LoanRiskLevel RiskLevel { get; set; }
     }
 }
