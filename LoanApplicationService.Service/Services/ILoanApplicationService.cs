@@ -1,4 +1,4 @@
-﻿using LoanApplicationService.Service.DTOs.LoanApplicationModule;
+using LoanApplicationService.Service.DTOs.LoanApplicationModule;
 
 namespace LoanApplicationService.Service.Services
 {
@@ -7,7 +7,7 @@ namespace LoanApplicationService.Service.Services
         Task<bool> CreateAsync(LoanApplicationDto dto);
         Task<IEnumerable<LoanApplicationDto>> GetAllAsync();
         Task<LoanApplicationDto> GetByIdAsync(int applicationId);
-        Task<bool> ApproveAsync(int applicationId);
+        Task<bool> ApproveAsync(int applicationId, decimal approvedAmount);
         Task<bool> RejectAsync(int applicationId);
 
         Task<bool> CloseAsync(int applicationId, string decisionNotes);
@@ -15,5 +15,6 @@ namespace LoanApplicationService.Service.Services
         Task <IEnumerable<LoanApplicationDto>>GetByCustomerIdAsync(int customerId);
 
         Task<bool>CustomerReject(int applicationId, string reason); 
+        Task<bool> DisburseAsync(int applicationId);
     }
 }

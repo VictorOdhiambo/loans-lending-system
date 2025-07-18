@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using LoanApplicationService.CrossCutting.Utils;
 
 namespace LoanApplicationService.Core.Models
 {
@@ -24,6 +25,7 @@ namespace LoanApplicationService.Core.Models
         public string? NationalId { get; set; }
         public string? EmploymentStatus { get; set; }
         public decimal? AnnualIncome { get; set; }
+        public LoanRiskLevel RiskLevel { get; set; }
 
         // System Linkage
         public Guid UserId { get; set; }

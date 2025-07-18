@@ -45,6 +45,12 @@ namespace LoanApplicationService.Service.DTOs.LoanApplicationModule
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        public string? FirstName { get; set; }
+
+        public string? LastName { get; set; }
+
+        public string? ProductName { get; set; }
+
 
     }
 }

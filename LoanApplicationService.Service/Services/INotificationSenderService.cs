@@ -11,5 +11,6 @@ namespace LoanApplicationService.Service.Services
         Task<string> SendNotificationAsync(string notificationHeader, string channel, Dictionary<string, string> data);
         Task<List<LoanManagementApp.DTOs.NotificationDto>> GetAllNotificationsAsync();
         Task<string> ResendNotificationAsync(int notificationId);
+        Task<string> SendNotificationByTemplateId(int templateId, Dictionary<string, string> data);
     }
 }

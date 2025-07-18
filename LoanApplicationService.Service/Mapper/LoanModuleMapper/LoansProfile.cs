@@ -12,7 +12,8 @@ namespace LoanApplicationService.Service.Mapper.LoanModuleMapper
         public LoansProfile()
         {
             // LoanProduct mapping
-            CreateMap<LoanProductDto, LoanProduct>();
+            CreateMap<LoanProductDto, LoanProduct>()
+                .ForMember(dest => dest.RiskLevel, opt => opt.MapFrom(src => src.RiskLevel));
 
             CreateMap<LoanProduct, LoanProductDto>()
                 .ForMember(dest => dest.LoanProductTypeDescription, opt => opt.MapFrom(src =>
@@ -22,7 +23,9 @@ namespace LoanApplicationService.Service.Mapper.LoanModuleMapper
                 .ForMember(dest => dest.PaymentFrequencyDescription, opt => opt.MapFrom(src =>
                     Enum.IsDefined(typeof(PaymentFrequency), src.PaymentFrequency)
                         ? EnumHelper.GetDescription((PaymentFrequency)src.PaymentFrequency)
-                        : string.Empty));
+                        : string.Empty))
+                .ForMember(dest => dest.RiskLevel, opt => opt.MapFrom(src => src.RiskLevel))
+                .ForMember(dest => dest.RiskLevelDescription, opt => opt.MapFrom(src => EnumHelper.GetDescription(src.RiskLevel)));
 
             // LoanCharge mapping
             CreateMap<LoanCharge, LoanChargeDto>().ReverseMap();

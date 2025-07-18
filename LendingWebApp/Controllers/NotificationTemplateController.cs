@@ -173,6 +173,20 @@ namespace LendingApp.Controllers
             if (!string.IsNullOrWhiteSpace(recipientEmail))
             {
                 data["Email"] = recipientEmail;
+                // Fetch customer info and add to data dictionary
+                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email == recipientEmail);
+                if (customer != null)
+                {
+                    data["FirstName"] = customer.FirstName;
+                    data["LastName"] = customer.LastName;
+                    data["FullName"] = $"{customer.FirstName} {customer.LastName}";
+                    data["PhoneNumber"] = customer.PhoneNumber;
+                    data["Address"] = customer.Address ?? string.Empty;
+                    data["DateOfBirth"] = customer.DateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty;
+                    data["NationalId"] = customer.NationalId ?? string.Empty;
+                    data["EmploymentStatus"] = customer.EmploymentStatus ?? string.Empty;
+                    data["AnnualIncome"] = customer.AnnualIncome?.ToString() ?? string.Empty;
+                }
             }
             else if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
             {

@@ -1,7 +1,15 @@
-﻿@model IEnumerable<LoanApplicationService.Service.DTOs.LoanModule.LoanProductDto>
+@model IEnumerable<LoanApplicationService.Service.DTOs.LoanModule.LoanProductDto>
 
 @{
     ViewData["Title"] = "Loan Products";
+}
+
+@if (ViewBag.CustomerId != null && ViewBag.CustomerName != null)
+{
+    <div class="alert alert-info mt-3 mb-4">
+        <strong>Customer:</strong> @ViewBag.CustomerName <br />
+        <strong>Customer ID:</strong> @ViewBag.CustomerId
+    </div>
 }
 
 <div class="container mt-5">
@@ -15,18 +23,17 @@
         <table class="table table-hover align-middle table-bordered" style="background: #e3f2fd;">
             <thead style="background: #1976d2; color: #fff;">
                 <tr>
-                    <th>@Html.DisplayNameFor(model => model.ProductName)</th>
-                    <th>@Html.DisplayNameFor(model => model.LoanProductType)</th>
-                    <th>@Html.DisplayNameFor(model => model.MinAmount)</th>
-                    <th>@Html.DisplayNameFor(model => model.MaxAmount)</th>
-                    <th>@Html.DisplayNameFor(model => model.LoanProductTypeDescription)</th>
-                    <th>@Html.DisplayNameFor(model => model.PaymentFrequency)</th>
-                    <th>@Html.DisplayNameFor(model => model.PaymentFrequencyDescription)</th>
-                    <th>@Html.DisplayNameFor(model => model.InterestRate)</th>
-                    <th>@Html.DisplayNameFor(model => model.MinTermMonths)</th>
-                    <th>@Html.DisplayNameFor(model => model.MaxTermMonths)</th>
-                    <th>@Html.DisplayNameFor(model => model.EligibilityCriteria)</th>
-                    <th class="text-end">Actions</th>
+                    <th>Product Name</th>
+                    <th>Min Amount</th>
+                    <th>Max Amount</th>
+                    <th>Type Description</th>
+                    <th>Payment Frequency</th>
+                    <th>Payment Frequency Description</th>
+                    <th>Interest Rate</th>
+                    <th>Min Term (Months)</th>
+                    <th>Max Term (Months)</th>
+                    <th>Risk Level</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,7 +41,6 @@
                 {
                     <tr style="transition: background 0.2s;" onmouseover="this.style.background='#bbdefb'" onmouseout="this.style.background=''">
                         <td>@Html.DisplayFor(modelItem => item.ProductName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.LoanProductType)</td>
                         <td>@Html.DisplayFor(modelItem => item.MinAmount)</td>
                         <td>@Html.DisplayFor(modelItem => item.MaxAmount)</td>
                         <td>@Html.DisplayFor(modelItem => item.LoanProductTypeDescription)</td>
@@ -43,7 +49,7 @@
                         <td>@Html.DisplayFor(modelItem => item.InterestRate)</td>
                         <td>@Html.DisplayFor(modelItem => item.MinTermMonths)</td>
                         <td>@Html.DisplayFor(modelItem => item.MaxTermMonths)</td>
-                        <td>@Html.DisplayFor(modelItem => item.EligibilityCriteria)</td>
+                        <td>@Html.DisplayFor(modelItem => item.RiskLevelDescription)</td>
                         <td class="text-end">
                             <a href="/LoanProduct/Modify/@item.ProductId" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="bi bi-pencil-square"></i> Edit
@@ -51,6 +57,12 @@
                             <a href="/LoanProduct/Delete/@item.ProductId" class="btn btn-sm btn-outline-danger me-1">
                                 <i class="bi bi-trash"></i> Delete
                             </a>
+                            @if (ViewBag.CustomerId != null)
+                            {
+                                <a href="/LoanApplication/Create?productId=@item.ProductId&customerId=@ViewBag.CustomerId" class="btn btn-sm btn-success">
+                                    <i class="bi bi-plus-circle"></i> Apply for Loan
+                                </a>
+                            }
                         </td>
                     </tr>
                 }

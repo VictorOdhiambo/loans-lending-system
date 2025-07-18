@@ -28,7 +28,25 @@ namespace LoanManagementApp.Controllers
                 return BadRequest("NotificationHeader, Channel, and Email are required.");
             }
             var data = request.Data ?? new Dictionary<string, string>();
-            data["Email"] = request.Email; 
+            data["Email"] = request.Email;
+
+            // Fetch customer info and add to data dictionary
+            using (var db = new LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext(new Microsoft.EntityFrameworkCore.DbContextOptions<LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext>()))
+            {
+                var customer = db.Customers.FirstOrDefault(c => c.Email == request.Email);
+                if (customer != null)
+                {
+                    data["FirstName"] = customer.FirstName;
+                    data["LastName"] = customer.LastName;
+                    data["FullName"] = $"{customer.FirstName} {customer.LastName}";
+                    data["PhoneNumber"] = customer.PhoneNumber;
+                    data["Address"] = customer.Address ?? string.Empty;
+                    data["DateOfBirth"] = customer.DateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty;
+                    data["NationalId"] = customer.NationalId ?? string.Empty;
+                    data["EmploymentStatus"] = customer.EmploymentStatus ?? string.Empty;
+                    data["AnnualIncome"] = customer.AnnualIncome?.ToString() ?? string.Empty;
+                }
+            }
             var result = await _notificationService.SendNotificationAsync(request.NotificationHeader, request.Channel, data);
             return Ok(new { message = result });
         }

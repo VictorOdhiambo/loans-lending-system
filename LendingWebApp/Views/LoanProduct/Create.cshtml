@@ -34,6 +34,12 @@
             </div>
 
             <div class="mb-3">
+                @Html.LabelFor(model => model.RiskLevel, "Risk Level", new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.RiskLevel, ViewBag.RiskLevels as List<SelectListItem>, "-- Select Risk Level --", new { @class = "form-select" })
+                @Html.ValidationMessageFor(model => model.RiskLevel, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
                 @Html.LabelFor(model => model.MinAmount, new { @class = "form-label" })
                 @Html.TextBoxFor(model => model.MinAmount, new { @class = "form-control", type = "number", step = "0.01" })
                 @Html.ValidationMessageFor(model => model.MinAmount, "", new { @class = "text-danger" })
@@ -67,12 +73,6 @@
                 @Html.LabelFor(model => model.ProcessingFee, new { @class = "form-label" })
                 @Html.TextBoxFor(model => model.ProcessingFee, new { @class = "form-control", type = "number", step = "0.01" })
                 @Html.ValidationMessageFor(model => model.ProcessingFee, "", new { @class = "text-danger" })
-            </div>
-
-            <div class="mb-3">
-                @Html.LabelFor(model => model.EligibilityCriteria, new { @class = "form-label" })
-                @Html.TextAreaFor(model => model.EligibilityCriteria, new { @class = "form-control", rows = "3" })
-                @Html.ValidationMessageFor(model => model.EligibilityCriteria, "", new { @class = "text-danger" })
             </div>
 
             <div class="form-check mb-3">

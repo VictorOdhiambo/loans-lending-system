@@ -52,7 +52,9 @@ public class LoanProductDto
     [MaxLength(500)]
     public string EligibilityCriteria { get; set; }
 
-    
+    [Required]
+    public LoanRiskLevel RiskLevel { get; set; }
+    public string RiskLevelDescription => EnumHelper.GetDescription(RiskLevel);
 }
 
 

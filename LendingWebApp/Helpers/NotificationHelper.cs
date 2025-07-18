@@ -42,7 +42,8 @@ namespace LoanApplicationService.Web.Helpers
                 "Loan Rejected",
                 "Loan Overdue",
                 "Loan Fully Repaid",
-                "Payment Reminder" 
+                "Payment Reminder",
+                "Loan Approved"
             };
             return options.Select(opt => new SelectListItem
             {
