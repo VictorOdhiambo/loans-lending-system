@@ -1,13 +1,17 @@
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.CrossCutting.Utils;
+using LoanApplicationService.Service.DTOs.Account;
 using LoanApplicationService.Service.DTOs.LoanApplicationModule;
 using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering; 
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 
 
 namespace LoanApplicationService.Web.Controllers
@@ -18,70 +22,25 @@ namespace LoanApplicationService.Web.Controllers
         private readonly ILoanProductService _loanProductService;
         private readonly INotificationSenderService _notificationSenderService;
         private readonly ICustomerService _customerService;
+        private readonly IAccountService _accountService;
 
         public LoanApplicationController(
             ILoanApplicationService loanApplicationService,
             ILoanProductService loanProductService,
             INotificationSenderService notificationSenderService,
-            ICustomerService customerService)
+            ICustomerService customerService,
+            IAccountService accountService
+            )
+
         {
             _loanApplicationService = loanApplicationService;
             _loanProductService = loanProductService;
             _notificationSenderService = notificationSenderService;
             _customerService = customerService;
+            _accountService = accountService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Disburse(int id)
-        {
-            var application = await _loanApplicationService.GetByIdAsync(id);
-            if (application == null)
-            {
-                return View("NotFound");
-            }
-            return View(application);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DisburseConfirmed(int id)
-        {
-            var result = await _loanApplicationService.DisburseAsync(id);
-            if (result)
-            {
-                // Send notification to customer using the 'Loan Disbursed' template
-                var application = await _loanApplicationService.GetByIdAsync(id);
-                if (application != null)
-                {
-                    var customer = await _customerService.GetByIdAsync(application.CustomerId);
-                    if (customer != null)
-                    {
-                        var data = new Dictionary<string, string>
-                        {
-                            ["FirstName"] = customer.FirstName,
-                            ["LastName"] = customer.LastName,
-                            ["FullName"] = customer.FirstName + " " + customer.LastName,
-                            ["Email"] = customer.Email,
-                            ["LoanProductId"] = application.ProductId.ToString(),
-                            ["LoanAmount"] = application.ApprovedAmount?.ToString("F2") ?? application.RequestedAmount.ToString("F2"),
-                            ["TermMonths"] = application.TermMonths.ToString(),
-                            ["Purpose"] = application.Purpose ?? string.Empty
-                        };
-                        await _notificationSenderService.SendNotificationAsync(
-                            "Loan Disbursed",
-                            "email",
-                            data
-                        );
-                    }
-                }
-                TempData["Success"] = "Loan application disbursed successfully!";
-            }
-            else
-            {
-                TempData["Error"] = "Failed to disburse loan application.";
-            }
-            return RedirectToAction("Index");
-        }
+        
 
         [HttpGet]
         public async Task<IActionResult> Index(int? Status, int? customerId)
@@ -203,6 +162,15 @@ namespace LoanApplicationService.Web.Controllers
                 return View(loanApplicationDto);
             }
 
+            //get user or customer Id
+            var userIdStr =  HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdStr))
+            {
+                TempData["Error"] = "User session expired. Please log in again.";
+                return RedirectToAction("Login", "Home");
+            }
+            loanApplicationDto.CreatedBy = Guid.Parse(userIdStr);
+
             var result = await _loanApplicationService.CreateAsync(loanApplicationDto);
             if (result)
             {
@@ -226,9 +194,10 @@ namespace LoanApplicationService.Web.Controllers
             return View(loanApplicationDto);
         }
 
-        [HttpGet]
 
         [HttpGet]
+        [RoleAuthorize("Admin")]
+
         public async Task<IActionResult> Approve(int id)
         {
             
@@ -247,7 +216,10 @@ namespace LoanApplicationService.Web.Controllers
             return View(application);
             
         }
+
+
         [HttpPost]
+        [RoleAuthorize("Admin")]
         public async Task<IActionResult> Approve(LoanApplicationDto dto)
         {
             if (!dto.ApprovedAmount.HasValue)
@@ -255,9 +227,28 @@ namespace LoanApplicationService.Web.Controllers
                 ModelState.AddModelError(nameof(dto.ApprovedAmount), "Approved Amount is required.");
             }
 
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdStr))
+            {
+                TempData["Error"] = "User session expired. Please log in again.";
+                return RedirectToAction("", "Home");
+            }
+            var LoanApplication = await _loanApplicationService.GetByIdAsync(dto.ApplicationId);
+            if (LoanApplication == null)
+            {
+                TempData["Error"] = "Loan application not found.";
+                return RedirectToAction("Index");
+            }
+
+            var ApprovedBy = Guid.Parse((HttpContext.Session.GetString("UserId")));
+            if ( LoanApplication.CreatedBy == ApprovedBy) { 
+                ModelState.AddModelError(nameof(dto.ApprovedBy), "You cannot approve your own application.");
+                TempData["Error"] = "You cannot approve your own application.";
+                return RedirectToAction("GetById", new { id = dto.ApplicationId });
+            }
             if (ModelState.IsValid)
             {
-                await _loanApplicationService.ApproveAsync(dto.ApplicationId, dto.ApprovedAmount.Value);
+                await _loanApplicationService.ApproveAsync(dto.ApplicationId, dto.ApprovedAmount.Value, ApprovedBy);
                 // Send notification to customer using the custom template
                 var customer = await _customerService.GetByIdAsync(dto.CustomerId);
                 if (customer != null)
@@ -293,6 +284,8 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpGet]
+        [RoleAuthorize("Admin")]
+
         public async Task<IActionResult> Reject(int id)
         {
             var application = await _loanApplicationService.GetByIdAsync(id);
@@ -311,11 +304,23 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpPost]
+        [RoleAuthorize("Admin")]
+
 
         public async Task<ActionResult> RejectAsync(int applicationId)
         {
             if (ModelState.IsValid)
             {
+                var userIdStr =Guid.Parse (HttpContext.Session.GetString("UserId"));
+                var loanApplication = await _loanApplicationService.GetByIdAsync(applicationId);
+                if (loanApplication.CreatedBy == userIdStr)
+                
+                {
+                    TempData["Error"] = "You cannot reject your own application.";
+                    return RedirectToAction("GetById", new { id = applicationId });
+                }
+
+                loanApplication.RejectedBy = userIdStr;
                 var result = await _loanApplicationService.RejectAsync(applicationId);
                 if (result != null)
                 {
@@ -402,6 +407,102 @@ namespace LoanApplicationService.Web.Controllers
 
         }
 
-        
+
+
+        [HttpPost]
+        public FileResult Export()
+        {
+
+            DataTable dt = new DataTable("Loan Application");
+            dt.Columns.AddRange(new DataColumn[11] { new DataColumn("ApplicationId"),
+                                            new DataColumn("CustomerId"),
+                                            new DataColumn("ProductId"),
+                                            new DataColumn("ProcessedBy"),
+                                            new DataColumn("Status"),
+                                            new DataColumn("TermMonths"),
+                                            new DataColumn("RequestedAmount"),
+                                            new DataColumn("ApprovedAmount"),
+                                            new DataColumn("Purpose"),
+                                            new DataColumn("ApplicationDate"),
+                                            new DataColumn("DecisionDate")});
+
+            var LoanAplications = _loanApplicationService.GetAllAsync().Result;
+
+            foreach (var app in LoanAplications)
+            {
+                dt.Rows.Add(app.ApplicationId, app.CustomerId, app.ProductId, app.ApprovedBy, app.Status, app.TermMonths, app.RequestedAmount, app.ApprovedAmount, app.Purpose, app.ApplicationDate, app.DecisionDate);
+            }
+
+            using (XLWorkbook wb = new XLWorkbook())
+            {
+                wb.Worksheets.Add(dt);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    wb.SaveAs(stream);
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LoanApplications.xlsx");
+                }
+            }
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> Disburse(int applicationId)
+        {
+            var application = await _loanApplicationService.GetByIdAsync(applicationId);
+            var accountDto = new AccountDto
+            {
+                ApplicationId = application.ApplicationId,
+                CustomerId = application.CustomerId,
+                AccountNumber = "ACCT" + application.ApplicationId,
+                AccountType = "Loan",
+                PrincipalAmount = application.ApprovedAmount ?? 0,
+                DisbursedAmount = application.ApprovedAmount ?? 0,
+                AvailableBalance = application.ApprovedAmount ?? 0,
+                OutstandingBalance = application.ApprovedAmount ?? 0,
+                InterestRate = application.InterestRate ?? 0,
+                TermMonths = application.TermMonths,
+                MonthlyPayment = (application.ApprovedAmount ?? 0) / application.TermMonths,
+                NextPaymentDate = DateTime.UtcNow.AddMonths(1),
+                Status = "Active",
+                DisbursementDate = DateTime.UtcNow,
+                MaturityDate = DateTime.UtcNow.AddMonths(application.TermMonths)
+            };
+
+            await _accountService.CreateAccountAsync(accountDto);
+
+            application.Status = LoanStatus.Disbursed;
+            await _loanApplicationService.UpdateAsync(application);
+
+            return RedirectToAction("Index");
+
+
+
+        }
+        [HttpGet]
+        public async Task<IActionResult> DisburseLoan(int id)
+        {
+            var application = await _loanApplicationService.GetByIdAsync(id);
+            if (application == null || application.Status != LoanStatus.Approved)
+            {
+                TempData["Error"] = "Loan application not found or not approved.";
+                return RedirectToAction("Index");
+            }
+            var LoanProducts = await _loanProductService.GetAllProducts();
+
+            ViewBag.LoanProducts = LoanProducts.Select(lp => new SelectListItem
+            {
+                Value = lp.ProductId.ToString(),
+                Text = $"{lp.ProductName} - {lp.InterestRate}%"
+            }).ToList();
+            return View(application);
+        }
+
+        private bool IsUserAuthenticated()
+        {
+            return !string.IsNullOrEmpty(HttpContext.Session.GetString("UserId"));
+        }
     }
+
 }
+

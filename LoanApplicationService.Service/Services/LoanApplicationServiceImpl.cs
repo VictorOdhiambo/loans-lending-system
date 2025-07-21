@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.CrossCutting.Utils;
@@ -80,7 +80,7 @@ namespace LoanApplicationService.Service.Services
 
                 return _mapper.Map<LoanApplicationDto>(app);
             }
-            return null;    
+            return null;
         }
 
 
@@ -88,7 +88,7 @@ namespace LoanApplicationService.Service.Services
 
 
 
-        public async Task<bool> ApproveAsync(int applicationId, decimal approvedAmount)
+        public async Task<bool> ApproveAsync(int applicationId, decimal approvedAmount, Guid ApprovedBy)
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
             if (application == null) return false;
@@ -97,6 +97,7 @@ namespace LoanApplicationService.Service.Services
             application.ApprovedAmount = approvedAmount;
             application.DecisionDate = DateTime.UtcNow;
             application.UpdatedAt = DateTime.UtcNow;
+            application.ApprovedBy = ApprovedBy;
 
             return await _context.SaveChangesAsync() > 0;
         }
@@ -132,9 +133,9 @@ namespace LoanApplicationService.Service.Services
 
             return _mapper.Map<IEnumerable<LoanApplicationDto>>(applications);
         }
-    
 
-    public async Task<bool> CustomerReject(int applicationId, string reason)
+
+        public async Task<bool> CustomerReject(int applicationId, string reason)
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
             if (application == null) return false;
@@ -152,5 +153,15 @@ namespace LoanApplicationService.Service.Services
             application.UpdatedAt = DateTime.UtcNow;
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<bool> UpdateAsync(LoanApplicationDto dto)
+        {
+            var application = await _context.LoanApplications.FindAsync(dto.ApplicationId);
+            if (application == null) return false;
+            _mapper.Map(dto, application);
+            application.UpdatedAt = DateTime.UtcNow;
+            _context.LoanApplications.Update(application);
+            return await _context.SaveChangesAsync() > 0;
+        }                   
     }
 }
