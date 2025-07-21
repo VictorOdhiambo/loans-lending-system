@@ -98,4 +98,14 @@ namespace LoanApplicationService.CrossCutting.Utils
             return LoanRiskLevel.VeryLow;
         }
     }
+
+    public enum PaymentMethods
+    {
+       
+        [Description("Bank Transfer")]
+        BankTransfer = 0,
+        [Description("Mobile Money")]
+        MobileMoney = 1
+        
+    }
 }

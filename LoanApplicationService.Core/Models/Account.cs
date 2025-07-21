@@ -26,6 +26,8 @@ public class Account
     [Column(TypeName = "decimal(15,2)")]
     public decimal PrincipalAmount { get; set; }
 
+    public decimal AvailableBalance { get; set; }   
+
     [Column(TypeName = "decimal(15,2)")]
     public decimal OutstandingBalance { get; set; }
 
