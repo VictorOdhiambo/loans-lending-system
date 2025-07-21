@@ -25,8 +25,9 @@ builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
 builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
-builder.Services.AddScoped<RepaymentServiceImpl>();
-// Email Service registration
+builder.Services.AddScoped<IAccountService, AccountServiceImpl>();
+builder.Services.AddScoped<ILoanPaymentService, LoanPaymentImpl>();
+// Email Service registration, 
 builder.Services.AddScoped<LoanApplicationService.Web.Helpers.IEmailService, LoanApplicationService.Web.Helpers.EmailService>();
 // Register EmailSettings for DI
 builder.Services.Configure<LoanManagementApp.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));

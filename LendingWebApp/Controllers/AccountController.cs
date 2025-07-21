@@ -1,37 +1,139 @@
-﻿using LoanApplicationService.Service.Services;
+﻿using LoanApplicationService.Core.Models;
+using LoanApplicationService.CrossCutting.Utils;
+using LoanApplicationService.Service.DTOs.Account;
+using LoanApplicationService.Service.DTOs.LoanDisbursement;
+using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LoanApplicationService.Web.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController(IAccountService accountService) : Controller
     {
-        private readonly RepaymentServiceImpl _repaymentService;
-
-        public AccountController(RepaymentServiceImpl repaymentService)
+        private readonly IAccountService _accountService = accountService;
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            _repaymentService = repaymentService;
+            var accounts = await _accountService.GetAllAccountsAsync();
+            return View(accounts);
         }
 
         [HttpGet]
-        public IActionResult RecordRepayment(int accountId)
+        public async Task<IActionResult> GetAccountById(int Id)
         {
-            ViewBag.AccountId = accountId;
-            return View();
+            var account = await _accountService.GetAccountByIdAsync(Id);
+            if (account == null)
+            {
+                return View("NotFound");
+            }
+            return View(account);
+        }
+
+        public async Task<IActionResult> CreateAccount(AccountDto accountDto)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _accountService.CreateAccountAsync(accountDto);
+                if (result)
+                {
+                    return RedirectToAction("Index");
+                }
+                ModelState.AddModelError("", "Failed to create account.");
+            }
+            return View(accountDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> RecordRepayment(int accountId, decimal amount, string? notes)
+        public async Task<IActionResult> Withdraw(LoanWithdawalDto dto)
         {
-            var result = await _repaymentService.RecordRepayment(accountId, amount, notes);
+            var LoanAccount = await _accountService.GetAccountByIdAsync(dto.AccountId);     
+            if (dto.Amount > LoanAccount.AvailableBalance)
+            {
+                ModelState.AddModelError("Amount", $"Payment amount exceeds available balance. The available balance is {LoanAccount.AvailableBalance}");
+                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
+               .Cast<PaymentMethods>()
+               .Select(e => new SelectListItem
+               {
+                   Value = ((int)e).ToString(),
+                   Text = EnumHelper.GetDescription(e)
+               }).ToList();
+                return View(dto);
+            }
+            var result = await _accountService.WithdrawAsync(dto.AccountId, dto);
+
             if (result)
             {
-                TempData["Success"] = "Repayment recorded successfully!";
+                return RedirectToAction("Index");
             }
-            else
+
+            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
+                .Cast<PaymentMethods>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = EnumHelper.GetDescription(e)
+                }).ToList();
+
+            ModelState.AddModelError("", "Failed to withdraw amount.");
+            return View(dto);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Withdraw(int Id)
+        {
+            var account = await _accountService.GetAccountByIdAsync(Id);
+
+            if (account == null)
             {
-                TempData["Error"] = "Failed to record repayment.";
+                return View("NotFound");
             }
-            return RedirectToAction("Details", new { id = accountId });
+
+            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
+                .Cast<PaymentMethods>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = EnumHelper.GetDescription(e)
+                }).ToList();
+
+            var model = new LoanWithdawalDto
+            {
+                AccountId = account.AccountId
+            };
+
+            return View(model);
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> ApplyPayment(int accountId, decimal amount)
+        {
+           var LoanAccount = await _accountService.GetAccountByIdAsync(accountId);
+           
+            if (ModelState.IsValid)
+            {
+
+                var result = await _accountService.ApplyPaymentAsync(accountId, amount);
+                if (result)
+                {
+                    return RedirectToAction("Index");
+                }
+                ModelState.AddModelError("", "Failed to apply payment.");
+            }
+
+            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
+                .Cast<PaymentMethods>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = EnumHelper.GetDescription(e)
+                }).ToList();
+            return View();
         }
     }
 }
+
+
+
