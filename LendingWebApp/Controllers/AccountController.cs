@@ -44,9 +44,11 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpPost]
+        [RoleAuthorize("Customer")]
+
         public async Task<IActionResult> Withdraw(LoanWithdawalDto dto)
         {
-            var LoanAccount = await _accountService.GetAccountByIdAsync(dto.AccountId);     
+            var LoanAccount = await _accountService.GetAccountByIdAsync(dto.AccountId);
             if (dto.Amount > LoanAccount.AvailableBalance)
             {
                 ModelState.AddModelError("Amount", $"Payment amount exceeds available balance. The available balance is {LoanAccount.AvailableBalance}");
@@ -80,6 +82,8 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpGet]
+        [RoleAuthorize("Customer")]
+
         public async Task<IActionResult> Withdraw(int Id)
         {
             var account = await _accountService.GetAccountByIdAsync(Id);
@@ -108,10 +112,12 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpPost]
+        [RoleAuthorize("Customer")]
+
         public async Task<IActionResult> ApplyPayment(int accountId, decimal amount)
         {
-           var LoanAccount = await _accountService.GetAccountByIdAsync(accountId);
-           
+            var LoanAccount = await _accountService.GetAccountByIdAsync(accountId);
+
             if (ModelState.IsValid)
             {
 
@@ -130,6 +136,30 @@ namespace LoanApplicationService.Web.Controllers
                     Value = ((int)e).ToString(),
                     Text = EnumHelper.GetDescription(e)
                 }).ToList();
+            return View();
+        }
+
+        [HttpGet]
+
+        public async Task<IActionResult> MakePayment(int accountId, decimal amount)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _accountService.ApplyPaymentAsync(accountId, amount);
+                if (result)
+                {
+                    return RedirectToAction("Index");
+                }
+                ModelState.AddModelError("", "Failed to make payment");
+            }
+            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
+                .Cast<PaymentMethods>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = EnumHelper.GetDescription(e)
+                }).ToList();
+
             return View();
         }
     }
