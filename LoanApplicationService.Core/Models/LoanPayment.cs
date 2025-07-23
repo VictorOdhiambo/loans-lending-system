@@ -18,6 +18,9 @@ namespace LoanApplicationService.Core.Models
 
         public int PaymentMethod { get; set; }
 
+        public bool IsPrepaymentPenaltyApplied { get; set; } = false;
+
+
         public virtual Account Account { get; set; }
     }
 }

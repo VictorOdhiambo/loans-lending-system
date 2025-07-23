@@ -48,6 +48,9 @@ public class Account
     public DateTime? DisbursementDate { get; set; }
     public DateTime? MaturityDate { get; set; }
 
+    public DateTime? LastPenaltyAppliedDate { get; set; }
+
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -60,4 +63,6 @@ public class Account
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public virtual ICollection<AuditTrail> AuditTrails { get; set; } = new List<AuditTrail>();
+
+    public virtual ICollection<LoanPayment> LoanPayments { get; set; }      
 }
