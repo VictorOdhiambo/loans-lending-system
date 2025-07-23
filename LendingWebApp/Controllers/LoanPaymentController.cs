@@ -45,9 +45,9 @@ namespace LoanApplicationService.Web.Controllers
         public async Task<IActionResult> MakePayment(LoanPaymentDto dto)
         {
             var account = await _accountService.GetAccountByIdAsync(dto.AccountId);
-            if (dto.Amount > account.AvailableBalance)
+            if (dto.Amount > account.OutstandingBalance)
             {
-                ModelState.AddModelError("", $"The Payment amount cannot be greater than the outstanding balance, which is {account.AvailableBalance:C}.");
+                ModelState.AddModelError("", $"The Payment amount cannot be greater than your Outstanding Balance , which is {account.OutstandingBalance:C}.");
                 PopulatePaymentMethods();
 
                 return View(dto);
