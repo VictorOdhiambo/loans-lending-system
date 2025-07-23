@@ -17,10 +17,11 @@
     routeValues: new { id = Model.ProductId },
     method: FormMethod.Post,
     antiforgery: true,
-    htmlAttributes: new { @class = "form-horizontal" }))            {
-                @Html.AntiForgeryToken()
-                @Html.HiddenFor(model => model.ProductId)
-                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    htmlAttributes: new { @class = "form-horizontal" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.ProductId)
 
                 <div class="mb-3">
                     @Html.LabelFor(model => model.ProductName, new { @class = "form-label" })

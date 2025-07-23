@@ -93,42 +93,58 @@ if (result)
             return View(dto);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null) return NotFound();
-
             return View(customer);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CustomerDto dto)
         {
+            Console.WriteLine($"[Edit POST] DTO: {dto.FirstName}, {dto.LastName}, {dto.DateOfBirth}");
             if (!ModelState.IsValid)
                 return View(dto);
 
-            await _customerService.UpdateAsync(dto);
-            return RedirectToAction("Index");
+            var updated = await _customerService.UpdateAsync(dto.CustomerId, dto);
+            if (updated == null)
+            {
+                TempData["Error"] = "Customer not found or failed to update.";
+                return View(dto);
+            }
+            TempData["Success"] = "Customer updated successfully!";
+            return RedirectToAction("Details", new { id = dto.CustomerId });
         }
 
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null) return NotFound();
-
             return View(customer);
         }
 
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            await _customerService.DeleteAsync(id);
+        { 
+            var deleted = await _customerService.DeleteAsync(id);
+            if (!deleted)
+            {
+                TempData["Error"] = "Failed to delete customer.";
+                return RedirectToAction("Index");
+            }
+            TempData["Success"] = "Customer deleted successfully!";
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Details(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
+            Console.WriteLine($"[Details GET] Customer: {customer?.FirstName}, {customer?.LastName}, {customer?.DateOfBirth}");
             if (customer == null) return NotFound();
 
             return View(customer);

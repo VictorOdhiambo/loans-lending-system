@@ -20,7 +20,7 @@ namespace LoanApplicationService.Service.Services
         public async Task<UserDTO?> LoginAsync(LoginDto loginDto)
         {
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash) || !user.IsActive)
                 return null;
 
             return _mapper.Map<UserDTO>(user);
@@ -54,14 +54,40 @@ namespace LoanApplicationService.Service.Services
 
         public async Task<List<UserDTO>> GetAllUsersAsync()
         {
-            var users = await _db.Users.Where(u => !u.IsDeleted).ToListAsync();
+            var users = await _db.Users.Where(u => u.IsActive).ToListAsync();
             return _mapper.Map<List<UserDTO>>(users);
         }
 
         public async Task<List<UserDTO>> GetAdminsAsync()
         {
-            var admins = await _db.Users.Where(u => !u.IsDeleted && u.Role == "Admin").ToListAsync();
+            var admins = await _db.Users.Where(u => u.IsActive && u.Role == "Admin").ToListAsync();
             return _mapper.Map<List<UserDTO>>(admins);
+        }
+
+        public async Task<bool> UpdateUserRoleAsync(Guid userId, string newRole)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return false;
+            user.Role = newRole;
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+         
+        public async Task<bool> SetUserActiveStatusAsync(Guid userId, bool isActive)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return false;
+            user.IsActive = isActive;
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<UserDTO>> GetInactiveUsersAsync()
+        {
+            var users = await _db.Users.Where(u => !u.IsActive).ToListAsync();
+            return _mapper.Map<List<UserDTO>>(users);
         }
     }
 }

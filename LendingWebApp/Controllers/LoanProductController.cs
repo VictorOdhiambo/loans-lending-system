@@ -115,13 +115,14 @@ namespace LoanApplicationService.Web.Controllers
         [HttpGet]
         public async Task<ActionResult> Modify(int id)
         {
-            var LoanProduct = await _loanProductService.GetLoanProductById(id);
+            var loanProduct = await _loanProductService.GetLoanProductById(id);
+            if (loanProduct == null) return NotFound();
             PopulateDropdowns();
-            return View(LoanProduct);
+            return View(loanProduct);
         }
 
-
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Modify(LoanProductDto loanProductDto)
         {
             if (ModelState.IsValid)
@@ -142,7 +143,25 @@ namespace LoanApplicationService.Web.Controllers
             return View(loanProductDto);
         }
 
-        [HttpPost]
+        [HttpGet]
+        public async Task<ActionResult> Delete(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["Error"] = "Invalid loan product ID.";
+                return RedirectToAction("Index");
+            }
+            var loanProduct = await _loanProductService.GetLoanProductById(id);
+            if (loanProduct == null)
+            {
+                TempData["Error"] = "Loan product not found.";
+                return RedirectToAction("Index");
+            }
+            return View(loanProduct);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
             if (id <= 0)
@@ -160,23 +179,6 @@ namespace LoanApplicationService.Web.Controllers
                 TempData["Error"] = "Failed to delete loan product. Please try again.";
             }
             return RedirectToAction("Index");
-        }
-
-        [HttpGet]
-        public  async Task<ActionResult> Delete(int id)
-        {
-            if (id <= 0)
-            {
-                TempData["Error"] = "Invalid loan product ID.";
-                return RedirectToAction("Index");
-            }
-            var loanProduct = await _loanProductService.GetLoanProductById(id);
-            if (loanProduct == null)
-            {
-                TempData["Error"] = "Loan product not found.";
-                return RedirectToAction("Index");
-            }
-            return View(loanProduct);
         }
 
 
