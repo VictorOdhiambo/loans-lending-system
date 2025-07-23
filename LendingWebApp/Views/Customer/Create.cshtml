@@ -17,6 +17,26 @@
         }
         @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <div class="form-group mb-3">
+                <label for="Role" class="form-label">Select Role</label>
+                <select id="Role" class="form-select" onchange="handleRoleChange()">
+                    <option value="Admin">Admin</option>
+                    <option value="Customer" selected>Customer</option>
+                </select>
+            </div>
+            <script>
+                function handleRoleChange() {
+                    var role = document.getElementById('Role').value;
+                    if (role === 'Admin') {
+                        window.location.href = '/Users/Create';
+                    }
+                    // If Customer, do nothing
+                }
+            </script>
+        }
+
         <div class="form-group mb-3">
             <label for="FirstName" class="form-label">First Name</label>
             <input id="FirstName" name="FirstName" class="form-control" />

@@ -1,38 +1,13 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
 <div class="container py-4">
-    <h1 class="mb-4">
-        @if (User.IsInRole("SuperAdmin"))
-        {
-            <span>Super Admin Dashboard</span>
-        }
-        else
-        {
-            <span>Admin Dashboard</span>
-        }
-    </h1>
-    <div id="welcomeMsg" class="alert alert-info">Welcome!</div>
-    <script>
-        setTimeout(function() {
-            var msg = document.getElementById('welcomeMsg');
-            if (msg) msg.style.display = 'none';
-        }, 10000);
-    </script>
+    <h1 class="mb-4">Admin Dashboard</h1>
+    <div class="alert alert-info">Welcome!</div>
     <div class="row g-4 mb-4">
-        <div class="col-md-4 col-lg-2">
-    <a href="/Users" style="text-decoration: none;">
-        <div class="card text-white bg-primary h-100 shadow" style="cursor:pointer;">
-            <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                <i class="bi bi-people-fill display-5 mb-2"></i>
-                <h5 class="card-title">Total Users</h5>
-                <h3>@ViewBag.TotalUsers</h3>
-            </div>
-        </div>
-    </a>
-</div>
+        <!-- User management card removed for Admins -->
         <div class="col-md-4 col-lg-2">
     <a href="/LoanApplication/Index?status=3" style="text-decoration: none;">
         <div class="card text-white bg-success h-100 shadow" style="cursor:pointer;">
@@ -83,4 +58,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> 

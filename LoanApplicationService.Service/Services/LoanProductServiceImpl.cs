@@ -20,6 +20,7 @@ namespace LoanApplicationService.Service.Services
                 loanProduct.CreatedAt = DateTime.UtcNow;
                 loanProduct.UpdatedAt = DateTime.UtcNow;
                 loanProduct.IsDeleted = false;
+                loanProduct.LoanChargeMap = new List<LoanChargeMapper>();
 
                 await _context.LoanProducts.AddAsync(loanProduct);
 
@@ -76,6 +77,7 @@ namespace LoanApplicationService.Service.Services
                 product.EligibilityCriteria = loanProductDto.EligibilityCriteria;
                 product.ProcessingFee = loanProductDto.ProcessingFee;
                 product.IsActive = loanProductDto.IsActive;
+                product.RiskLevel = loanProductDto.RiskLevel;
                 product.UpdatedAt = DateTime.UtcNow;
 
                 return await _context.SaveChangesAsync() > 0;

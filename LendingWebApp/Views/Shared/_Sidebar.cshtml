@@ -1,6 +1,19 @@
 <div class="d-flex flex-column flex-shrink-0 p-3 position-fixed vh-100" style="width: 220px; background: #1565c0;">
     <a href="/Home/Dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-        <span class="fs-4 fw-bold">Admin</span>
+        <span class="navbar-brand mb-0 h1">
+            @if (User.IsInRole("SuperAdmin"))
+            {
+                <span>Super Admin</span>
+            }
+            else if (User.IsInRole("Admin"))
+            {
+                <span>Admin</span>
+            }
+            else
+            {
+                <span>User</span>
+            }
+        </span>
     </a>
     <hr class="border-light">
     <ul class="nav nav-pills flex-column mb-auto">

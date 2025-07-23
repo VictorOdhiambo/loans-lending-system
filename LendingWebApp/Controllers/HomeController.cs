@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using LoanApplicationService.Core.Repository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -41,19 +45,35 @@ namespace LoanApplicationService.Web.Controllers
                 return View(loginDto);
             }
 
-            // Set session data
-            HttpContext.Session.SetString("UserId", user.UserId.ToString());
-            HttpContext.Session.SetString("Role", user.Role ?? "");
-            HttpContext.Session.SetString("Email", user.Email ?? "");
+            // Create claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.Email ?? ""),
+                new Claim(ClaimTypes.Role, user.Role ?? "")
+            };
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+            };
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
             Console.WriteLine($"Login success: {user.Email}, {user.Role}, {user.UserId}");
 
-            return RedirectToAction("Dashboard");
+            // Redirect based on role
+            if (user.Role == "SuperAdmin")
+                return RedirectToAction("Dashboard");
+            else if (user.Role == "Admin")
+                return RedirectToAction("AdminDashboard");
+            else
+                return RedirectToAction("Index", "Customer");
         }
 
         [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+            if (!User.Identity.IsAuthenticated)
                 return RedirectToAction("Index");
 
             // Get metrics
@@ -62,7 +82,7 @@ namespace LoanApplicationService.Web.Controllers
                 var db = scope.ServiceProvider.GetRequiredService<LoanApplicationServiceDbContext>();
 
                 // Total Users (Admins + Customers)
-                var totalUsers = await db.Users.CountAsync(u => !u.IsDeleted);
+                var totalUsers = await db.Users.CountAsync(u => u.IsActive);
 
                 // Total Loan Disbursed (sum of all approved loans)
                 var totalLoanDisbursed = await db.LoanApplications
@@ -94,10 +114,41 @@ namespace LoanApplicationService.Web.Controllers
             return View(); // Views/Home/Dashboard.cshtml
         }
 
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminDashboard()
+        {
+            using (var scope = HttpContext.RequestServices.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext>();
+
+                var totalLoanDisbursed = await db.LoanApplications
+                    .Where(a => a.Status == (int)LoanApplicationService.CrossCutting.Utils.LoanStatus.Approved)
+                    .SumAsync(a => (decimal?)a.ApprovedAmount ?? 0);
+
+                var pendingApplications = await db.LoanApplications.CountAsync(a => a.Status == (int)LoanApplicationService.CrossCutting.Utils.LoanStatus.Pending);
+
+                var overdueLoans = await db.Accounts.CountAsync(a => a.NextPaymentDate < DateTime.UtcNow && a.OutstandingBalance > 0);
+
+                var totalAccounts = await db.Accounts.CountAsync();
+                var fullyRepaid = await db.Accounts.CountAsync(a => a.OutstandingBalance == 0);
+                var loanRepaymentRate = totalAccounts > 0 ? (int)Math.Round((double)fullyRepaid / totalAccounts * 100) : 0;
+
+                var newMessages = await db.Notifications.CountAsync(n => !n.IsRead);
+
+                ViewBag.TotalLoanDisbursed = totalLoanDisbursed;
+                ViewBag.PendingApplications = pendingApplications;
+                ViewBag.OverdueLoans = overdueLoans;
+                ViewBag.LoanRepaymentRate = loanRepaymentRate;
+                ViewBag.NewMessages = newMessages;
+            }
+
+            return View();
+        }
+
         [HttpGet]
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear();
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index");
         }
     }

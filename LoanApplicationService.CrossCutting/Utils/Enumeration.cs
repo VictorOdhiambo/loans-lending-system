@@ -74,28 +74,38 @@ namespace LoanApplicationService.CrossCutting.Utils
 
     public static class RiskScoringUtil
     {
-        public static LoanRiskLevel GetRiskLevel(int age, bool isEmployed, decimal income)
+        public static LoanRiskLevel GetRiskLevel(int age, string employmentStatus, decimal income)
         {
             int score = 0;
+
             // Age points
             if (age >= 18 && age <= 25) score += 1;
             else if (age >= 26 && age <= 35) score += 2;
-            else if (age >= 36 && age <= 45) score += 3;
-            else if (age >= 46 && age <= 55) score += 4;
-            else if (age >= 56) score += 2;
+            else if (age >= 36 && age <= 50) score += 3;
+            else if (age >= 51 && age <= 60) score += 2;
+            else if (age >= 61) score += 1;
+
             // Employment status points
-            score += isEmployed ? 2 : 0;
+            if (!string.IsNullOrWhiteSpace(employmentStatus))
+            {
+                var status = employmentStatus.Trim().ToLower();
+                if (status == "employed") score += 3;
+                else if (status == "self-employed") score += 2;
+                // else unemployed/other: 0 points
+            }
+
             // Income points
-            if (income >= 0 && income <= 250000) score += 1;
-            else if (income <= 500000) score += 2;
-            else if (income <= 1000000) score += 3;
-            else if (income <= 1500000) score += 4;
+            if (income < 250000) score += 1;
+            else if (income < 500000) score += 2;
+            else if (income < 1000000) score += 3;
+            else score += 4;
+
             // Risk level mapping
-            if (score >= 2 && score <= 4) return LoanRiskLevel.VeryHigh;
-            if (score >= 5 && score <= 6) return LoanRiskLevel.High;
-            if (score >= 7 && score <= 8) return LoanRiskLevel.Medium;
-            if (score >= 9 && score <= 10) return LoanRiskLevel.Low;
-            return LoanRiskLevel.VeryLow;
+            if (score >= 8) return LoanRiskLevel.VeryLow;
+            if (score >= 6) return LoanRiskLevel.Low;
+            if (score >= 4) return LoanRiskLevel.Medium;
+            if (score >= 2) return LoanRiskLevel.High;
+            return LoanRiskLevel.VeryHigh;
         }
     }
 }

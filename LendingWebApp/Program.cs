@@ -2,6 +2,7 @@ using LoanApplicationService.Core.Repository;
 using LoanApplicationService.Service.Mapper.LoanModuleMapper;
 using LoanApplicationService.Service.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,6 @@ builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
 builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
-builder.Services.AddScoped<RepaymentServiceImpl>();
 // Email Service registration
 builder.Services.AddScoped<LoanApplicationService.Web.Helpers.IEmailService, LoanApplicationService.Web.Helpers.EmailService>();
 // Register EmailSettings for DI
@@ -45,6 +45,15 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// Add authentication and cookie authentication middleware to support claims-based login. This is required for SignInAsync to work.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Home/Index";
+        options.LogoutPath = "/Home/Logout";
+        options.AccessDeniedPath = "/Home/Index";
+    });
+
 
 // builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
@@ -63,6 +72,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Enable Swagger in development
@@ -78,24 +88,24 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
-//  Auto-seed admin user on startup
+//  Auto-seed SuperAdmin user on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LoanApplicationServiceDbContext>();
 
-    if (!db.Users.Any(u => u.Email == "admin@lms.com"))
+    if (!db.Users.Any(u => u.Email == "superadmin@pesasure.com"))
     {
-        var admin = new LoanApplicationService.Core.Models.Users
+        var superAdmin = new LoanApplicationService.Core.Models.Users
         {
             Id = Guid.NewGuid(),
             Username = "SuperAdmin",
-            Email = "admin@lms.com",
-            Role = "Admin",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-            IsDeleted = false
+            Email = "superadmin@pesasure.com",
+            Role = "SuperAdmin",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Super@123"),
+            IsActive = true
         };
 
-        db.Users.Add(admin);
+        db.Users.Add(superAdmin);
         db.SaveChanges();
     }
 }

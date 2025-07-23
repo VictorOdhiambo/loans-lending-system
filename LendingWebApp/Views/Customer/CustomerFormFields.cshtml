@@ -1,55 +1,55 @@
 ﻿@model LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto
 
 <div class="form-group mb-3">
-    <label for="FirstName" class="form-label">First Name</label>
-    <input id="FirstName" name="FirstName" class="form-control" value="@Model.FirstName" />
-    <span asp-validation-for="FirstName" class="text-danger"></span>
+    @Html.LabelFor(model => model.FirstName, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.FirstName, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.FirstName, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="LastName" class="form-label">Last Name</label>
-    <input id="LastName" name="LastName" class="form-control" value="@Model.LastName" />
-    <span asp-validation-for="LastName" class="text-danger"></span>
+    @Html.LabelFor(model => model.LastName, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.LastName, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.LastName, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="Email" class="form-label">Email</label>
-    <input id="Email" name="Email" class="form-control" value="@Model.Email" />
-    <span asp-validation-for="Email" class="text-danger"></span>
+    @Html.LabelFor(model => model.Email, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.Email, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="PhoneNumber" class="form-label">Phone</label>
-    <input id="PhoneNumber" name="PhoneNumber" class="form-control" value="@Model.PhoneNumber" />
-    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    @Html.LabelFor(model => model.PhoneNumber, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.PhoneNumber, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="Address" class="form-label">Address</label>
-    <input id="Address" name="Address" class="form-control" value="@Model.Address" />
-    <span asp-validation-for="Address" class="text-danger"></span>
+    @Html.LabelFor(model => model.Address, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.Address, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.Address, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="DateOfBirth" class="form-label">Date of Birth</label>
-    <input id="DateOfBirth" name="DateOfBirth" class="form-control" type="date" value="@Model.DateOfBirth?.ToString("yyyy-MM-dd")" />
-    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+    @Html.LabelFor(model => model.DateOfBirth, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.DateOfBirth, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+    @Html.ValidationMessageFor(model => model.DateOfBirth, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="NationalId" class="form-label">National ID</label>
-    <input id="NationalId" name="NationalId" class="form-control" value="@Model.NationalId" />
-    <span asp-validation-for="NationalId" class="text-danger"></span>
+    @Html.LabelFor(model => model.NationalId, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.NationalId, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.NationalId, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="EmploymentStatus" class="form-label">Employment Status</label>
-    <input id="EmploymentStatus" name="EmploymentStatus" class="form-control" value="@Model.EmploymentStatus" />
-    <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
+    @Html.LabelFor(model => model.EmploymentStatus, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.EmploymentStatus, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.EmploymentStatus, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group mb-3">
-    <label for="AnnualIncome" class="form-label">Annual Income</label>
-    <input id="AnnualIncome" name="AnnualIncome" class="form-control" value="@Model.AnnualIncome" />
-    <span asp-validation-for="AnnualIncome" class="text-danger"></span>
+    @Html.LabelFor(model => model.AnnualIncome, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.AnnualIncome, new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.AnnualIncome, "", new { @class = "text-danger" })
 </div>

@@ -2,10 +2,25 @@
 @{
     ViewData["Title"] = "All Users";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var showInactive = Context.Request.Query["showInactive"] == "true";
 }
 
 <div class="container mt-4">
     <h2>All Users</h2>
+    <div class="mb-3 text-end">
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <a href="/Users/Create" class="btn btn-success">Create User</a>
+        }
+        @if (showInactive)
+        {
+            <a href="/Users" class="btn btn-primary ms-2">Show Active Users</a>
+        }
+        else
+        {
+            <a href="/Users?showInactive=true" class="btn btn-secondary ms-2">Show Inactive Users</a>
+        }
+    </div>
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -23,10 +38,71 @@
                     <td>@user.Email</td>
                     <td>@user.Role</td>
                     <td>
-                        <a href="/Users/Details/@user.UserId" class="btn btn-sm btn-outline-info">Details</a>
+                        @if (user.Role == "Customer")
+                        {
+                            int? customerId = null;
+                            if (ViewBag.CustomerMap != null && ((Dictionary<Guid, int>)ViewBag.CustomerMap).ContainsKey(user.UserId))
+                            {
+                                customerId = ((Dictionary<Guid, int>)ViewBag.CustomerMap)[user.UserId];
+                            }
+                            if (customerId != null)
+                            {
+                                <a href="/Customer/Details/@customerId" class="btn btn-sm btn-outline-info">Details</a>
+                                @if (User.IsInRole("SuperAdmin"))
+                                {
+                                    <a href="/Customer/Edit/@customerId" class="btn btn-sm btn-outline-primary ms-1">Edit</a>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <a href="/Users/Details/@user.UserId" class="btn btn-sm btn-outline-info">Details</a>
+                            @if (User.IsInRole("SuperAdmin"))
+                            {
+                                <a href="/Users/Edit/@user.UserId" class="btn btn-sm btn-outline-primary ms-1">Edit</a>
+                            }
+                        }
+                        @if (User.IsInRole("SuperAdmin") || (User.IsInRole("Admin") && user.Role == "Customer"))
+                        {
+                            <form class="user-status-form" method="post" action="/Users/Edit/@user.UserId" data-userid="@user.UserId" data-role="@user.Role" data-active="@user.IsActive" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="role" value="@user.Role" />
+                                <input type="hidden" name="isActive" value="@(user.IsActive ? "false" : "true")" />
+                                <button type="submit" class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success") ms-1">
+                                    @(user.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            </form>
+                        }
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-</div> 
+</div>
+@section Scripts {
+<script>
+document.querySelectorAll('.user-status-form').forEach(form => {
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const action = form.getAttribute('action');
+        // Get the anti-forgery token from the form
+        const tokenInput = form.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '';
+        const response = await fetch(action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'RequestVerificationToken': token
+            }
+        });
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Failed to update user status.');
+        }
+    });
+});
+</script>
+} 

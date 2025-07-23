@@ -6,6 +6,15 @@
     var paymentFrequencies = ViewBag.PaymentFrequencies as List<SelectListItem>;
 }
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
 <h2>Create Loan Product</h2>
 <hr />
 
@@ -73,6 +82,12 @@
                 @Html.LabelFor(model => model.ProcessingFee, new { @class = "form-label" })
                 @Html.TextBoxFor(model => model.ProcessingFee, new { @class = "form-control", type = "number", step = "0.01" })
                 @Html.ValidationMessageFor(model => model.ProcessingFee, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.EligibilityCriteria, new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.EligibilityCriteria, new { @class = "form-control", rows = 3 })
+                @Html.ValidationMessageFor(model => model.EligibilityCriteria, "", new { @class = "text-danger" })
             </div>
 
             <div class="form-check mb-3">
