@@ -23,13 +23,15 @@ namespace LoanApplicationService.Web.Controllers
         private readonly INotificationSenderService _notificationSenderService;
         private readonly ICustomerService _customerService;
         private readonly IAccountService _accountService;
+        private readonly ILoanChargeService _loanChargeService;
 
         public LoanApplicationController(
             ILoanApplicationService loanApplicationService,
             ILoanProductService loanProductService,
             INotificationSenderService notificationSenderService,
             ICustomerService customerService,
-            IAccountService accountService
+            IAccountService accountService,
+            ILoanChargeService loanChargeService
             )
 
         {
@@ -447,9 +449,34 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpPost]
+        [RoleAuthorize("Admin")]
         public async Task<IActionResult> Disburse(int applicationId)
         {
             var application = await _loanApplicationService.GetByIdAsync(applicationId);
+            var upfrontCharges = await _loanChargeService.GetUpFrontCharges(application.ProductId);
+
+            decimal totalUpfrontFees = 0;
+            var principalAmount = application.ApprovedAmount ?? 0;
+
+            foreach (var charge in upfrontCharges)
+            {
+                decimal chargeAmount;
+
+               
+                if (charge.IsPercentage)
+                { 
+                    chargeAmount = principalAmount * charge.Amount; 
+                }
+                else
+                {
+                    chargeAmount = charge.Amount; 
+                }
+
+                totalUpfrontFees += chargeAmount;
+            }
+
+            var availableBalance = principalAmount - totalUpfrontFees;
+
             var accountDto = new AccountDto
             {
                 ApplicationId = application.ApplicationId,
@@ -458,7 +485,7 @@ namespace LoanApplicationService.Web.Controllers
                 AccountType = "Loan",
                 PrincipalAmount = application.ApprovedAmount ?? 0,
                 DisbursedAmount = application.ApprovedAmount ?? 0,
-                AvailableBalance = application.ApprovedAmount ?? 0,
+                AvailableBalance = availableBalance,
                 OutstandingBalance = application.ApprovedAmount ?? 0,
                 InterestRate = application.InterestRate ?? 0,
                 TermMonths = application.TermMonths,
@@ -480,6 +507,7 @@ namespace LoanApplicationService.Web.Controllers
 
         }
         [HttpGet]
+        [RoleAuthorize("Admin")]
         public async Task<IActionResult> DisburseLoan(int id)
         {
             var application = await _loanApplicationService.GetByIdAsync(id);
