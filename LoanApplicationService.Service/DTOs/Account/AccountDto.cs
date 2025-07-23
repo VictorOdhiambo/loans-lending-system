@@ -41,6 +41,10 @@ namespace LoanApplicationService.Service.DTOs.Account
 
     public DateTime? MaturityDate { get; set; }
 
+    public string FirstName { get; set; }
+
+    public string LastName { get; set; }
+
 
     }
 }
