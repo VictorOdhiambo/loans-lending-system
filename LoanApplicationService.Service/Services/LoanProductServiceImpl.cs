@@ -53,7 +53,7 @@ namespace LoanApplicationService.Service.Services
         public async Task<LoanProductDto> GetLoanProductWithChargesById(int loanProductId)
         {
             var product = await _context.LoanProducts
-                .Include(lp => lp.LoanCharges)
+                .Include(lp => lp.LoanChargeMap)
                 .FirstOrDefaultAsync(lp => lp.ProductId == loanProductId);
 
             return product == null ? null : _mapper.Map<LoanProductDto>(product);
@@ -87,10 +87,10 @@ namespace LoanApplicationService.Service.Services
         public async Task<IEnumerable<LoanChargeDto>> GetAllChargesForLoanProduct(int loanProductId)
         {
             var loanProduct = await _context.LoanProducts
-                .Include(lp => lp.LoanCharges)
+                .Include(lp => lp.LoanChargeMap)
                 .FirstOrDefaultAsync(lp => lp.ProductId == loanProductId);
             if (loanProduct == null) return Enumerable.Empty<LoanChargeDto>();
-            return _mapper.Map<IEnumerable<LoanChargeDto>>(loanProduct.LoanCharges);
+            return _mapper.Map<IEnumerable<LoanChargeDto>>(loanProduct.LoanChargeMap);
         }
         public async Task<bool> DeleteLoanProduct(int loanProductId)
         {

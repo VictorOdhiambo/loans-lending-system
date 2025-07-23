@@ -16,11 +16,14 @@ namespace LoanApplicationService.Core.Models
         [Required]
         public int ProductId { get; set; }
 
-        public Guid? ProcessedBy { get; set; }
+        public Guid? ApprovedBy { get; set; }
+
+        public Guid? RejectedBy { get; set; }
 
         [Column(TypeName = "decimal(15,2)")]
         public decimal RequestedAmount { get; set; }
 
+        public Guid createdBy { get; set; }
         public int TermMonths { get; set; }
 
         [MaxLength(200)]

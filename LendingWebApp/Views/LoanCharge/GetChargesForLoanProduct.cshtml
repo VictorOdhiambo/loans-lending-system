@@ -16,6 +16,7 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
+
 @if (!Model.Any())
 {
     <div class="alert alert-info">
@@ -48,4 +49,4 @@ else
         </tbody>
     </table>
 }
-<a asp-action="Index" class="btn btn-secondary">Back to Products</a>
+<a href="/LoanProduct/" class="btn btn-secondary">Back to Products</a>

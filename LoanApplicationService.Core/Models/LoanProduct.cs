@@ -36,7 +36,7 @@ namespace LoanApplicationService.Core.Models
 
 
         [MaxLength(500)]
-        public required string EligibilityCriteria { get; set; }
+        public string? EligibilityCriteria { get; set; }
 
         public bool IsActive { get; set; } = true;
 
@@ -50,8 +50,6 @@ namespace LoanApplicationService.Core.Models
 
 
         public virtual ICollection<LoanApplication> LoanApplications { get; set; } = new List<LoanApplication>();
-
-        public ICollection<LoanCharge> LoanCharges { get; set; } = new List<LoanCharge>();
 
         [Required]
         public LoanRiskLevel RiskLevel { get; set; }

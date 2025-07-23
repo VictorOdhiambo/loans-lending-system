@@ -15,7 +15,11 @@ namespace LoanApplicationService.Service.DTOs.LoanApplicationModule
         [Required]
         public int ProductId { get; set; }
 
-        public int? ProcessedBy { get; set; }
+        public Guid CreatedBy { get; set; }
+
+        public Guid? ApprovedBy { get; set; }
+
+        public Guid? RejectedBy { get; set; }
 
         [Required]
         [Range(0, double.MaxValue, ErrorMessage = "Requested amount must be positive.")]

@@ -16,8 +16,9 @@ namespace LoanApplicationService.Core.Repository
         public DbSet<NotificationTemplate> NotificationTemplates { get; set; } = default!;
         public DbSet<Customer> Customers { get; set; } = default!;
         public DbSet<Account> Accounts { get; set; } = default!;
-        public DbSet<Repayment> Repayments { get; set; } = default!;
-
+        public DbSet<LoanPayment> LoanPayment { get; set; } = default!;   
+        
+        public DbSet<LoanWithdrawal> LoanWithdrawal { get; set; } = default!;
         public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
         {
             public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)

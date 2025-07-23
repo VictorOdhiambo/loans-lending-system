@@ -17,6 +17,9 @@ namespace LoanApplicationService.Core.Models
 
         public bool IsDeleted { get; set; } = false;
 
+        public bool IsPercentage { get; set; }
+
+
         public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
 
     }
