@@ -26,6 +26,11 @@ namespace LoanApplicationService.Core.Models
 
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
+
+        public bool IsPercentage { get; set; }
+
+
+        public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

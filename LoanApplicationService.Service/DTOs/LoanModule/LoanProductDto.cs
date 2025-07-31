@@ -29,6 +29,9 @@ public class LoanProductDto
 
     public bool IsActive { get; set; }
 
+    
+    [MaxLength(500)]
+    public string? EligibilityCriteria { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public bool IsDeleted { get; set; }

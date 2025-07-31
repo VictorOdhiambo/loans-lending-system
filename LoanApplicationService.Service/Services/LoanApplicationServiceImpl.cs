@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.CrossCutting.Utils;
@@ -18,13 +18,13 @@ namespace LoanApplicationService.Service.Services
             _mapper = mapper;
         }
 
-        public async Task<bool> CreateAsync(LoanApplicationDto dto)
+        public async Task<bool> CreateAsync(LoanApplicationDto loanApplicationDto)
         {
-            var application = _mapper.Map<LoanApplication>(dto);
+            var application = _mapper.Map<LoanApplication>(loanApplicationDto);
             // Fetch customer
-            var customer = await _context.Customers.FindAsync(dto.CustomerId);
+            var customer = await _context.Customers.FindAsync(loanApplicationDto.CustomerId);
             if (customer == null)
-                throw new KeyNotFoundException($"Customer with ID {dto.CustomerId} not found.");
+                throw new KeyNotFoundException($"Customer with ID {loanApplicationDto.CustomerId} not found.");
             // Check age
             if (!customer.DateOfBirth.HasValue)
                 throw new ArgumentException("Customer date of birth is required for eligibility.");
@@ -40,19 +40,24 @@ namespace LoanApplicationService.Service.Services
             if (!customer.AnnualIncome.HasValue || customer.AnnualIncome.Value < 0)
                 throw new ArgumentException("Annual income must be provided and non-negative for loan eligibility.");
             // check if requested amount is within product limits
-            var product = await _context.LoanProducts.FindAsync(dto.ProductId);
+            var product = await _context.LoanProducts.FindAsync(loanApplicationDto.ProductId);
             if (product == null)
-                throw new KeyNotFoundException($"Loan product with ID {dto.ProductId} not found.");
-            if (dto.RequestedAmount < product.MinAmount || dto.RequestedAmount > product.MaxAmount)
+                throw new KeyNotFoundException($"Loan product with ID {loanApplicationDto.ProductId} not found.");
+            if (loanApplicationDto.RequestedAmount < product.MinAmount || loanApplicationDto.RequestedAmount > product.MaxAmount)
                 throw new ArgumentOutOfRangeException($"Requested amount must be between {product.MinAmount} and {product.MaxAmount}.");
             // check if term is within product limits
-            if (dto.TermMonths < product.MinTermMonths || dto.TermMonths > product.MaxTermMonths)
+            if (loanApplicationDto.TermMonths < product.MinTermMonths || loanApplicationDto.TermMonths > product.MaxTermMonths)
                 throw new ArgumentOutOfRangeException($"Term must be between {product.MinTermMonths} and {product.MaxTermMonths} months.");
 
+            var paymentFrequency = await _context.LoanProducts
+                .Where(p => p.ProductId == loanApplicationDto.ProductId)
+                .Select(p => p.PaymentFrequency)
+                .FirstOrDefaultAsync();
             //set interest rate from loan product
             application.InterestRate = product.InterestRate;
-            application.CreatedAt = DateTime.UtcNow;
-            application.UpdatedAt = DateTime.UtcNow;
+            application.CreatedAt = DateTimeOffset.UtcNow;
+            application.UpdatedAt = DateTimeOffset.UtcNow;
+            application.PaymentFrequency = paymentFrequency;
 
             await _context.LoanApplications.AddAsync(application);
             return await _context.SaveChangesAsync() > 0;
@@ -67,7 +72,7 @@ namespace LoanApplicationService.Service.Services
                 .Include(a => a.ProcessedByUser)
                 .ToListAsync();
 
-
+          
             return _mapper.Map<IEnumerable<LoanApplicationDto>>(applications);
 
         }
@@ -80,7 +85,7 @@ namespace LoanApplicationService.Service.Services
 
                 return _mapper.Map<LoanApplicationDto>(app);
             }
-            return null;    
+            return null;
         }
 
 
@@ -88,15 +93,16 @@ namespace LoanApplicationService.Service.Services
 
 
 
-        public async Task<bool> ApproveAsync(int applicationId, decimal approvedAmount)
+        public async Task<bool> ApproveAsync(int applicationId, decimal approvedAmount, Guid ApprovedBy)
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
             if (application == null) return false;
 
             application.Status = (int)LoanStatus.Approved;
-            application.ApprovedAmount = approvedAmount;
-            application.DecisionDate = DateTime.UtcNow;
-            application.UpdatedAt = DateTime.UtcNow;
+            application.ApprovedAmount = approvedAmount  ;
+            application.DecisionDate = DateTimeOffset.UtcNow;
+            application.UpdatedAt = DateTimeOffset.UtcNow;
+            application.ApprovedBy = ApprovedBy;
 
             return await _context.SaveChangesAsync() > 0;
         }
@@ -107,8 +113,8 @@ namespace LoanApplicationService.Service.Services
             if (application == null) return false;
 
             application.Status = (int)LoanStatus.Rejected;
-            application.DecisionDate = DateTime.UtcNow;
-            application.UpdatedAt = DateTime.UtcNow;
+            application.DecisionDate = DateTimeOffset.UtcNow;
+            application.UpdatedAt = DateTimeOffset.UtcNow;
 
             return await _context.SaveChangesAsync() > 0;
         }
@@ -119,8 +125,8 @@ namespace LoanApplicationService.Service.Services
             if (application == null) return false;
             application.Status = (int)LoanStatus.Closed;
             application.DecisionNotes = decisionNotes;
-            application.DecisionDate = DateTime.UtcNow;
-            application.UpdatedAt = DateTime.UtcNow;
+            application.DecisionDate = DateTimeOffset.UtcNow;
+            application.UpdatedAt = DateTimeOffset.UtcNow;
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -132,16 +138,16 @@ namespace LoanApplicationService.Service.Services
 
             return _mapper.Map<IEnumerable<LoanApplicationDto>>(applications);
         }
-    
 
-    public async Task<bool> CustomerReject(int applicationId, string reason)
+
+        public async Task<bool> CustomerReject(int applicationId, string reason)
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
             if (application == null) return false;
             application.Status = (int)LoanStatus.CustomerRejected;
             application.DecisionNotes = reason;
-            application.DecisionDate = DateTime.UtcNow;
-            application.UpdatedAt = DateTime.UtcNow;
+            application.DecisionDate = DateTimeOffset.UtcNow;
+            application.UpdatedAt = DateTimeOffset.UtcNow;
             return await _context.SaveChangesAsync() > 0;
         }
         public async Task<bool> DisburseAsync(int applicationId)
@@ -149,8 +155,20 @@ namespace LoanApplicationService.Service.Services
             var application = await _context.LoanApplications.FindAsync(applicationId);
             if (application == null) return false;
             application.Status = (int)LoanStatus.Disbursed;
-            application.UpdatedAt = DateTime.UtcNow;
+            application.UpdatedAt = DateTimeOffset.UtcNow;
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<bool> UpdateAsync(LoanApplicationDto dto)
+        {
+            var application = await _context.LoanApplications.FindAsync(dto.ApplicationId);
+            if (application == null) return false;
+            _mapper.Map(dto, application);
+            application.UpdatedAt = DateTimeOffset.UtcNow;
+            _context.LoanApplications.Update(application);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        
     }
 }

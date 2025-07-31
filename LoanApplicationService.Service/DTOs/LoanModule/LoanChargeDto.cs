@@ -10,6 +10,11 @@ namespace LoanApplicationService.Service.DTOs.LoanModule
         public decimal Amount { get; set; }
         public bool IsPenalty { get; set; }
         public bool IsUpfront { get; set; }
+        public decimal Amount { get; set; }
+
+        public bool IsPercentage { get; set; }
+
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
     }

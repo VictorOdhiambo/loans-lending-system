@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 =======
@@ -41,11 +40,6 @@ builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
 builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-// Email Service registration
-builder.Services.AddScoped<LoanApplicationService.Web.Helpers.IEmailService, LoanApplicationService.Web.Helpers.EmailService>();
-=======
 builder.Services.AddScoped<IAccountService, AccountServiceImpl>();
 builder.Services.AddScoped<ILoanPaymentService, LoanPaymentImpl>();
 builder.Services.AddScoped<IRepaymentScheduleService, LoanRepaymentScheduleService>();
@@ -53,7 +47,6 @@ builder.Services.AddScoped<ILoanWithdrawalService, LoanWithdrawalServiceImpl>();
 
 // Email Service registration, 
 builder.Services.AddScoped<IEmailService, EmailService>();
->>>>>>> main
 // Register EmailSettings for DI
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 // Add others here
@@ -68,7 +61,6 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-<<<<<<< Updated upstream
 builder.Services.AddHostedService<LoanMonitoringService>();
 
 
@@ -165,7 +157,7 @@ using (var scope = app.Services.CreateScope())
 
     if (superAdminRole != null && !userManager.Users.Any(u => u.Email == "superadmin@pesasure.com"))
     {
-        var superAdmin = new ApplicationUser
+        var admin = new Users
         {
             UserName = "SuperAdmin",
             Email = "superadmin@pesasure.com",

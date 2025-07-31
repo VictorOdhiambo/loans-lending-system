@@ -44,6 +44,11 @@
                     <span asp-validation-for="IsUpfront" class="text-danger"></span>
                 </div>
 
+                <div class="form-check mb-4">
+                    @Html.CheckBoxFor(model => model.IsPercentage, new { @class = "form-check-input" })
+                    @Html.LabelFor(model => model.IsPercentage, new { @class = "form-check-label" })
+                </div>
+
                 <button type="submit" class="btn btn-success">Create</button>
                 <a href="/LoanCharge/Index" class="btn btn-secondary">Cancel</a>
             }

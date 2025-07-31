@@ -34,6 +34,10 @@ namespace LoanApplicationService.Core.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal ProcessingFee { get; set; }
 
+
+        [MaxLength(500)]
+        public string? EligibilityCriteria { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -45,8 +49,6 @@ namespace LoanApplicationService.Core.Models
         public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
 
         public virtual ICollection<LoanApplication> LoanApplications { get; set; } = new List<LoanApplication>();
-
-        public ICollection<LoanCharge> LoanCharges { get; set; } = new List<LoanCharge>();
 
         [Required]
         public LoanRiskLevel RiskLevel { get; set; }

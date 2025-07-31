@@ -8,6 +8,18 @@
 
   
 <h1>Loan Applications</h1>
+@if (TempData["Success"] != null)
+{
+ <div class="alert alert-success">
+        <strong>Success!</strong> @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-success">
+        <strong>Error!</strong> @TempData["Error"]
+    </div>
+}
 @if (ViewBag.CustomerId != null && ViewBag.CustomerName != null)
 {
     <div class="alert alert-info mb-3">

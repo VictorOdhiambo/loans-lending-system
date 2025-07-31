@@ -122,6 +122,8 @@ namespace LoanApplicationService.Web.Controllers
 
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
+        [ValidateModel]
+        [RoleAuthorize("Admin")]
         public async Task<IActionResult> Create(LoanProductDto loanProductDto)
         {
             if (ModelState.IsValid)

@@ -84,10 +84,12 @@ namespace LoanApplicationService.Web.Controllers
 
         [HttpGet]
         //get charges for a loan product
-        public async Task<IActionResult> GetChargesForLoanProduct(int loanProductId)
+        public async Task<ActionResult> GetChargesForLoanProduct(int Id)
         {
-            var charges = await _loanChargeService.GetAllChargesForLoanProduct(loanProductId);
-            return View(charges.ToList());
+            ViewBag.LoanProductId = Id;
+
+            var charges = await _loanChargeService.GetAllChargesForLoanProduct(Id);
+            return View(charges);
 
         }
 
