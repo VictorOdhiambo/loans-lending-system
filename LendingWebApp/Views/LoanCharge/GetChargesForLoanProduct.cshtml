@@ -16,7 +16,6 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-
 @if (!Model.Any())
 {
     <div class="alert alert-info">
@@ -42,11 +41,11 @@ else
                     <td>@charge.Name</td>
                     <td>@charge.Description</td>
                     <td>@charge.Amount.ToString("C")</td>
-                    <td>@(charge.IsPenalty ? "Yes" : "No")</td>
-                    <td>@(charge.IsUpfront ? "Yes" : "No")</td>
+                    <td>@charge.IsPenalty</td>
+                    <td>@charge.IsUpfront</td>
                 </tr>
             }
         </tbody>
     </table>
 }
-<a href="/LoanProduct/" class="btn btn-secondary">Back to Products</a>
+<a asp-action="Index" class="btn btn-secondary">Back to Products</a>

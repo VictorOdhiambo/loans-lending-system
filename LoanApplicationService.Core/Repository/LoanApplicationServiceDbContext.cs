@@ -1,14 +1,22 @@
 ﻿using LoanApplicationService.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace LoanApplicationService.Core.Repository
 {
-    public class LoanApplicationServiceDbContext(DbContextOptions<LoanApplicationServiceDbContext> options) : DbContext(options)
+    public class ApplicationUserRole : IdentityUserRole<Guid> { }
+
+    public class LoanApplicationServiceDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid, IdentityUserClaim<Guid>, ApplicationUserRole, IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
     {
+        public LoanApplicationServiceDbContext(DbContextOptions options) : base(options)
+        {
+        }
+
         // ✅ DbSets
         public DbSet<LoanProduct> LoanProducts { get; set; } = default!;
-        public DbSet<Users> Users { get; set; } = default!;
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; } = default!;
         public DbSet<LoanApplication> LoanApplications { get; set; } = default!;
         public DbSet<LoanCharge> LoanCharges { get; set; } = default!;
         public DbSet<LoanChargeMapper> LoanChargeMapper { get; set; } = default!;
@@ -16,13 +24,9 @@ namespace LoanApplicationService.Core.Repository
         public DbSet<NotificationTemplate> NotificationTemplates { get; set; } = default!;
         public DbSet<Customer> Customers { get; set; } = default!;
         public DbSet<Account> Accounts { get; set; } = default!;
+        public DbSet<ApplicationRole> ApplicationRoles { get; set; } = default!;
+        public DbSet<ApplicationUserRole> ApplicationUserRoles { get; set; } = default!;
 
-        public DbSet<LoanPenalty> LoanPenalties { get; set; } = default!;
-
-
-        public DbSet<LoanRepaymentSchedule> LoanRepaymentSchedules { get; set; } = default!;
-
-        public DbSet<Transactions> Transactions { get; set; } = default!;
         public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
         {
             public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)
@@ -40,6 +44,22 @@ namespace LoanApplicationService.Core.Repository
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Configure Identity relationships to prevent cascade delete conflicts
+            // Note: Identity handles role relationships automatically through ApplicationUserRole
+
+            // Configure Identity UserRole relationship
+            modelBuilder.Entity<ApplicationUserRole>()
+                .HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(ur => ur.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ApplicationUserRole>()
+                .HasOne<ApplicationRole>()
+                .WithMany()
+                .HasForeignKey(ur => ur.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // 🔗 Account ↔ LoanApplication
             modelBuilder.Entity<Account>()
@@ -81,8 +101,19 @@ namespace LoanApplicationService.Core.Repository
             modelBuilder.Entity<Customer>()
                 .HasQueryFilter(c => !c.IsDeleted);
 
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => c.Email)
+                .IsUnique();
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => c.NationalId)
+                .IsUnique();
+
             modelBuilder.Entity<LoanCharge>()
                 .Property(p => p.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.AnnualIncome)
                 .HasColumnType("decimal(18,2)");
         }
     }

@@ -20,6 +20,7 @@ namespace LoanApplicationService.Service.Services
                 loanProduct.CreatedAt = DateTime.UtcNow;
                 loanProduct.UpdatedAt = DateTime.UtcNow;
                 loanProduct.IsDeleted = false;
+                loanProduct.LoanChargeMap = new List<LoanChargeMapper>();
 
                 await _context.LoanProducts.AddAsync(loanProduct);
 
@@ -53,7 +54,7 @@ namespace LoanApplicationService.Service.Services
         public async Task<LoanProductDto> GetLoanProductWithChargesById(int loanProductId)
         {
             var product = await _context.LoanProducts
-                .Include(lp => lp.LoanChargeMap)
+                .Include(lp => lp.LoanCharges)
                 .FirstOrDefaultAsync(lp => lp.ProductId == loanProductId);
 
             return product == null ? null : _mapper.Map<LoanProductDto>(product);
@@ -73,9 +74,10 @@ namespace LoanApplicationService.Service.Services
                 product.InterestRate = loanProductDto.InterestRate;
                 product.MinTermMonths = loanProductDto.MinTermMonths;
                 product.MaxTermMonths = loanProductDto.MaxTermMonths;
-                product.EligibilityCriteria = loanProductDto.EligibilityCriteria;
+
                 product.ProcessingFee = loanProductDto.ProcessingFee;
                 product.IsActive = loanProductDto.IsActive;
+                product.RiskLevel = loanProductDto.RiskLevel;
                 product.UpdatedAt = DateTime.UtcNow;
 
                 return await _context.SaveChangesAsync() > 0;
@@ -87,10 +89,10 @@ namespace LoanApplicationService.Service.Services
         public async Task<IEnumerable<LoanChargeDto>> GetAllChargesForLoanProduct(int loanProductId)
         {
             var loanProduct = await _context.LoanProducts
-                .Include(lp => lp.LoanChargeMap)
+                .Include(lp => lp.LoanCharges)
                 .FirstOrDefaultAsync(lp => lp.ProductId == loanProductId);
             if (loanProduct == null) return Enumerable.Empty<LoanChargeDto>();
-            return _mapper.Map<IEnumerable<LoanChargeDto>>(loanProduct.LoanChargeMap);
+            return _mapper.Map<IEnumerable<LoanChargeDto>>(loanProduct.LoanCharges);
         }
         public async Task<bool> DeleteLoanProduct(int loanProductId)
         {

@@ -1,56 +1,37 @@
-﻿using LoanApplicationService.Core.Models;
-using LoanApplicationService.CrossCutting.Utils;
-using LoanApplicationService.Service.DTOs.Account;
-using LoanApplicationService.Service.DTOs.LoanDisbursement;
-using LoanApplicationService.Service.Services;
+﻿using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LoanApplicationService.Web.Controllers
 {
-    public class AccountController(IAccountService accountService) : Controller
+    public class AccountController : Controller
     {
-        private readonly IAccountService _accountService = accountService;
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        private readonly RepaymentServiceImpl _repaymentService;
+
+        public AccountController(RepaymentServiceImpl repaymentService)
         {
-            var accounts = await _accountService.GetAllAccountsAsync();
-            return View(accounts);
+            _repaymentService = repaymentService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAccountById(int Id)
+        public IActionResult RecordRepayment(int accountId)
         {
-            var account = await _accountService.GetAccountByIdAsync(Id);
-            if (account == null)
-            {
-                return View("NotFound");
-            }
-            return View(account);
+            ViewBag.AccountId = accountId;
+            return View();
         }
 
-        [ValidateModel]
         [HttpPost]
-        public async Task<IActionResult> CreateAccount(AccountDto accountDto)
+        public async Task<IActionResult> RecordRepayment(int accountId, decimal amount, string? notes)
         {
-
-            var result = await _accountService.CreateAccountAsync(accountDto);
+            var result = await _repaymentService.RecordRepayment(accountId, amount, notes);
             if (result)
             {
-                return RedirectToAction("Index");
+                TempData["Success"] = "Repayment recorded successfully!";
             }
-            ModelState.AddModelError("", "Failed to create account.");
-
-            return View(accountDto);
+            else
+            {
+                TempData["Error"] = "Failed to record repayment.";
+            }
+            return RedirectToAction("Details", new { id = accountId });
         }
-
-
-        
-
-
-        
     }
 }
-
-
-

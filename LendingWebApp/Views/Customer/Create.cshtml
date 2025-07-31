@@ -1,21 +1,48 @@
 @model LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto
 @{
+    var selfRegister = ViewData["SelfRegister"] as bool? ?? false;
+    Layout = selfRegister ? "~/Views/Shared/_AuthLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Create Customer";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-4">
-    <h2>Create Customer</h2>
-    <form asp-action="Create" method="post">
+    <div class="form-card">
+        <div class="form-card-header">
+            <h2>Create Account</h2>
+        </div>
+        
+        <div class="form-card-body">
+            <form asp-action="Create" method="post">
         @if (TempData["Error"] != null)
         {
             <div class="alert alert-danger">@TempData["Error"]</div>
         }
-        @if (TempData["Success"] != null)
+        @if (TempData["CustomerSuccess"] != null)
         {
-            <div class="alert alert-success">@TempData["Success"]</div>
+            <div class="alert alert-success">@TempData["CustomerSuccess"]</div>
         }
         @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <div class="form-group mb-3">
+                <label for="Role" class="form-label">Select Role</label>
+                <select id="Role" class="form-select" onchange="handleRoleChange()">
+                    <option value="SuperAdmin">SuperAdmin</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Customer" selected>Customer</option>
+                </select>
+            </div>
+            <script>
+                function handleRoleChange() {
+                    var role = document.getElementById('Role').value;
+                    if (role === 'Admin') {
+                        window.location.href = '/Users/Create';
+                    }
+                    // If Customer, do nothing
+                }
+            </script>
+        }
 
         <div class="form-group mb-3">
             <label for="FirstName" class="form-label">First Name</label>
@@ -56,7 +83,12 @@
 
         <div class="form-group mb-3">
             <label for="EmploymentStatus" class="form-label">Employment Status</label>
-            <input id="EmploymentStatus" name="EmploymentStatus" class="form-control" />
+            <select id="EmploymentStatus" name="EmploymentStatus" class="form-select" required>
+                <option value="">-- Select Employment Status --</option>
+                <option value="Employed">Employed</option>
+                <option value="Unemployed">Unemployed</option>
+                <option value="Self-Employed">Self-Employed</option>
+            </select>
             <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
         </div>
 
@@ -82,9 +114,19 @@
     <span id="password-match-error" class="text-danger" style="display:none;"></span>
 </div>
 
-        <button type="submit" class="btn btn-success">Save</button>
-        <a href="/Customer/Index">Back To Customer List</a>
-    </form>
+            <div class="form-card-footer">
+                <button type="submit" class="btn btn-success">Save</button>
+                @if (ViewData["SelfRegister"] as bool? ?? false)
+                {
+                    <a href="/Home/Index" class="btn btn-link">Already have an account? Login</a>
+                }
+                else
+                {
+                    <a href="/Customer/Index" class="btn btn-secondary ms-2">Back to Customer List</a>
+                }
+            </div>
+        </form>
+    </div>
 </div>
 
 <script src="~/js/customer-validation.js"></script>

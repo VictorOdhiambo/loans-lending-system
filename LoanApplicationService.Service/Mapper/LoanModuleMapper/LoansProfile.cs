@@ -28,15 +28,16 @@ namespace LoanApplicationService.Service.Mapper.LoanModuleMapper
                 .ForMember(dest => dest.RiskLevelDescription, opt => opt.MapFrom(src => EnumHelper.GetDescription(src.RiskLevel)));
 
             // LoanCharge mapping
-            CreateMap<LoanCharge, LoanChargeDto>().ReverseMap();
+            CreateMap<LoanCharge, LoanChargeDto>()
+                .ForMember(dest => dest.LoanChargeId, opt => opt.MapFrom(src => src.Id));
+            CreateMap<LoanChargeDto, LoanCharge>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.LoanChargeId));
 
             // ✅ Users mapping
-            CreateMap<Users, UserDTO>()
+            CreateMap<ApplicationUser, UserDTO>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
-            CreateMap<UserDTO, Users>()
+            CreateMap<UserDTO, ApplicationUser>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.UserId));
-
-        CreateMap<LoanCharge, LoanChargeDto>().ReverseMap();
 
         CreateMap<LoanChargeMapperDto, LoanChargeMapper>()
             .ForMember(dest => dest.LoanProductId, opt => opt.MapFrom(src => src.LoanProductId))

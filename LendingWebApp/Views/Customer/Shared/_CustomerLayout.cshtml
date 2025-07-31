@@ -1,0 +1,36 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Customer Portal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar { width: 220px; background: #1565c0; color: #fff; }
+        .sidebar a { color: #fff; text-decoration: none; }
+        .sidebar a.active, .sidebar a:hover { background: #1976d2; color: #fff; }
+        .content-area { margin-left: 220px; }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <div class="sidebar vh-100 position-fixed">
+            @await Html.PartialAsync("~/Views/Customer/Shared/_CustomerSidebar.cshtml")
+        </div>
+        <div class="flex-grow-1 content-area">
+            @await Html.PartialAsync("~/Views/Customer/Shared/_CustomerTopNav.cshtml")
+            <main class="container-fluid pt-4">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html> 

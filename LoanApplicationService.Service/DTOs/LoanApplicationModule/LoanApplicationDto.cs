@@ -15,11 +15,7 @@ namespace LoanApplicationService.Service.DTOs.LoanApplicationModule
         [Required]
         public int ProductId { get; set; }
 
-        public Guid CreatedBy { get; set; }
-
-        public Guid? ApprovedBy { get; set; }
-
-        public Guid? RejectedBy { get; set; }
+        public int? ProcessedBy { get; set; }
 
         [Required]
         [Range(0, double.MaxValue, ErrorMessage = "Requested amount must be positive.")]
@@ -32,22 +28,22 @@ namespace LoanApplicationService.Service.DTOs.LoanApplicationModule
         [MaxLength(200)]
         public string? Purpose { get; set; }
 
-        public int PaymentFrequency { get; set; } 
+
         public LoanStatus Status { get; set; } = (int)LoanStatus.Pending;
-        public decimal ApprovedAmount { get; set; }
+        public decimal? ApprovedAmount { get; set; }
 
-        public decimal InterestRate { get; set; }
+        public decimal? InterestRate { get; set; }
 
-        public DateTimeOffset ApplicationDate { get; set; } = DateTime.UtcNow;
+        public DateTime ApplicationDate { get; set; } = DateTime.UtcNow;
 
-        public DateTimeOffset DecisionDate { get; set; }
+        public DateTime? DecisionDate { get; set; }
 
         [MaxLength(500)]
         public string? DecisionNotes { get; set; }
 
-        public DateTimeOffset CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTimeOffset UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public string? FirstName { get; set; }
 

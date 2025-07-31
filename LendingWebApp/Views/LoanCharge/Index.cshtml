@@ -41,8 +41,8 @@
                             <td>@(charge.IsPenalty ? "Yes" : "No")</td>
                             <td>@(charge.IsUpfront ? "Yes" : "No")</td>
                             <td>
-                                <a href="/LoanCharge/Update/@charge.Id" class="btn btn-sm btn-outline-primary me-1">Edit</a>
-                                <a href="/LoanCharge/Delete/@charge.Id" class="btn btn-sm btn-outline-danger me-1">Delete</a>
+                                <a href="/LoanCharge/Details/@charge.LoanChargeId" class="btn btn-sm btn-outline-info">Details</a>
+                                <a href="/LoanCharge/Edit/@charge.LoanChargeId" class="btn btn-sm btn-outline-primary ms-1">Edit</a>
                             </td>
                         </tr>
                     }

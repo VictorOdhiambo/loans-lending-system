@@ -1,15 +1,27 @@
 ﻿@model LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto
 @{
     ViewData["Title"] = "Customer Details";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-4">
+    @if (TempData["ProfileSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["ProfileSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
     <h2>Customer Details</h2>
 
     <dl class="row">
-        <dt class="col-sm-3">Customer ID</dt>
-        <dd class="col-sm-9">@Model.CustomerId</dd>
+        @if (!User.IsInRole("Customer"))
+        {
+            <dt class="col-sm-3">Customer ID</dt>
+            <dd class="col-sm-9">@Model.CustomerId</dd>
+        }
 
         <dt class="col-sm-3">First Name</dt>
         <dd class="col-sm-9">@Model.FirstName</dd>
@@ -42,8 +54,25 @@
         <dd class="col-sm-9">@Model.RiskLevel.ToString()</dd>
     </dl>
 
-    <a href="/Customer/Edit/@Model.CustomerId">Edit</a>
-    <a href="/Customer/Index">Back to List</a>
-    <a class="btn btn-primary" href="/LoanProduct?customerId=@Model.CustomerId">Apply for Loan</a>
-    <a class="btn btn-info" href="/LoanApplication/Index?customerId=@Model.CustomerId">View Loan History</a>
+    @if (ViewData["IsCustomerProfile"] as bool? == true)
+    {
+        <!-- Customer viewing their own profile -->
+        <a href="/Customer/EditProfile" class="btn btn-primary">Edit Profile</a>
+        <a href="/Home/CustomerDashboard" class="btn btn-secondary">Back to Dashboard</a>
+        <a class="btn btn-success" href="/LoanProduct">Apply for Loan</a>
+        <a class="btn btn-info" href="/LoanApplication/Index?customerId=@Model.CustomerId">View My Loans</a>
+    }
+    else if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+    {
+        <!-- Admin/SuperAdmin viewing customer details -->
+        <a href="/Customer/Edit/@Model.CustomerId" class="btn btn-primary">Edit Customer</a>
+        <a href="/Customer/ChangePassword/@Model.CustomerId" class="btn btn-warning">Change Password</a>
+        <a href="/Customer/Index" class="btn btn-secondary">Back to Customer List</a>
+        <a class="btn btn-info" href="/LoanApplication/Index?customerId=@Model.CustomerId">View Customer Loans</a>
+    }
+    else if (User.IsInRole("Customer"))
+    {
+        <!-- Customer viewing someone else's details (shouldn't happen due to authorization) -->
+        <a href="/Home/CustomerDashboard" class="btn btn-secondary">Back to Dashboard</a>
+    }
 </div>

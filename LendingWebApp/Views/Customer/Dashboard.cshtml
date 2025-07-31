@@ -1,0 +1,35 @@
+@{
+    Layout = "~/Views/Customer/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = "Customer Dashboard";
+}
+<div class="container py-4">
+    <h1 class="mb-4">Customer Dashboard</h1>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Active Loan</h5>
+                    <p class="card-text">Amount: <strong>Ksh10,000</strong></p>
+                    <p class="card-text">Status: <span class="badge bg-success">Active</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Next Repayment</h5>
+                    <p class="card-text">Due Date: <strong>2025-08-01</strong></p>
+                    <p class="card-text">Amount: <strong>Ksh500</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Unread Notifications</h5>
+                    <p class="display-4 text-primary">3</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -6,6 +6,15 @@
     var paymentFrequencies = ViewBag.PaymentFrequencies as List<SelectListItem>;
 }
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
 <h2>Create Loan Product</h2>
 <hr />
 
@@ -23,13 +32,13 @@
 
             <div class="mb-3">
                 @Html.LabelFor(model => model.LoanProductType, "Loan Product Type", new { @class = "form-label" })
-                @Html.DropDownListFor(model => model.LoanProductType, loanProductTypes, "-- Select Loan Product Type --", new { @class = "form-select" })
+                @Html.DropDownListFor(model => model.LoanProductType, ViewBag.LoanProductTypes as List<SelectListItem>, "-- Select Loan Product Type --", new { @class = "form-select" })
                 @Html.ValidationMessageFor(model => model.LoanProductType, "", new { @class = "text-danger" })
             </div>
 
             <div class="mb-3">
                 @Html.LabelFor(model => model.PaymentFrequency, "Payment Frequency", new { @class = "form-label" })
-                @Html.DropDownListFor(model => model.PaymentFrequency, paymentFrequencies, "-- Select Payment Frequency --", new { @class = "form-select" })
+                @Html.DropDownListFor(model => model.PaymentFrequency, ViewBag.PaymentFrequencies as List<SelectListItem>, "-- Select Payment Frequency --", new { @class = "form-select" })
                 @Html.ValidationMessageFor(model => model.PaymentFrequency, "", new { @class = "text-danger" })
             </div>
 
@@ -74,6 +83,8 @@
                 @Html.TextBoxFor(model => model.ProcessingFee, new { @class = "form-control", type = "number", step = "0.01" })
                 @Html.ValidationMessageFor(model => model.ProcessingFee, "", new { @class = "text-danger" })
             </div>
+
+
 
             <div class="form-check mb-3">
                 @Html.CheckBoxFor(model => model.IsActive, new { @class = "form-check-input" })

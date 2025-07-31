@@ -1,0 +1,63 @@
+<nav class="nav flex-column p-3">
+    <ul class="nav flex-column">
+        <a href="/Home/CustomerDashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <span class="navbar-brand mb-0 h1">PesaSure®</span>
+        </a>
+        <!-- My Loans -->
+        <li class="nav-item">
+            <a class="nav-link text-white" data-bs-toggle="collapse" href="#loansMenu" role="button" aria-expanded="false">
+                <i class="bi bi-cash-stack"></i> My Loans
+            </a>
+            <div class="collapse" id="loansMenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item"><a class="nav-link text-white" href="/LoanProduct">Apply for Loan</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/ActiveLoans">Active Loans</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Index">Loan History</a></li>
+                </ul>
+            </div>
+        </li>
+        <!-- Payments -->
+        <li class="nav-item">
+            <a class="nav-link text-white" data-bs-toggle="collapse" href="#paymentsMenu" role="button" aria-expanded="false">
+                <i class="bi bi-credit-card"></i> Payments
+            </a>
+            <div class="collapse" id="paymentsMenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/MakePayment">Make a Payment</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/PaymentHistory">Payment History</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/OverduePenalties">Overdue Penalties</a></li>
+                </ul>
+            </div>
+        </li>
+        <!-- Notifications -->
+        <li class="nav-item">
+            <a class="nav-link text-white" data-bs-toggle="collapse" href="#notificationsMenu" role="button" aria-expanded="false">
+                <i class="bi bi-bell"></i> Notifications
+            </a>
+            <div class="collapse" id="notificationsMenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/ViewMessages">View Messages</a></li>
+                </ul>
+            </div>
+        </li>
+        <!-- Profile -->
+        <li class="nav-item">
+            <a class="nav-link text-white" data-bs-toggle="collapse" href="#profileMenu" role="button" aria-expanded="false">
+                <i class="bi bi-person"></i> Profile
+            </a>
+            <div class="collapse" id="profileMenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item"><a class="nav-link text-white" href="/Customer/Profile">View Profile</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/Customer/EditProfile">Edit Profile</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item mt-3"> 
+            <a class="nav-link text-white" href="/Home/FAQ"><i class="bi bi-box-arrow-right"></i> FAQs</a>
+        </li>
+        <!-- Logout -->
+        <li class="nav-item mt-3">
+            <a class="nav-link text-white" href="/Home/Logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </li>
+    </ul>
+</nav> 
