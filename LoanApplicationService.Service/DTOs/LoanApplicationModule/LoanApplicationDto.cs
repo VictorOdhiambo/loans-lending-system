@@ -32,22 +32,22 @@ namespace LoanApplicationService.Service.DTOs.LoanApplicationModule
         [MaxLength(200)]
         public string? Purpose { get; set; }
 
-
+        public int PaymentFrequency { get; set; } 
         public LoanStatus Status { get; set; } = (int)LoanStatus.Pending;
-        public decimal? ApprovedAmount { get; set; }
+        public decimal ApprovedAmount { get; set; }
 
-        public decimal? InterestRate { get; set; }
+        public decimal InterestRate { get; set; }
 
-        public DateTime ApplicationDate { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset ApplicationDate { get; set; } = DateTime.UtcNow;
 
-        public DateTime? DecisionDate { get; set; }
+        public DateTimeOffset DecisionDate { get; set; }
 
         [MaxLength(500)]
         public string? DecisionNotes { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public string? FirstName { get; set; }
 

@@ -71,28 +71,32 @@ namespace LoanApplicationService.Service.Services
 
         }
 
-        public async Task<bool> AddChargeToProduct(LoanChargeMapperDto dto)
+        public async Task<bool> AddChargeToProduct(LoanChargeMapperDto loanChargeMapperDto)
         {
-           var LoanChargeMap = _mapper.Map<LoanChargeMapperDto, LoanChargeMapper>(dto);
+           var LoanChargeMap = _mapper.Map<LoanChargeMapperDto, LoanChargeMapper>(loanChargeMapperDto);
             _context.LoanChargeMapper.Add(LoanChargeMap);
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task <IEnumerable<LoanChargeDto>> GetUpFrontCharges(int loanProductId)
+        public async Task<IEnumerable<LoanChargeDto>> GetUpFrontCharges(int loanProductId)
         {
             var charges = await _context.LoanChargeMapper
-         .Where(x => x.LoanProductId == loanProductId && x.LoanCharge.IsUpfront) 
-         .Select(x => new LoanChargeDto
-         {
-             Id = x.LoanChargeId,
-             Name = x.LoanCharge.Name,
-             Description = x.LoanCharge.Description,
-             Amount = x.LoanCharge.Amount,
-            
-         })
-         .ToListAsync();
+                .Include(x => x.LoanCharge) // This is critical
+                .Where(x => x.LoanProductId == loanProductId && x.LoanCharge.IsUpfront)
+                .Select(x => new LoanChargeDto
+                {
+                    Id = x.LoanCharge.Id,
+                    Name = x.LoanCharge.Name,
+                    Description = x.LoanCharge.Description,
+                    IsPenalty = x.LoanCharge.IsPenalty,
+                    IsUpfront = x.LoanCharge.IsUpfront,
+                    Amount = x.LoanCharge.Amount,
+                    IsPercentage = x.LoanCharge.IsPercentage
+                })
+                .ToListAsync();
 
-            return charges;
+            return charges; 
         }
+
     }
 }
