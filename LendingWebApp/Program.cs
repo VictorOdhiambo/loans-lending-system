@@ -30,6 +30,9 @@ builder.Services.AddScoped<INotificationSenderService, NotificationSenderService
 builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
 builder.Services.AddScoped<IAccountService, AccountServiceImpl>();
 builder.Services.AddScoped<ILoanPaymentService, LoanPaymentImpl>();
+builder.Services.AddScoped<IRepaymentScheduleService, LoanRepaymentScheduleService>();
+builder.Services.AddScoped<ILoanWithdrawalService, LoanWithdrawalServiceImpl>();
+
 // Email Service registration, 
 builder.Services.AddScoped<IEmailService, EmailService>();
 // Register EmailSettings for DI
