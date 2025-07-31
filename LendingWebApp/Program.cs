@@ -1,6 +1,9 @@
+using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.Service.Mapper.LoanModuleMapper;
 using LoanApplicationService.Service.Services;
+using LoanApplicationService.Web.Helpers;
+using LoanManagementApp.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -26,15 +29,28 @@ builder.Services.AddScoped<ILoanChargeService, LoanChargeServiceImpl>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 builder.Services.AddScoped<INotificationSenderService, NotificationSenderService>();
 builder.Services.AddScoped<ILoanApplicationService, LoanApplicationServiceImpl>();
+<<<<<<< HEAD
 // Email Service registration
 builder.Services.AddScoped<LoanApplicationService.Web.Helpers.IEmailService, LoanApplicationService.Web.Helpers.EmailService>();
+=======
+builder.Services.AddScoped<IAccountService, AccountServiceImpl>();
+builder.Services.AddScoped<ILoanPaymentService, LoanPaymentImpl>();
+builder.Services.AddScoped<IRepaymentScheduleService, LoanRepaymentScheduleService>();
+builder.Services.AddScoped<ILoanWithdrawalService, LoanWithdrawalServiceImpl>();
+
+// Email Service registration, 
+builder.Services.AddScoped<IEmailService, EmailService>();
+>>>>>>> main
 // Register EmailSettings for DI
-builder.Services.Configure<LoanManagementApp.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 // Add others here
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHostedService<LoanMonitoringService>();
+
 
 //  Enable Session
 builder.Services.AddDistributedMemoryCache();
@@ -95,7 +111,11 @@ using (var scope = app.Services.CreateScope())
 
     if (!db.Users.Any(u => u.Email == "superadmin@pesasure.com"))
     {
+<<<<<<< HEAD
         var superAdmin = new LoanApplicationService.Core.Models.Users
+=======
+        var admin = new Users
+>>>>>>> main
         {
             Id = Guid.NewGuid(),
             Username = "SuperAdmin",
