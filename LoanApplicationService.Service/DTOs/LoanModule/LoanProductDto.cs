@@ -48,9 +48,9 @@ public class LoanProductDto
 
     public bool IsActive { get; set; } = true;
 
-    [Required]
+    
     [MaxLength(500)]
-    public string EligibilityCriteria { get; set; }
+    public string? EligibilityCriteria { get; set; }
 
     [Required]
     public LoanRiskLevel RiskLevel { get; set; }
