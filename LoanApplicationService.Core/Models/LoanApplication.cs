@@ -52,7 +52,7 @@ namespace LoanApplicationService.Core.Models
         public required virtual LoanProduct LoanProduct { get; set; }
 
         [ForeignKey("ProcessedBy")]
-        public virtual Users? ProcessedByUser { get; set; }
+        public virtual ApplicationUser? ProcessedByUser { get; set; }
 
         public virtual Account? Account { get; set; }
 

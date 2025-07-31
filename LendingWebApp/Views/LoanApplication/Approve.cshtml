@@ -4,6 +4,7 @@
     ViewData["Title"] = "Approve Loan Application";
     var loanProducts = ViewBag.LoanProducts as List<SelectListItem>;
     var customers = ViewBag.Customers as List<SelectListItem>;
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
 <h2>Approve Loan Application</h2>
@@ -13,11 +14,14 @@
         {
             @Html.HiddenFor(model => model.ApplicationId)
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-            <div class="mb-3">
-                @Html.LabelFor(model => model.CustomerId, "Customer", new { @class = "form-label" })
-                @Html.TextBoxFor(model => model.CustomerId, new { @class = "form-control", type = "number", @readonly = "readonly" })
-                @Html.ValidationMessageFor(model => model.CustomerId, "", new { @class = "text-danger" })
-            </div>
+            @if (!User.IsInRole("Customer"))
+            {
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.CustomerId, "Customer", new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.CustomerId, new { @class = "form-control", type = "number", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(model => model.CustomerId, "", new { @class = "text-danger" })
+                </div>
+            }
             <div class="mb-3">
                 @Html.LabelFor(model => model.ProductId, "Loan Product", new { @class = "form-label" })
                 @Html.DropDownListFor(model => model.ProductId, loanProducts, "-- Select Loan Product --", new { @class = "form-select", disabled = "disabled"})

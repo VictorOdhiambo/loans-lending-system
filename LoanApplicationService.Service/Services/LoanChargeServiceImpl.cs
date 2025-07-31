@@ -23,7 +23,7 @@ namespace LoanApplicationService.Service.Services
 
         public async Task<bool> UpdateLoanCharge(LoanChargeDto loanChargeDto)
         {
-            var loanCharge = await _context.LoanCharges.FindAsync(loanChargeDto.Id);
+            var loanCharge = await _context.LoanCharges.FindAsync(loanChargeDto.LoanChargeId);
             if (loanCharge == null) return false;
             _mapper.Map(loanChargeDto, loanCharge);
             return await _context.SaveChangesAsync() > 0;

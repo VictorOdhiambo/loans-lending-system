@@ -72,6 +72,13 @@ namespace LoanApplicationService.CrossCutting.Utils
         VeryHigh = 4
     }
 
+    public enum Role
+    {
+        SuperAdmin = 0,
+        Admin = 1,
+        Customer = 2
+    }
+
     public static class RiskScoringUtil
     {
         public static LoanRiskLevel GetRiskLevel(int age, string employmentStatus, decimal income)

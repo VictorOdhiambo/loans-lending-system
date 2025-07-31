@@ -3,26 +3,35 @@
 @{
     var statusList = ViewBag.StatusList as List<SelectListItem>;
     int? selectedStatus = ViewBag.SelectedStatus as int?;
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
   
 <h1>Loan Applications</h1>
-@if (TempData["Success"] != null)
-{
- <div class="alert alert-success">
-        <strong>Success!</strong> @TempData["Success"]
-    </div>
-}
 @if (ViewBag.CustomerId != null && ViewBag.CustomerName != null)
 {
     <div class="alert alert-info mb-3">
-        Showing loan history for: <strong>@ViewBag.CustomerName</strong> (Customer ID: @ViewBag.CustomerId)
+        @if (User.IsInRole("Customer"))
+        {
+            <span>Showing loan history for: <strong>@ViewBag.CustomerName</strong></span>
+        }
+        else
+        {
+            <span>Showing loan history for: <strong>@ViewBag.CustomerName</strong> (Customer ID: @ViewBag.CustomerId)</span>
+        }
     </div>
 }
 else if (ViewBag.CustomerId != null)
 {
     <div class="alert alert-info mb-3">
-        Showing loan history for Customer ID: @ViewBag.CustomerId
+        @if (User.IsInRole("Customer"))
+        {
+            <span>Showing loan history</span>
+        }
+        else
+        {
+            <span>Showing loan history for Customer ID: @ViewBag.CustomerId</span>
+        }
     </div>
 }
 
@@ -45,7 +54,10 @@ else if (ViewBag.CustomerId != null)
     <table class="table table-striped table-hover">
         <thead>
             <tr>
-                <th>Application ID</th>
+                @if (ViewBag.CustomerId == null)
+                {
+                    <th>Application ID</th>
+                }
                 <th>Customer Name</th>
                 <th>Product Name</th>
                 <th>Status</th>
@@ -55,7 +67,10 @@ else if (ViewBag.CustomerId != null)
                 <th>Purpose</th>
                 <th>Application Date</th>
                 <th>Decision Date</th>
-                <th>Actions</th>
+                @if (ViewBag.CustomerId == null)
+                {
+                    <th>Actions</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -63,7 +78,10 @@ else if (ViewBag.CustomerId != null)
             {
                 
                     <tr>
-                        <td>@item.ApplicationId</td>
+                        @if (ViewBag.CustomerId == null)
+                        {
+                            <td>@item.ApplicationId</td>
+                        }
                         <td>@item.FirstName @item.LastName</td>
                         <td>@item.ProductName</td>
                         <td>@item.Status</td>
@@ -73,29 +91,35 @@ else if (ViewBag.CustomerId != null)
                         <td>@item.Purpose</td>
                         <td>@item.ApplicationDate.ToString()</td>
                       <td>@(item.DecisionDate?.ToString() ?? "")</td>
-                      <td>
-                    @if (item.Status.ToString() != "Disbursed")
+                      @if (ViewBag.CustomerId == null)
+                      {
+                          <td>
+@if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
 {
-    if (item.Status.ToString() != "Approved" && item.Status.ToString() != "Rejected")
+    if (item.Status.ToString() != "Disbursed")
     {
-        <a href="/LoanApplication/Approve/@item.ApplicationId" class="btn btn-sm btn-outline-primary me-1">
-            <i class="bi bi-pencil-square"></i> Approve
-        </a>
-        <a href="/LoanApplication/Reject/@item.ApplicationId" class="btn btn-sm btn-outline-danger me-1">
-            <i class="bi bi-trash"></i> Reject
-        </a>
-    }
-    if (item.Status.ToString() == "Approved")
-    {
-        using (Html.BeginForm("DisburseConfirmed", "LoanApplication", new { id = item.ApplicationId }, FormMethod.Post, null, new { @class = "d-inline" }))
+        if (item.Status.ToString() != "Approved" && item.Status.ToString() != "Rejected")
         {
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-sm btn-success me-1" onclick="return confirm('Disburse this loan application?');">
-                <i class="bi bi-cash-stack"></i> Disburse
-            </button>
+            <a href="/LoanApplication/Approve/@item.ApplicationId" class="btn btn-sm btn-outline-primary me-1">
+                <i class="bi bi-pencil-square"></i> Approve
+            </a>
+            <a href="/LoanApplication/Reject/@item.ApplicationId" class="btn btn-sm btn-outline-danger me-1">
+                <i class="bi bi-trash"></i> Reject
+            </a>
+        }
+        if (item.Status.ToString() == "Approved")
+        {
+            using (Html.BeginForm("DisburseConfirmed", "LoanApplication", new { id = item.ApplicationId }, FormMethod.Post, null, new { @class = "d-inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-success me-1" onclick="return confirm('Disburse this loan application?');">
+                    <i class="bi bi-cash-stack"></i> Disburse
+                </button>
+            }
         }
     }
 }                </td>
+                      }
                 </tr>
                
             }

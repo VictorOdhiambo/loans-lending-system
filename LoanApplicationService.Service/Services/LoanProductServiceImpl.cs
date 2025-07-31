@@ -74,7 +74,7 @@ namespace LoanApplicationService.Service.Services
                 product.InterestRate = loanProductDto.InterestRate;
                 product.MinTermMonths = loanProductDto.MinTermMonths;
                 product.MaxTermMonths = loanProductDto.MaxTermMonths;
-                product.EligibilityCriteria = loanProductDto.EligibilityCriteria;
+
                 product.ProcessingFee = loanProductDto.ProcessingFee;
                 product.IsActive = loanProductDto.IsActive;
                 product.RiskLevel = loanProductDto.RiskLevel;

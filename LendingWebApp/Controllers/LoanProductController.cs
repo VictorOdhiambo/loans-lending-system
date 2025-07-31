@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace LoanApplicationService.Web.Controllers
 {
+    [Authorize]
     public class LoanProductController(ILoanProductService loanProductService) : Controller
     {
         private readonly ILoanProductService _loanProductService = loanProductService;
@@ -20,6 +22,8 @@ namespace LoanApplicationService.Web.Controllers
         {
             ViewBag.CustomerId = customerId;
             LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto customer = null;
+            
+            // If customerId is provided, use it (for admin/super admin viewing specific customer)
             if (customerId.HasValue)
             {
                 // Fetch customer details for display
@@ -33,7 +37,25 @@ namespace LoanApplicationService.Web.Controllers
                     }
                 }
             }
+            // If no customerId but user is a customer, get their own information
+            else if (User.IsInRole("Customer"))
+            {
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
+                {
+                    // Get customer by email (current user's email)
+                    customer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (customer != null)
+                    {
+                        ViewBag.CustomerId = customer.CustomerId;
+                        ViewBag.IsCustomerView = true; // Flag to indicate this is customer browsing
+                    }
+                }
+            }
+            
             var loanProducts = await _loanProductService.GetAllProducts();
+            
+            // Apply risk-based filtering if customer is found
             if (customer != null)
             {
                 List<LoanProductDto> filtered;
@@ -64,12 +86,16 @@ namespace LoanApplicationService.Web.Controllers
                 {
                     filtered = loanProducts.Where(lp => lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh).ToList();
                 }
+                
                 if (!filtered.Any())
                 {
-                    ViewBag.NoProductsMessage = "No loan products match this customer's risk level.";
+                    ViewBag.NoProductsMessage = "No loan products match your risk level.";
                 }
+                
                 return View(filtered);
             }
+            
+            // For admin/super admin viewing all products
             return View(loanProducts);
         }
 
@@ -81,13 +107,20 @@ namespace LoanApplicationService.Web.Controllers
             return View(loanProducts);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             PopulateDropdowns();
-            return View(new LoanProductDto());
+            var dto = new LoanProductDto 
+            { 
+                ProductName = "", 
+                IsActive = true
+            };
+            return View(dto);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
         public async Task<IActionResult> Create(LoanProductDto loanProductDto)
         {
@@ -96,7 +129,7 @@ namespace LoanApplicationService.Web.Controllers
                 var result = await _loanProductService.AddLoanProduct(loanProductDto);
                 if (result)
                 {
-                    TempData["Success"] = "Loan product created successfully!";
+                    TempData["LoanProductSuccess"] = "Loan product created successfully!";
                     return RedirectToAction("Index");
                 }
 
@@ -112,6 +145,7 @@ namespace LoanApplicationService.Web.Controllers
 
 
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         public async Task<ActionResult> Modify(int id)
         {
@@ -121,6 +155,7 @@ namespace LoanApplicationService.Web.Controllers
             return View(loanProduct);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Modify(LoanProductDto loanProductDto)
@@ -130,7 +165,7 @@ namespace LoanApplicationService.Web.Controllers
                 var result = await _loanProductService.ModifyLoanProduct(loanProductDto.ProductId, loanProductDto);
                 if (result)
                 {
-                    TempData["Success"] = "Loan product updated successfully!";
+                    TempData["LoanProductSuccess"] = "Loan product updated successfully!";
                     return RedirectToAction("Index");
                 }
                 TempData["Error"] = "Failed to update loan product. Please try again.";
@@ -143,6 +178,7 @@ namespace LoanApplicationService.Web.Controllers
             return View(loanProductDto);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         public async Task<ActionResult> Delete(int id)
         {
@@ -160,6 +196,7 @@ namespace LoanApplicationService.Web.Controllers
             return View(loanProduct);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -172,7 +209,7 @@ namespace LoanApplicationService.Web.Controllers
             var result = await _loanProductService.DeleteLoanProduct(id);
             if (result)
             {
-                TempData["Success"] = "Loan product deleted successfully!";
+                TempData["LoanProductSuccess"] = "Loan product deleted successfully!";
             }
             else
             {

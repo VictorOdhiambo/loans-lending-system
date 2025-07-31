@@ -2,19 +2,25 @@
 using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using LoanApplicationService.Core.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace LoanApplicationService.Web.Controllers
 {
     public class UsersController : Controller
     {
         private readonly IUserService _userService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, UserManager<ApplicationUser> userManager)
         {
             _userService = userService;
+            _userManager = userManager;
         }
 
         // GET: /Users
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<IActionResult> Index(bool showInactive = false)
         {
             var users = showInactive
@@ -31,8 +37,31 @@ namespace LoanApplicationService.Web.Controllers
                 {
                     customerMap[customer.UserId] = customer.CustomerId;
                 }
+                ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
             }
             ViewBag.CustomerMap = customerMap;
+
+            // Get user roles for each user
+            var userRoles = new Dictionary<Guid, string>();
+            foreach (var user in users)
+            {
+                var appUser = await _userManager.FindByIdAsync(user.UserId.ToString());
+                if (appUser != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(appUser);
+                    userRoles[user.UserId] = roles.FirstOrDefault() ?? "No Role";
+                }
+            }
+            ViewBag.UserRoles = userRoles;
+
+            // Get current user information for permission checks
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                var currentUserRoles = await _userManager.GetRolesAsync(currentUser);
+                ViewBag.CurrentUserRole = currentUserRoles.FirstOrDefault() ?? "No Role";
+                ViewBag.CurrentUserId = currentUser.Id;
+            }
 
             return View(users);
         }
@@ -45,12 +74,22 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         // GET: /Users/Details/{id}
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<IActionResult> Details(Guid id)
         {
             var users = await _userService.GetAllUsersAsync();
             var inactiveUsers = await _userService.GetInactiveUsersAsync();
             var user = users.Concat(inactiveUsers).FirstOrDefault(u => u.UserId == id);
             if (user == null) return NotFound();
+            
+            // Get user role using Identity
+            var appUser = await _userManager.FindByIdAsync(id.ToString());
+            if (appUser != null)
+            {
+                var roles = await _userManager.GetRolesAsync(appUser);
+                ViewBag.UserRole = roles.FirstOrDefault() ?? "No Role";
+            }
+            
             return View(user);
         }
 
@@ -62,6 +101,20 @@ namespace LoanApplicationService.Web.Controllers
             var inactiveUsers = await _userService.GetInactiveUsersAsync();
             var user = users.Concat(inactiveUsers).FirstOrDefault(u => u.UserId == id);
             if (user == null) return NotFound();
+            
+            // Get user role using Identity
+            var appUser = await _userManager.FindByIdAsync(id.ToString());
+            if (appUser != null)
+            {
+                var roles = await _userManager.GetRolesAsync(appUser);
+                ViewBag.CurrentUserRole = roles.FirstOrDefault() ?? "No Role";
+            }
+            
+            var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+            if (dbContext != null)
+            {
+                ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
+            }
             return View(user);
         }
 
@@ -71,9 +124,9 @@ namespace LoanApplicationService.Web.Controllers
         public async Task<IActionResult> Edit(Guid id, string role, bool isActive)
         {
             // Only allow Admins to activate/deactivate Customers
-            if (User.IsInRole("Admin"))
+            if (User.IsInRole(LoanApplicationService.CrossCutting.Utils.Role.Admin.ToString()))
             {
-                if (role != "Customer")
+                if (role != LoanApplicationService.CrossCutting.Utils.Role.Customer.ToString())
                 {
                     return Forbid();
                 }
@@ -87,15 +140,15 @@ namespace LoanApplicationService.Web.Controllers
             }
             else if (activeResult && isActive)
             {
-                TempData["Success"] = "User activated successfully!";
+                TempData["UserSuccess"] = "User activated successfully!";
             }
             else if (activeResult && !isActive)
             {
-                TempData["Success"] = "User deactivated successfully!";
+                TempData["UserSuccess"] = "User deactivated successfully!";
             }
             else
             {
-                TempData["Success"] = "User updated successfully!";
+                TempData["UserSuccess"] = "User updated successfully!";
             }
 
             // AJAX: return JSON, otherwise redirect
@@ -110,50 +163,171 @@ namespace LoanApplicationService.Web.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+            if (dbContext != null)
+            {
+                ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
+            }
             return View();
         }
 
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(IFormCollection form)
+        public async Task<IActionResult> Create(UserDTO userDto)
         {
-            var role = form["Role"].ToString();
-            if (role == "Admin")
+            if (!ModelState.IsValid)
             {
-                var username = form["Username"].ToString();
-                var email = form["Email"].ToString();
-                var password = form["Password"].ToString();
-                var confirmPassword = form["ConfirmPassword"].ToString();
-                if (password != confirmPassword)
+                // Repopulate ViewBag for the view
+                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+                if (dbContext != null)
                 {
-                    TempData["Error"] = "Passwords do not match.";
-                    return View();
+                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
                 }
-                var userDto = new LoanApplicationService.Service.DTOs.UserModule.UserDTO
-                {
-                    Username = username,
-                    Email = email,
-                    Password = password,
-                    Role = "Admin",
-                    IsActive = true
-                };
-                var result = await _userService.RegisterAsync(userDto);
-                if (!result)
-                {
-                    TempData["Error"] = "A user with this email already exists.";
-                    return View();
-                }
-                TempData["Success"] = "Admin user created successfully!";
-                return RedirectToAction("Index");
+                return View(userDto);
             }
-            else if (role == "Customer")
+
+            var user = new ApplicationUser
             {
-                // Redirect to CustomerController's Create action for customer creation
-                return RedirectToAction("Create", "Customer");
+                Email = userDto.Email,
+                UserName = userDto.Username,
+                IsActive = true
+            };
+
+            var result = await _userManager.CreateAsync(user, userDto.Password ?? string.Empty);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                // Repopulate ViewBag for the view
+                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+                if (dbContext != null)
+                {
+                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
+                }
+                return View(userDto);
             }
-            TempData["Error"] = "Invalid role selected.";
-            return View();
+
+            // Assign role if needed
+            if (!string.IsNullOrEmpty(userDto.RoleName))
+            {
+                var roleResult = await _userManager.AddToRoleAsync(user, userDto.RoleName);
+                if (!roleResult.Succeeded)
+                {
+                    foreach (var error in roleResult.Errors)
+                    {
+                        ModelState.AddModelError("", $"Role assignment failed: {error.Description}");
+                    }
+                    // Repopulate ViewBag for the view
+                    var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+                    if (dbContext != null)
+                    {
+                        ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
+                    }
+                    return View(userDto);
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("", "Role is required for user creation.");
+                // Repopulate ViewBag for the view
+                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+                if (dbContext != null)
+                {
+                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
+                }
+                return View(userDto);
+            }
+
+            TempData["UserSuccess"] = "User created successfully!";
+            return RedirectToAction("Index");
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpGet]
+        public async Task<IActionResult> FixUserRoles()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            var fixedUsers = new List<string>();
+            
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (!roles.Any())
+                {
+                    // Check if this is an admin user (you can customize this logic)
+                    if (user.Email.Contains("admin") || user.UserName.Contains("admin"))
+                    {
+                        await _userManager.AddToRoleAsync(user, "Admin");
+                        fixedUsers.Add($"{user.Email} -> Admin");
+                    }
+                    else if (user.Email.Contains("super") || user.UserName.Contains("super"))
+                    {
+                        await _userManager.AddToRoleAsync(user, "SuperAdmin");
+                        fixedUsers.Add($"{user.Email} -> SuperAdmin");
+                    }
+                    else
+                    {
+                        // Default to Customer for users without roles
+                        await _userManager.AddToRoleAsync(user, "Customer");
+                        fixedUsers.Add($"{user.Email} -> Customer");
+                    }
+                }
+            }
+            
+            TempData["UserSuccess"] = $"Fixed roles for {fixedUsers.Count} users: " + string.Join(", ", fixedUsers);
+            return RedirectToAction("Index");
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(UserDTO userDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Repopulate ViewBag for the view
+                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+                if (dbContext != null)
+                {
+                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
+                }
+                return View("Create", userDto);
+            }
+
+            var user = new ApplicationUser
+            {
+                Email = userDto.Email,
+                UserName = userDto.Username,
+                IsActive = true
+            };
+
+            var result = await _userManager.CreateAsync(user, userDto.Password ?? string.Empty);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                // Repopulate ViewBag for the view
+                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+                if (dbContext != null)
+                {
+                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
+                }
+                return View("Create", userDto);
+            }
+
+            // Assign role if needed
+            if (!string.IsNullOrEmpty(userDto.RoleName))
+            {
+                await _userManager.AddToRoleAsync(user, userDto.RoleName);
+            }
+
+            TempData["UserSuccess"] = "User created successfully!";
+            return RedirectToAction("Index");
         }
     }
 }

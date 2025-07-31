@@ -19,9 +19,10 @@
         <div class="mb-3">
             <label class="form-label">Role</label>
             <select class="form-select" name="role">
-                <option value="SuperAdmin" @(Model.Role == "SuperAdmin" ? "selected" : "")>SuperAdmin</option>
-                <option value="Admin" @(Model.Role == "Admin" ? "selected" : "")>Admin</option>
-                <option value="Customer" @(Model.Role == "Customer" ? "selected" : "")>Customer</option>
+                @foreach (var role in ViewBag.RoleList as List<dynamic>)
+                {
+                    <option value="@role.Name" @(role.Name == ViewBag.CurrentUserRole ? "selected" : "")>@role.Name</option>
+                }
             </select>
         </div>
         <div class="form-check mb-3">

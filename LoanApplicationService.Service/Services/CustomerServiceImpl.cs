@@ -78,24 +78,35 @@ namespace LoanApplicationService.Service.Services
 
         public async Task<bool> UserExistsAsync(string email)
         {
-            return await _db.Users.AnyAsync(u => u.Email == email && u.IsActive);
+            return await _db.ApplicationUsers.AnyAsync(u => u.Email == email && u.IsActive);
+        }
+
+        public async Task<CustomerDto?> GetByEmailAsync(string email)
+        {
+            var customer = await _db.Customers.FirstOrDefaultAsync(c => c.Email == email && !c.IsDeleted);
+            return _mapper.Map<CustomerDto>(customer);
+        }
+
+        public async Task<bool> EmailOrNationalIdExistsAsync(string email, string? nationalId)
+        {
+            return await _db.Customers.AnyAsync(c => c.Email == email || (nationalId != null && c.NationalId == nationalId));
         }
 
         public async Task<bool> CreateUserAndCustomerAsync(CustomerDto dto)
         {
-            if (await UserExistsAsync(dto.Email))
+            if (await EmailOrNationalIdExistsAsync(dto.Email, dto.NationalId))
                 return false;
 
-            var user = new Users
+            var role = await _db.ApplicationRoles.FirstOrDefaultAsync(r => r.Name == "Customer");
+            if (role == null) return false;
+            var user = new ApplicationUser
             {
-                Id = Guid.NewGuid(),
                 Email = dto.Email,
-                Username = dto.FirstName + " " + dto.LastName,
-                Role = "Customer",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                IsActive = true
+                UserName = dto.FirstName + " " + dto.LastName,
+                IsActive = true,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
             };
-            _db.Users.Add(user);
+            _db.ApplicationUsers.Add(user);
             await _db.SaveChangesAsync();
 
             var customer = new Customer
@@ -109,7 +120,8 @@ namespace LoanApplicationService.Service.Services
                 NationalId = dto.NationalId,
                 EmploymentStatus = dto.EmploymentStatus,
                 AnnualIncome = dto.AnnualIncome,
-                UserId = user.Id
+                UserId = user.Id,
+                User = user
             };
             // Set RiskLevel
             int age = 0;

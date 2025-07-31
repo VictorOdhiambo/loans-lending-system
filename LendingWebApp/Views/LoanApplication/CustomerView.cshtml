@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Customer View";
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Customer View</h1>

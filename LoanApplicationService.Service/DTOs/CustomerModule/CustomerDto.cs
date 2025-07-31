@@ -42,6 +42,7 @@ namespace LoanApplicationService.Service.DTOs.CustomerModule
 
         [Display(Name = "Password")]
         [DataType(DataType.Password)]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
         public string? Password { get; set; }
 
         public LoanApplicationService.CrossCutting.Utils.LoanRiskLevel RiskLevel { get; set; }

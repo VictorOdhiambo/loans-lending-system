@@ -13,31 +13,25 @@
 <div class="card mb-3">
     <div class="card-body">
         <dl class="row">
-            <dt class="col-sm-4">Name</dt>
-            <dd class="col-sm-8">@Model.Name</dd>
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@Model.Name</dd>
 
-            <dt class="col-sm-4">Description</dt>
-            <dd class="col-sm-8">@Model.Description</dd>
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@Model.Description</dd>
 
-            <dt class="col-sm-4">Amount</dt>
-            <dd class="col-sm-8">@Model.Amount.ToString("C")</dd>
+            <dt class="col-sm-2">Is Penalty</dt>
+            <dd class="col-sm-10">@Model.IsPenalty</dd>
 
-            <dt class="col-sm-4">Is Penalty</dt>
-            <dd class="col-sm-8">@Model.IsPenalty</dd>
+            <dt class="col-sm-2">Is Upfront</dt>
+            <dd class="col-sm-10">@Model.IsUpfront</dd>
 
-            <dt class="col-sm-4">Is Upfront</dt>
-            <dd class="col-sm-8">@Model.IsUpfront</dd>
+            <dt class="col-sm-2">Amount</dt>
+            <dd class="col-sm-10">@Model.Amount.ToString("C")</dd>
         </dl>
     </div>
 </div>
 
-@using (Html.BeginForm("Delete", "LoanCharge", new { id = Model.Id }, FormMethod.Post))
-{
-    @Html.AntiForgeryToken()
-    @Html.HiddenFor(model => model.Id)
-
-    <div class="form-group">
-        <button type="submit" class="btn btn-danger">Yes, Delete</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-    </div>
-}
+<form asp-action="Delete" asp-route-id="@Model.LoanChargeId" method="post">
+    <input type="submit" value="Delete" class="btn btn-danger" />
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>

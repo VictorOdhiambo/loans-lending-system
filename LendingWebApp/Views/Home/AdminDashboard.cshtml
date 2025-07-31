@@ -5,9 +5,42 @@
 
 <div class="container py-4">
     <h1 class="mb-4">Admin Dashboard</h1>
-    <div class="alert alert-info">Welcome!</div>
+    @if (TempData["WelcomeMessage"] != null)
+    {
+        <div id="welcomeMsg" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["WelcomeMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <script>
+            setTimeout(function() {
+                var msg = document.getElementById('welcomeMsg');
+                if (msg) {
+                    msg.style.opacity = '0';
+                    msg.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(function() {
+                        if (msg) msg.style.display = 'none';
+                    }, 500);
+                }
+            }, 4000);
+        </script>
+    }
+    else
+    {
+        <div class="alert alert-info">Welcome!</div>
+    }
     <div class="row g-4 mb-4">
-        <!-- User management card removed for Admins -->
+        <div class="col-md-4 col-lg-2">
+    <a href="/Users" style="text-decoration: none;">
+        <div class="card text-white bg-primary h-100 shadow" style="cursor:pointer;">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <i class="bi bi-people-fill display-5 mb-2"></i>
+                <h5 class="card-title">Total Users</h5>
+                <h3>@ViewBag.TotalUsers</h3>
+            </div>
+        </div>
+    </a>
+</div>
         <div class="col-md-4 col-lg-2">
     <a href="/LoanApplication/Index?status=3" style="text-decoration: none;">
         <div class="card text-white bg-success h-100 shadow" style="cursor:pointer;">
@@ -31,7 +64,42 @@
     </a>
 </div>
         <div class="col-md-4 col-lg-2">
-            <div class="card text-white bg-danger h-100 shadow">
+    <a href="/LoanApplication/Index?status=1" style="text-decoration: none;">
+        <div class="card text-white bg-info h-100 shadow" style="cursor:pointer;">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <i class="bi bi-check-circle display-5 mb-2"></i>
+                <h5 class="card-title">Approved Applications</h5>
+                <h3>@ViewBag.ApprovedApplications</h3>
+            </div>
+        </div>
+    </a>
+</div>
+        <div class="col-md-4 col-lg-2">
+    <a href="/LoanApplication/Index?status=2" style="text-decoration: none;">
+        <div class="card text-white bg-danger h-100 shadow" style="cursor:pointer;">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <i class="bi bi-x-circle display-5 mb-2"></i>
+                <h5 class="card-title">Rejected Applications</h5>
+                <h3>@ViewBag.RejectedApplications</h3>
+            </div>
+        </div>
+    </a>
+</div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-white bg-secondary h-100 shadow">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-envelope-fill display-5 mb-2"></i>
+                    <h5 class="card-title">New Messages</h5>
+                    <h3>@ViewBag.NewMessages</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Statistics Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-white bg-dark h-100 shadow">
                 <div class="card-body d-flex flex-column align-items-center justify-content-center">
                     <i class="bi bi-x-octagon display-5 mb-2"></i>
                     <h5 class="card-title">Overdue Loans</h5>
@@ -43,17 +111,8 @@
             <div class="card text-white bg-info h-100 shadow">
                 <div class="card-body d-flex flex-column align-items-center justify-content-center">
                     <i class="bi bi-graph-up display-5 mb-2"></i>
-                    <h5 class="card-title">Loan Repayment Rate</h5>
+                    <h5 class="card-title">Repayment Rate</h5>
                     <h3>@ViewBag.LoanRepaymentRate%</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 col-lg-2">
-            <div class="card text-white bg-secondary h-100 shadow">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                    <i class="bi bi-envelope-fill display-5 mb-2"></i>
-                    <h5 class="card-title">New Messages</h5>
-                    <h3>@ViewBag.NewMessages</h3>
                 </div>
             </div>
         </div>

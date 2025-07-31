@@ -44,7 +44,22 @@
 
 <div class="form-group mb-3">
     @Html.LabelFor(model => model.EmploymentStatus, new { @class = "form-label" })
-    @Html.TextBoxFor(model => model.EmploymentStatus, new { @class = "form-control" })
+    @{
+        var employmentStatusOptions = new List<SelectListItem>
+        {
+            new SelectListItem { Text = "Select Employment Status", Value = "", Selected = string.IsNullOrEmpty(Model.EmploymentStatus) },
+            new SelectListItem { Text = "Employed", Value = "Employed", Selected = Model.EmploymentStatus == "Employed" },
+            new SelectListItem { Text = "Self-Employed", Value = "Self-Employed", Selected = Model.EmploymentStatus == "Self-Employed" },
+            new SelectListItem { Text = "Unemployed", Value = "Unemployed", Selected = Model.EmploymentStatus == "Unemployed" },
+            new SelectListItem { Text = "Student", Value = "Student", Selected = Model.EmploymentStatus == "Student" },
+            new SelectListItem { Text = "Retired", Value = "Retired", Selected = Model.EmploymentStatus == "Retired" },
+            new SelectListItem { Text = "Business Owner", Value = "Business Owner", Selected = Model.EmploymentStatus == "Business Owner" },
+            new SelectListItem { Text = "Contractor", Value = "Contractor", Selected = Model.EmploymentStatus == "Contractor" },
+            new SelectListItem { Text = "Freelancer", Value = "Freelancer", Selected = Model.EmploymentStatus == "Freelancer" },
+            new SelectListItem { Text = "Part-Time", Value = "Part-Time", Selected = Model.EmploymentStatus == "Part-Time" }
+        };
+    }
+    @Html.DropDownListFor(model => model.EmploymentStatus, employmentStatusOptions, new { @class = "form-select" })
     @Html.ValidationMessageFor(model => model.EmploymentStatus, "", new { @class = "text-danger" })
 </div>
 

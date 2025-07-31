@@ -1,65 +1,85 @@
 <div class="d-flex flex-column flex-shrink-0 p-3 position-fixed vh-100" style="width: 220px; background: #1565c0;">
     <a href="/Home/Dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-        <span class="navbar-brand mb-0 h1">
-            @if (User.IsInRole("SuperAdmin"))
-            {
-                <span>Super Admin</span>
-            }
-            else if (User.IsInRole("Admin"))
-            {
-                <span>Admin</span>
-            }
-            else
-            {
-                <span>User</span>
-            }
-        </span>
+        <span class="navbar-brand mb-0 h1">PesaSure®</span>
     </a>
     <hr class="border-light">
-    <ul class="nav nav-pills flex-column mb-auto">
-        <!-- Loans Dropdown -->
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="loansDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
-                <i class="bi bi-cash-stack me-2"></i> Loans
+    <ul class="nav flex-column mb-auto">
+        <!-- Dashboard -->
+        <li class="nav-item">
+            <a class="nav-link text-white" href="/Home/Dashboard">
+                <i class="bi bi-house-door"></i> Dashboard
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="loansDropdown">
-                <li><a class="dropdown-item text-white" href="/LoanProduct">View All Loan Products</a></li>
-                <li><a class="dropdown-item text-white" href="/LoanApplication/Index">View All Loan Applications</a></li>
-                <li><a class="dropdown-item text-white" href="/LoanCharge/Index">Loan Charges</a></li>
-                <li><a class="dropdown-item text-white" href="/LoanCharge/AddChargeToLoanProduct">Add Loan Charge To Loan Product</a></li>
-            </ul>
         </li>
-        <!-- Users Dropdown -->
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="usersDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
-                <i class="bi bi-people me-2"></i> Users
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="usersDropdown">
-                <li><a class="dropdown-item text-white" href="/Users">All Users</a></li>
-                <li><a class="dropdown-item text-white" href="/Users/Admins">Admins</a></li>
-                <li><a class="dropdown-item text-white" href="/Customer/Index">Customers</a></li>
-                <li><a class="dropdown-item text-white" href="/Customer/Create">Add New User</a></li>
-            </ul>
-        </li>
-        <!-- Notifications Dropdown -->
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
-                <i class="bi bi-bell me-2"></i> Notifications
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="notificationsDropdown">
-                <li><a class="dropdown-item text-white" href="/NotificationTemplate">Notification Templates</a></li>
-                <li><a class="dropdown-item text-white" href="/Notification">All Notifications</a></li>
-            </ul>
-        </li>
-        <!-- Reports Dropdown -->
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="reportsDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
-                <i class="bi bi-graph-up me-2"></i> Reports
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark bg-primary" aria-labelledby="reportsDropdown">
-                <li><a class="dropdown-item text-white" href="/Reports/LoanSummary">Loan Summary</a></li>
-                <li><a class="dropdown-item text-white" href="/Reports/SMSDeliveryLogs">SMS Delivery Logs</a></li>
-            </ul>
+        
+        @if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+        {
+            <!-- Loans Dropdown - Admin/SuperAdmin Only -->
+            <li class="nav-item">
+                <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminLoansMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-cash-stack me-2"></i> Loans
+                </a>
+                <div class="collapse" id="adminLoansMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanProduct">View All Loan Products</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Index">View All Loan Applications</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanCharge/Index">Loan Charges</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanCharge/AddChargeToLoanProduct">Add Loan Charge To Loan Product</a></li>
+                    </ul>
+                </div>
+            </li>
+            
+            <!-- Users Dropdown - Admin/SuperAdmin Only -->
+            <li class="nav-item">
+                <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminUsersMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-people me-2"></i> Users
+                </a>
+                <div class="collapse" id="adminUsersMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-white" href="/Users">All Users</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Users/Admins">Admins</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Customer/Index">Customers</a></li>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <li class="nav-item"><a class="nav-link text-white" href="/Customer/Create">Add New User</a></li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link text-white" href="/Customer/Create">Add New Customer</a></li>
+                        }
+                    </ul>
+                </div>
+            </li>
+            
+            <!-- Notifications Dropdown - Admin/SuperAdmin Only -->
+            <li class="nav-item">
+                <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminNotificationsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-bell me-2"></i> Notifications
+                </a>
+                <div class="collapse" id="adminNotificationsMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-white" href="/NotificationTemplate">Notification Templates</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Notification">All Notifications</a></li>
+                    </ul>
+                </div>
+            </li>
+            
+            <!-- Reports Dropdown - Admin/SuperAdmin Only -->
+            <li class="nav-item">
+                <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminReportsMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-graph-up me-2"></i> Reports
+                </a>
+                <div class="collapse" id="adminReportsMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-white" href="/Reports/LoanSummary">Loan Summary</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Reports/SMSDeliveryLogs">SMS Delivery Logs</a></li>
+                    </ul>
+                </div>
+            </li>
+        }
+        
+        <!-- Logout -->
+        <li class="nav-item mt-3">
+            <a class="nav-link text-white" href="/Home/Logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </li>
     </ul>
 </div>

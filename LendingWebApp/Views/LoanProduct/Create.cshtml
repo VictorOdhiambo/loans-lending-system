@@ -32,13 +32,13 @@
 
             <div class="mb-3">
                 @Html.LabelFor(model => model.LoanProductType, "Loan Product Type", new { @class = "form-label" })
-                @Html.DropDownListFor(model => model.LoanProductType, loanProductTypes, "-- Select Loan Product Type --", new { @class = "form-select" })
+                @Html.DropDownListFor(model => model.LoanProductType, ViewBag.LoanProductTypes as List<SelectListItem>, "-- Select Loan Product Type --", new { @class = "form-select" })
                 @Html.ValidationMessageFor(model => model.LoanProductType, "", new { @class = "text-danger" })
             </div>
 
             <div class="mb-3">
                 @Html.LabelFor(model => model.PaymentFrequency, "Payment Frequency", new { @class = "form-label" })
-                @Html.DropDownListFor(model => model.PaymentFrequency, paymentFrequencies, "-- Select Payment Frequency --", new { @class = "form-select" })
+                @Html.DropDownListFor(model => model.PaymentFrequency, ViewBag.PaymentFrequencies as List<SelectListItem>, "-- Select Payment Frequency --", new { @class = "form-select" })
                 @Html.ValidationMessageFor(model => model.PaymentFrequency, "", new { @class = "text-danger" })
             </div>
 
@@ -84,11 +84,7 @@
                 @Html.ValidationMessageFor(model => model.ProcessingFee, "", new { @class = "text-danger" })
             </div>
 
-            <div class="mb-3">
-                @Html.LabelFor(model => model.EligibilityCriteria, new { @class = "form-label" })
-                @Html.TextAreaFor(model => model.EligibilityCriteria, new { @class = "form-control", rows = 3 })
-                @Html.ValidationMessageFor(model => model.EligibilityCriteria, "", new { @class = "text-danger" })
-            </div>
+
 
             <div class="form-check mb-3">
                 @Html.CheckBoxFor(model => model.IsActive, new { @class = "form-check-input" })

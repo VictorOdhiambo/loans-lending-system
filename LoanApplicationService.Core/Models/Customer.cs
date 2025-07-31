@@ -12,12 +12,12 @@ namespace LoanApplicationService.Core.Models
         public int CustomerId { get; set; }
 
         // Basic Info
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
 
         // Contact
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
+        public required string Email { get; set; }
+        public required string PhoneNumber { get; set; }
 
         // New fields
         public string? Address { get; set; }
@@ -29,7 +29,7 @@ namespace LoanApplicationService.Core.Models
 
         // System Linkage
         public Guid UserId { get; set; }
-        public Users User { get; set; }
+        public required ApplicationUser User { get; set; }
 
         // Navigation
         public ICollection<Account> Accounts { get; set; } = new List<Account>();

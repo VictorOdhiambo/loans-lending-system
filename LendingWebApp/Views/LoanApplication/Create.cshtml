@@ -4,7 +4,7 @@
         ViewData["Title"] = "Loan Application";
     var loanProducts = ViewBag.LoanProducts as List<SelectListItem>;
     var customers = ViewBag.Customers as List<SelectListItem>;
-
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
 <h2>Loan Application</h2>
@@ -19,6 +19,8 @@
           @using (Html.BeginForm("Create", "LoanApplication", FormMethod.Post))
         {
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+@if (!User.IsInRole("Customer"))
+{
 <div class=" mb-3">
             @Html.LabelFor(model => model.CustomerId, "CustomerId", new { @class = "form-label" })
             @if (Model.CustomerId != 0)
@@ -32,6 +34,11 @@
             @Html.ValidationMessageFor(model => model.CustomerId, "", new { @class = "text-danger" })
     
 </div>
+}
+else
+{
+    @Html.HiddenFor(model => model.CustomerId)
+}
 
 <div class="mb-3">
     @Html.LabelFor(model => model.ProductId, "Loan Product", new { @class = "form-label" })

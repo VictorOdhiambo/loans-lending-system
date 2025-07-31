@@ -11,7 +11,7 @@ namespace LoanApplicationService.Web.Helpers
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
-        private readonly SmtpSettings _smtpSettings;
+        private readonly SmtpSettings? _smtpSettings;
 
         public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
@@ -22,6 +22,12 @@ namespace LoanApplicationService.Web.Helpers
 
         public async Task SendEmailAsync(string to, string subject, string body)
         {
+            if (_smtpSettings == null)
+            {
+                _logger.LogError("SMTP settings not configured");
+                return;
+            }
+            
             _logger.LogInformation("Preparing to send email to {Email} via SMTP server {SmtpServer}:{Port} as {From}", to, _smtpSettings.SmtpServer, _smtpSettings.Port, _smtpSettings.From);
             Console.WriteLine($"[EmailService] Preparing to send email to {to} via SMTP server {_smtpSettings.SmtpServer}:{_smtpSettings.Port} as {_smtpSettings.From}");
             try
@@ -46,10 +52,10 @@ namespace LoanApplicationService.Web.Helpers
 
     public class SmtpSettings
     {
-        public string From { get; set; }
-        public string SmtpServer { get; set; }
+        public required string From { get; set; }
+        public required string SmtpServer { get; set; }
         public int Port { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public required string Username { get; set; }
+        public required string Password { get; set; }
     }
 }
