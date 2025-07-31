@@ -100,5 +100,10 @@ namespace LoanApplicationService.Web.Controllers
             HttpContext.Session.Clear();
             return RedirectToAction("Index");
         }
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
     }
 }

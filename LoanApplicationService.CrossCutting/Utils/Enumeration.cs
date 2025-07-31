@@ -29,15 +29,17 @@ namespace LoanApplicationService.CrossCutting.Utils
 
     public enum PaymentFrequency
     {
-        [Description("Daily")]
-        Daily = 0,
-        [Description("Weekly")]
-        Weekly =1,
-        [Description("FortNightly")]
-        FortNightly = 2,
-        [Description("Monthly")]
-        Monthly =3
         
+        [Description("Weekly")]
+        Weekly =0,
+        [Description("Biweekly")]
+        Biweekly = 1,
+        [Description("Monthly")]
+        Monthly =2,
+        [Description("Quarterly")]
+        Quarterly = 3,
+
+
 
     }
 
@@ -97,5 +99,39 @@ namespace LoanApplicationService.CrossCutting.Utils
             if (score >= 9 && score <= 10) return LoanRiskLevel.Low;
             return LoanRiskLevel.VeryLow;
         }
+    }
+
+    public enum PaymentMethods
+    {
+       
+        [Description("Bank Transfer")]
+        BankTransfer = 0,
+        [Description("Mobile Money")]
+        MobileMoney = 1
+        
+    }
+
+    public enum AccountStatus
+    {
+        [Description("Active")]
+        Active = 0,
+        [Description("Inactive")]
+        Inactive = 1,
+        [Description("Closed")]
+        Closed = 2,
+        [Description("Frozen")]
+        Frozen = 3,
+        [Description("Defaulted")]
+        Defaulted = 4
+    }
+
+    public enum TransactionType
+    {
+        
+        [Description("Withdrawal")]
+        Withdrawal = 0,
+        [Description("Payment")]
+        Payment = 1,
+        
     }
 }

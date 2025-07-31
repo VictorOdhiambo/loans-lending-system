@@ -51,23 +51,52 @@ namespace LoanApplicationService.Service.Services
             return charges;
         }
 
-        // Get all charges for a specific loan product using the relationship
         public async Task<IEnumerable<LoanChargeDto>> GetAllChargesForLoanProduct(int loanProductId)
         {
-            var loanProduct = await _context.LoanProducts
-                .Include(lp => lp.LoanCharges)
-                .FirstOrDefaultAsync(lp => lp.ProductId == loanProductId);
+            var loanCharges = await _context.LoanChargeMapper
+        .Where(x => x.LoanProductId == loanProductId) 
+        .Select(x => new LoanChargeDto
+        {
+            Id = x.LoanChargeId,
+            Name = x.LoanCharge.Name,
+            Amount = x.LoanCharge.Amount,
+            Description = x.LoanCharge.Description,
+            IsPenalty = x.LoanCharge.IsPenalty,
+            IsUpfront = x.LoanCharge.IsUpfront,
+        })
+        .ToListAsync();
 
-            if (loanProduct == null) return Enumerable.Empty<LoanChargeDto>();
+            return loanCharges;
 
-            return _mapper.Map<IEnumerable<LoanChargeDto>>(loanProduct.LoanCharges);
+
         }
 
-        public async Task<bool> AddChargeToProduct(LoanChargeMapperDto dto)
+        public async Task<bool> AddChargeToProduct(LoanChargeMapperDto loanChargeMapperDto)
         {
-           var LoanChargeMap = _mapper.Map<LoanChargeMapperDto, LoanChargeMapper>(dto);
+           var LoanChargeMap = _mapper.Map<LoanChargeMapperDto, LoanChargeMapper>(loanChargeMapperDto);
             _context.LoanChargeMapper.Add(LoanChargeMap);
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<IEnumerable<LoanChargeDto>> GetUpFrontCharges(int loanProductId)
+        {
+            var charges = await _context.LoanChargeMapper
+                .Include(x => x.LoanCharge) // This is critical
+                .Where(x => x.LoanProductId == loanProductId && x.LoanCharge.IsUpfront)
+                .Select(x => new LoanChargeDto
+                {
+                    Id = x.LoanCharge.Id,
+                    Name = x.LoanCharge.Name,
+                    Description = x.LoanCharge.Description,
+                    IsPenalty = x.LoanCharge.IsPenalty,
+                    IsUpfront = x.LoanCharge.IsUpfront,
+                    Amount = x.LoanCharge.Amount,
+                    IsPercentage = x.LoanCharge.IsPercentage
+                })
+                .ToListAsync();
+
+            return charges; 
+        }
+
     }
 }

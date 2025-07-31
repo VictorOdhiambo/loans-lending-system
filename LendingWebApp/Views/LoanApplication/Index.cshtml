@@ -13,6 +13,12 @@
         <strong>Success!</strong> @TempData["Success"]
     </div>
 }
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-success">
+        <strong>Error!</strong> @TempData["Error"]
+    </div>
+}
 @if (ViewBag.CustomerId != null && ViewBag.CustomerName != null)
 {
     <div class="alert alert-info mb-3">
@@ -72,7 +78,7 @@ else if (ViewBag.CustomerId != null)
                         <td>@item.ApprovedAmount</td>
                         <td>@item.Purpose</td>
                         <td>@item.ApplicationDate.ToString()</td>
-                      <td>@(item.DecisionDate?.ToString() ?? "")</td>
+                      <td>@(item.DecisionDate.ToString() ?? "")</td>
                       <td>
                     @if (item.Status.ToString() != "Disbursed")
 {
@@ -85,15 +91,12 @@ else if (ViewBag.CustomerId != null)
             <i class="bi bi-trash"></i> Reject
         </a>
     }
-    if (item.Status.ToString() == "Approved")
-    {
-        using (Html.BeginForm("DisburseConfirmed", "LoanApplication", new { id = item.ApplicationId }, FormMethod.Post, null, new { @class = "d-inline" }))
-        {
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-sm btn-success me-1" onclick="return confirm('Disburse this loan application?');">
-                <i class="bi bi-cash-stack"></i> Disburse
-            </button>
-        }
+                            @if (item.Status.ToString() == "Approved")
+                            {
+                                <a href="@Url.Action("DisburseLoan", "LoanApplication", new { id = item.ApplicationId })" class="btn btn-sm btn-success me-1">
+                                    <i class="bi bi-cash-stack"></i> Disburse
+                                </a>
+                            
     }
 }                </td>
                 </tr>

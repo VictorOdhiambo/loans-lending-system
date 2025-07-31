@@ -12,6 +12,8 @@ namespace LoanApplicationService.Service.DTOs.LoanModule
         public bool IsUpfront { get; set; }
         public decimal Amount { get; set; }
 
+        public bool IsPercentage { get; set; }
+
 
     }
 }
