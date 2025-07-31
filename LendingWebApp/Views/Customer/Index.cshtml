@@ -1,10 +1,19 @@
 ﻿@model List<LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto>
 @{
     ViewData["Title"] = "Customer List";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-4">
+    @if (TempData["CustomerSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["CustomerSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
     <h2>Customer List</h2>
 
     <div class="mb-3 text-end">

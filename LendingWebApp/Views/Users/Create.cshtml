@@ -1,0 +1,113 @@
+@using LoanApplicationService.Service.DTOs.UserModule
+@model UserDTO
+@{
+    ViewData["Title"] = "Create User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="form-card">
+        <div class="form-card-header">
+            <h2>Create User</h2>
+        </div>
+        
+        <div class="form-card-body">
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+            @if (TempData["UserSuccess"] != null)
+            {
+                <div class="alert alert-success">@TempData["UserSuccess"]</div>
+            }
+            <form id="userCreateForm" method="post" asp-action="Create">
+        @Html.AntiForgeryToken()
+        <div class="form-group mb-3">
+            <label for="RoleName" class="form-label">Select Role</label>
+            <select id="RoleName" name="RoleName" class="form-select" onchange="toggleUserRoleForm()">
+                @if (ViewBag.RoleList != null)
+                {
+                    foreach (var role in ViewBag.RoleList)
+                    {
+                        <option value="@role.Name">@role.Name</option>
+                    }
+                }
+            </select>
+        </div>
+        <div id="adminFields">
+            <div class="form-group mb-3">
+                <label for="Username" class="form-label">Username</label>
+                <input id="Username" name="Username" class="form-control" asp-for="Username" required />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label for="Email" class="form-label">Email</label>
+                <input id="Email" name="Email" class="form-control" type="email" asp-for="Email" required />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label for="Password" class="form-label">Password</label>
+                <input id="Password" name="Password" class="form-control" type="password" asp-for="Password" required />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+                <input id="ConfirmPassword" name="ConfirmPassword" class="form-control" type="password" required />
+                <span class="text-danger" id="confirmPasswordError"></span>
+            </div>
+            </div>
+            <div class="form-card-footer">
+                <button type="submit" class="btn btn-success">Save</button>
+                <a href="/Users" class="btn btn-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+
+<script>
+function toggleUserRoleForm() {
+    var roleSelect = document.getElementById('RoleName');
+    var selectedOption = roleSelect.options[roleSelect.selectedIndex];
+    var roleName = selectedOption.text;
+    
+    document.getElementById('adminFields').style.display = (roleName === 'Admin' || roleName === 'SuperAdmin') ? '' : 'none';
+    if (roleName === 'Customer') {
+        window.location.href = '/Customer/Create';
+    }
+}
+
+function validateForm() {
+    var password = document.getElementById('Password').value;
+    var confirmPassword = document.getElementById('ConfirmPassword').value;
+    var errorElement = document.getElementById('confirmPasswordError');
+    
+    if (password !== confirmPassword) {
+        errorElement.textContent = 'Passwords do not match';
+        return false;
+    } else {
+        errorElement.textContent = '';
+        return true;
+    }
+}
+
+// Set dropdown to Admin by default
+window.onload = function() {
+    // Find Admin role option and select it
+    var roleSelect = document.getElementById('RoleName');
+    for (var i = 0; i < roleSelect.options.length; i++) {
+        if (roleSelect.options[i].text === 'Admin') {
+            roleSelect.selectedIndex = i;
+            break;
+        }
+    }
+    toggleUserRoleForm();
+};
+
+// Add form validation
+document.getElementById('userCreateForm').addEventListener('submit', function(e) {
+    if (!validateForm()) {
+        e.preventDefault();
+    }
+});
+</script> 

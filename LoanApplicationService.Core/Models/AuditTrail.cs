@@ -43,7 +43,7 @@ public class AuditTrail
 
     // Navigation Properties
     [ForeignKey("UserId")]
-    public virtual Users? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
 
     [ForeignKey("CustomerId")]
     public required virtual Customer Customer { get; set; }

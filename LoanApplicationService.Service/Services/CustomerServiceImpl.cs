@@ -38,14 +38,32 @@ namespace LoanApplicationService.Service.Services
             return await _db.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> UpdateAsync(CustomerDto dto)
+        public async Task<CustomerDto?> UpdateAsync(int id, CustomerDto dto)
         {
-            var customer = await _db.Customers.FindAsync(dto.CustomerId);
-            if (customer == null) return false;
+            var customer = await _db.Customers.FindAsync(id);
+            if (customer == null) return null;
+
+            Console.WriteLine($"[UpdateAsync] Before update: {customer.FirstName}, {customer.LastName}, {customer.DateOfBirth}");
+            Console.WriteLine($"[UpdateAsync] DTO: {dto.FirstName}, {dto.LastName}, {dto.DateOfBirth}");
 
             _mapper.Map(dto, customer);
-            _db.Customers.Update(customer);
-            return await _db.SaveChangesAsync() > 0;
+            // Recalculate risk level if relevant fields changed
+            int age = 0;
+            if (customer.DateOfBirth.HasValue)
+            {
+                var today = DateTime.UtcNow;
+                age = today.Year - customer.DateOfBirth.Value.Year;
+                if (customer.DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+            }
+            decimal income = customer.AnnualIncome ?? 0;
+            if (age > 0 && customer.EmploymentStatus != null && customer.AnnualIncome.HasValue)
+                customer.RiskLevel = LoanApplicationService.CrossCutting.Utils.RiskScoringUtil.GetRiskLevel(age, customer.EmploymentStatus, income);
+            else
+                customer.RiskLevel = LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh;
+            _db.Entry(customer).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            await _db.SaveChangesAsync();
+            Console.WriteLine($"[UpdateAsync] After update: {customer.FirstName}, {customer.LastName}, {customer.DateOfBirth}");
+            return _mapper.Map<CustomerDto>(customer);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -60,24 +78,35 @@ namespace LoanApplicationService.Service.Services
 
         public async Task<bool> UserExistsAsync(string email)
         {
-            return await _db.Users.AnyAsync(u => u.Email == email && !u.IsDeleted);
+            return await _db.ApplicationUsers.AnyAsync(u => u.Email == email && u.IsActive);
+        }
+
+        public async Task<CustomerDto?> GetByEmailAsync(string email)
+        {
+            var customer = await _db.Customers.FirstOrDefaultAsync(c => c.Email == email && !c.IsDeleted);
+            return _mapper.Map<CustomerDto>(customer);
+        }
+
+        public async Task<bool> EmailOrNationalIdExistsAsync(string email, string? nationalId)
+        {
+            return await _db.Customers.AnyAsync(c => c.Email == email || (nationalId != null && c.NationalId == nationalId));
         }
 
         public async Task<bool> CreateUserAndCustomerAsync(CustomerDto dto)
         {
-            if (await UserExistsAsync(dto.Email))
+            if (await EmailOrNationalIdExistsAsync(dto.Email, dto.NationalId))
                 return false;
 
-            var user = new Users
+            var role = await _db.ApplicationRoles.FirstOrDefaultAsync(r => r.Name == "Customer");
+            if (role == null) return false;
+            var user = new ApplicationUser
             {
-                Id = Guid.NewGuid(),
                 Email = dto.Email,
-                Username = dto.FirstName + " " + dto.LastName,
-                Role = "Customer",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                IsDeleted = false
+                UserName = dto.FirstName + " " + dto.LastName,
+                IsActive = true,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
             };
-            _db.Users.Add(user);
+            _db.ApplicationUsers.Add(user);
             await _db.SaveChangesAsync();
 
             var customer = new Customer
@@ -91,7 +120,8 @@ namespace LoanApplicationService.Service.Services
                 NationalId = dto.NationalId,
                 EmploymentStatus = dto.EmploymentStatus,
                 AnnualIncome = dto.AnnualIncome,
-                UserId = user.Id
+                UserId = user.Id,
+                User = user
             };
             // Set RiskLevel
             int age = 0;
@@ -104,7 +134,7 @@ namespace LoanApplicationService.Service.Services
             bool isEmployed = !string.IsNullOrWhiteSpace(dto.EmploymentStatus) && dto.EmploymentStatus.ToLower() == "employed";
             decimal income = dto.AnnualIncome ?? 0;
             if (age > 0 && dto.EmploymentStatus != null && dto.AnnualIncome.HasValue)
-                customer.RiskLevel = LoanApplicationService.CrossCutting.Utils.RiskScoringUtil.GetRiskLevel(age, isEmployed, income);
+                customer.RiskLevel = LoanApplicationService.CrossCutting.Utils.RiskScoringUtil.GetRiskLevel(age, dto.EmploymentStatus, income);
             else
                 customer.RiskLevel = LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh;
             _db.Customers.Add(customer);

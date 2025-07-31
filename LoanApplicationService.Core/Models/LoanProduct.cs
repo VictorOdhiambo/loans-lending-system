@@ -48,7 +48,6 @@ namespace LoanApplicationService.Core.Models
 
         public required ICollection<LoanChargeMapper> LoanChargeMap { get; set; }
 
-
         public virtual ICollection<LoanApplication> LoanApplications { get; set; } = new List<LoanApplication>();
 
         [Required]

@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using LoanApplicationService.Service.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LendingApp.Controllers
 {
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public class NotificationTemplateController : Controller
     {
         private readonly INotificationTemplateService _service;

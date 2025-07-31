@@ -2,10 +2,40 @@
 @{
     ViewData["Title"] = "All Users";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var showInactive = Context.Request.Query["showInactive"] == "true";
+    
+    // Get current user information for permission checks
+    var currentUser = User.Identity.Name;
+    var isSuperAdmin = User.IsInRole("SuperAdmin");
+    var isAdmin = User.IsInRole("Admin");
 }
 
 <div class="container mt-4">
+    @if (TempData["UserSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["UserSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
+    @Html.AntiForgeryToken()
     <h2>All Users</h2>
+    <div class="mb-3 text-end">
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <a href="/Users/Create" class="btn btn-success">Create User</a>
+        }
+        @if (showInactive)
+        {
+            <a href="/Users" class="btn btn-primary ms-2">Show Active Users</a>
+        }
+        else
+        {
+            <a href="/Users?showInactive=true" class="btn btn-secondary ms-2">Show Inactive Users</a>
+        }
+    </div>
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -18,15 +48,115 @@
         <tbody>
             @foreach (var user in Model)
             {
+                var userRoles = ViewBag.UserRoles as Dictionary<Guid, string>;
+                string roleName = (userRoles != null && userRoles.ContainsKey(user.UserId)) ? userRoles[user.UserId] : "Unknown";
+                
+                // Determine if deactivate button should be shown
+                bool showDeactivateButton = true;
+                
+                // Admin cannot deactivate SuperAdmin or Admin users
+                if (isAdmin && (roleName == "SuperAdmin" || roleName == "Admin"))
+                {
+                    showDeactivateButton = false;
+                }
+                
+                // SuperAdmin cannot deactivate themselves
+                if (isSuperAdmin && user.Email == currentUser)
+                {
+                    showDeactivateButton = false;
+                }
+                
                 <tr>
                     <td>@user.Username</td>
                     <td>@user.Email</td>
-                    <td>@user.Role</td>
-                    <td>
-                        <a href="/Users/Details/@user.UserId" class="btn btn-sm btn-outline-info">Details</a>
+                    <td>@roleName</td>
+                    <td class="text-nowrap">
+                        <div class="d-flex gap-1 flex-wrap">
+                            @if (roleName == "Customer")
+                            {
+                                int? customerId = null;
+                                if (ViewBag.CustomerMap != null && ((Dictionary<Guid, int>)ViewBag.CustomerMap).ContainsKey(user.UserId))
+                                {
+                                    customerId = ((Dictionary<Guid, int>)ViewBag.CustomerMap)[user.UserId];
+                                }
+                                if (customerId != null)
+                                {
+                                    <a href="/Customer/Details/@customerId" class="btn btn-sm btn-outline-info">Details</a>
+                                    @if (User.IsInRole("SuperAdmin"))
+                                    {
+                                        <a href="/Customer/Edit/@customerId" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <a href="/Users/Details/@user.UserId" class="btn btn-sm btn-outline-info">Details</a>
+                                @if (User.IsInRole("SuperAdmin"))
+                                {
+                                    <a href="/Users/Edit/@user.UserId" class="btn btn-sm btn-outline-primary">Edit</a>
+                                }
+                            }
+                            @if (showDeactivateButton)
+                            {
+                            <button type="button" class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success") user-status-btn" 
+                                    data-userid="@user.UserId" data-role="@roleName" data-active="@user.IsActive">
+                                @(user.IsActive ? "Deactivate" : "Activate")
+                            </button>
+                            }
+                        </div>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-</div> 
+</div>
+@section Scripts {
+<script>
+document.querySelectorAll('.user-status-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        const userId = this.getAttribute('data-userid');
+        const role = this.getAttribute('data-role');
+        const isActive = this.getAttribute('data-active');
+        
+        const formData = new FormData();
+        formData.append('role', role);
+        formData.append('isActive', isActive === 'True' ? 'false' : 'true');
+        
+        // Get the anti-forgery token from the page
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '';
+        
+        if (!token) {
+            alert('Security token not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/Users/Edit/${userId}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': token
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to update user status.');
+                }
+            } else {
+                alert('Failed to update user status. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error updating user status:', error);
+            alert('An error occurred while updating user status. Please try again.');
+        }
+    });
+});
+</script>
+} 

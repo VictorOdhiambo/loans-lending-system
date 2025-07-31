@@ -12,7 +12,13 @@
         <dt class="col-sm-2">Email</dt>
         <dd class="col-sm-10">@Model.Email</dd>
         <dt class="col-sm-2">Role</dt>
-        <dd class="col-sm-10">@Model.Role</dd>
+        <dd class="col-sm-10">
+            @(ViewBag.UserRole ?? "Unknown")
+        </dd>
     </dl>
     <a href="/Users" class="btn btn-secondary">Back to All Users</a>
+    @if (User.IsInRole("SuperAdmin"))
+    {
+        <a href="/Users/Edit/@Model.UserId" class="btn btn-primary ms-2">Edit</a>
+    }
 </div> 

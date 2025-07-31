@@ -42,8 +42,8 @@ else
                     <td>@charge.Name</td>
                     <td>@charge.Description</td>
                     <td>@charge.Amount.ToString("C")</td>
-                    <td>@(charge.IsPenalty ? "Yes" : "No")</td>
-                    <td>@(charge.IsUpfront ? "Yes" : "No")</td>
+                    <td>@charge.IsPenalty</td>
+                    <td>@charge.IsUpfront</td>
                 </tr>
             }
         </tbody>

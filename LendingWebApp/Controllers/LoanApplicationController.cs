@@ -14,10 +14,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace LoanApplicationService.Web.Controllers
 {
+    [Authorize]
     public class LoanApplicationController : Controller
     {
         private readonly ILoanApplicationService _loanApplicationService;
@@ -49,14 +50,104 @@ namespace LoanApplicationService.Web.Controllers
             _loanRepaymentScheduleService = loanRepaymentScheduleService;
         }
 
-        
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpGet]
+        public async Task<IActionResult> Disburse(int id)
+        {
+            var application = await _loanApplicationService.GetByIdAsync(id);
+            if (application == null)
+            {
+                return View("NotFound");
+            }
+            return View(application);
+        }
+
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DisburseConfirmed(int id)
+        {
+            var result = await _loanApplicationService.DisburseAsync(id);
+            if (result)
+            {
+                // Send notification to customer using the 'Loan Disbursed' template
+                var application = await _loanApplicationService.GetByIdAsync(id);
+                if (application != null)
+                {
+                    var customer = await _customerService.GetByIdAsync(application.CustomerId);
+                    if (customer != null)
+                    {
+                        var data = new Dictionary<string, string>
+                        {
+                            ["FirstName"] = customer.FirstName,
+                            ["LastName"] = customer.LastName,
+                            ["FullName"] = customer.FirstName + " " + customer.LastName,
+                            ["Email"] = customer.Email,
+                            ["LoanProductId"] = application.ProductId.ToString(),
+                            ["LoanAmount"] = application.ApprovedAmount?.ToString("F2") ?? application.RequestedAmount.ToString("F2"),
+                            ["TermMonths"] = application.TermMonths.ToString(),
+                            ["Purpose"] = application.Purpose ?? string.Empty
+                        };
+                        await _notificationSenderService.SendNotificationAsync(
+                            "Loan Disbursed",
+                            "email",
+                            data
+                        );
+                    }
+                }
+                TempData["LoanApplicationSuccess"] = "Loan application disbursed successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Failed to disburse loan application.";
+            }
+            return RedirectToAction("Index");
+        }
 
         [HttpGet]
         [RoleAuthorize("Admin")]
         public async Task<IActionResult> Index(int? Status, int? customerId)
         {
+            // If customerId is provided, ensure the user is either an admin/superadmin or the customer themselves
+            if (customerId.HasValue)
+            {
+                if (!User.IsInRole("SuperAdmin") && !User.IsInRole("Admin"))
+                {
+                    // For customers, verify they can only see their own applications
+                    var customer = await _customerService.GetByIdAsync(customerId.Value);
+                    if (customer == null || customer.Email != User.Identity.Name)
+                    {
+                        return Forbid();
+                    }
+                }
+            }
+            else
+            {
+                // If no customerId provided, handle based on user role
+                if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+                {
+                    // Admins and SuperAdmins can see all applications when no customerId is provided
+                    customerId = null;
+                }
+                else if (User.IsInRole("Customer"))
+                {
+                    // For customers, automatically get their customer ID
+                    var currentCustomer = await _customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer != null)
+                    {
+                        customerId = currentCustomer.CustomerId;
+                    }
+                    else
+                    {
+                        return Forbid();
+                    }
+                }
+                else
+                {
+                    return Forbid();
+                }
+            }
 
-            
             var applications = await _loanApplicationService.GetAllAsync();
 
             if (Status.HasValue)
@@ -108,17 +199,30 @@ namespace LoanApplicationService.Web.Controllers
             await PopulateLoanProductsDropdown();
 
             string customerName = null;
+            int actualCustomerId = 0;
+            
+            // If customerId is provided, use it (for admin/super admin creating for specific customer)
             if (customerId.HasValue)
             {
-                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
-                if (customerService != null)
+                var customer = await _customerService.GetByIdAsync(customerId.Value);
+                if (customer != null)
                 {
-                    var customer = await customerService.GetByIdAsync(customerId.Value);
-                    if (customer != null)
-                    {
-                        customerName = customer.FirstName + " " + customer.LastName;
-                        ViewBag.CustomerName = customerName;
-                    }
+                    customerName = customer.FirstName + " " + customer.LastName;
+                    ViewBag.CustomerName = customerName;
+                    ViewBag.CustomerId = customer.CustomerId;
+                    actualCustomerId = customer.CustomerId;
+                }
+            }
+            // If no customerId but user is a customer, get their own information
+            else if (User.IsInRole("Customer"))
+            {
+                var customer = await _customerService.GetByEmailAsync(User.Identity.Name);
+                if (customer != null)
+                {
+                    customerName = customer.FirstName + " " + customer.LastName;
+                    ViewBag.CustomerName = customerName;
+                    ViewBag.CustomerId = customer.CustomerId;
+                    actualCustomerId = customer.CustomerId;
                 }
             }
 
@@ -173,8 +277,25 @@ namespace LoanApplicationService.Web.Controllers
             var userIdStr =  HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userIdStr))
             {
-                TempData["Error"] = "User session expired. Please log in again.";
-                return RedirectToAction("Login", "Home");
+                // Re-populate ViewBag.LoanProducts for the view
+                var LoanProducts = await _loanProductService.GetAllProducts();
+                var loanProductSelectList = LoanProducts.Select(lp => new SelectListItem
+                {
+                    Value = lp.ProductId.ToString(),
+                    Text = $"{lp.ProductName} - {lp.InterestRate}%|{lp.MinTermMonths}|{lp.MaxTermMonths}|{lp.MinAmount}|{lp.MaxAmount}|{lp.InterestRate}",
+                    Selected = lp.ProductId == loanApplicationDto.ProductId
+                }).ToList();
+                ViewBag.LoanProducts = loanProductSelectList;
+                if (loanApplicationDto.CustomerId != 0)
+                {
+                    var customer = await _customerService.GetByIdAsync(loanApplicationDto.CustomerId);
+                    if (customer != null)
+                    {
+                        ViewBag.CustomerName = customer.FirstName + " " + customer.LastName;
+                        ViewBag.CustomerId = customer.CustomerId;
+                    }
+                }
+                return View(loanApplicationDto);
             }
             loanApplicationDto.CreatedBy = Guid.Parse(userIdStr);
             
@@ -194,14 +315,18 @@ namespace LoanApplicationService.Web.Controllers
                     };
                     await _notificationSenderService.SendNotificationByTemplateId(2, data);
                 }
-                TempData["Success"] = "Loan application created successfully!";
+                TempData["LoanApplicationSuccess"] = "Loan application created successfully!";
+                if (loanApplicationDto.CustomerId != 0)
+                {
+                    return RedirectToAction("Index", new { customerId = loanApplicationDto.CustomerId });
+                }
                 return RedirectToAction("Index");
             }
             TempData["Error"] = "Unexpected error occurred while saving.";
             return View(loanApplicationDto);
         }
 
-
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         [RoleAuthorize("Admin")]
 
@@ -217,8 +342,7 @@ namespace LoanApplicationService.Web.Controllers
             return View(application);
             
         }
-
-
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
         [RoleAuthorize("Admin")]
         [ValidateModel]
@@ -277,13 +401,14 @@ namespace LoanApplicationService.Web.Controllers
                         data
                     );
                 }
-                TempData["Success"] = "Loan application approved successfully!";
+                TempData["LoanApplicationSuccess"] = "Loan application approved successfully!";
                 return RedirectToAction("Index");
             
            
         }
 
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         [RoleAuthorize("Admin")]
 
@@ -299,6 +424,7 @@ namespace LoanApplicationService.Web.Controllers
             return View(application);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
         [RoleAuthorize("Admin")]
         [ValidateModel]
@@ -345,7 +471,7 @@ namespace LoanApplicationService.Web.Controllers
                             );
                         }
                     }
-                    TempData["Success"] = "Loan application rejected successfully!";
+                    TempData["LoanApplicationSuccess"] = "Loan application rejected successfully!";
                     return RedirectToAction("Index");
                 }
                 TempData["Error"] = "Unexpected error occurred while rejecting the application.";
@@ -355,15 +481,27 @@ namespace LoanApplicationService.Web.Controllers
 
         //customer views
         // GET: LoanApplication/CustomerView
+        [Authorize]
         [HttpGet("/LoanApplication/CustomerView/{customerId}")]
         public async Task<IActionResult> CustomerView(int customerId)
         {
+            // Ensure the user is either an admin/superadmin or the customer themselves
+            if (!User.IsInRole("SuperAdmin") && !User.IsInRole("Admin"))
+            {
+                // For customers, verify they can only see their own applications
+                var customer = await _customerService.GetByIdAsync(customerId);
+                if (customer == null || customer.Email != User.Identity.Name)
+                {
+                    return Forbid();
+                }
+            }
+            
             var applications = await _loanApplicationService.GetByCustomerIdAsync(customerId);
             return View(applications);
         }
 
         // POST: LoanApplication/CustomerReject
-
+        [Authorize]
         [HttpPost]
         [ValidateModel]
         public async Task<IActionResult> CustomerReject(int applicationId, string reason)
@@ -371,20 +509,33 @@ namespace LoanApplicationService.Web.Controllers
             if (string.IsNullOrWhiteSpace(reason))
             {
                 TempData["Error"] = "Reason for rejection is required.";
-                return RedirectToAction("CustomerView", new { customerId = applicationId });
+                // Get the customer ID from the application
+                var application = await _loanApplicationService.GetByIdAsync(applicationId);
+                if (application != null)
+                {
+                    return RedirectToAction("CustomerView", new { customerId = application.CustomerId });
+                }
+                return RedirectToAction("Index");
             }
             var result = await _loanApplicationService.CustomerReject(applicationId, reason);
             if (result)
             {
-                TempData["Success"] = "Loan application rejected successfully!";
+                TempData["LoanApplicationSuccess"] = "Loan application rejected successfully!";
             }
             else
             {
                 TempData["Error"] = "Unexpected error occurred while rejecting the application.";
             }
-            return RedirectToAction("CustomerView", new { customerId = applicationId });
+            // Get the customer ID from the application
+            var app = await _loanApplicationService.GetByIdAsync(applicationId);
+            if (app != null)
+            {
+                return RedirectToAction("CustomerView", new { customerId = app.CustomerId });
+            }
+            return RedirectToAction("Index");
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> CustomerReject(int id)
         {

@@ -18,13 +18,13 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <h2 class="text-center mb-3">Loans Lending System</h2>
-            <div class="card shadow">
-                <div class="card-header text-center">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <h2>Loans Lending System</h2>
                     <p class="mb-0">Sign In Here</p>
                 </div>
 
-                <div class="card-body">
+                <div class="form-card-body">
                     <form method="post">
                         @Html.AntiForgeryToken()
                         <div class="form-group mb-3">
@@ -35,17 +35,22 @@
 
                         <div class="form-group mb-3">
                             <label for="Password" class="form-label">Password</label>
-                            <input id="Password" name="Password" class="form-control" type="password" placeholder="Enter password" />
+                            <div class="input-group">
+                               <input id="Password" name="Password" class="form-control" type="password" placeholder="Enter password" />
+                               <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('Password', this)">Show</button>
+                            </div>
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
 
-                        <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary">Login</button>
-                        </div>
+                        <div class="form-card-footer">
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="/Account/Register" class="btn btn-outline-secondary btn-sm">Create Account</a>
-                            <a href="/Account/ForgotPassword" class="btn btn-link btn-sm">Forgot Password?</a>
+                            <div class="d-flex justify-content-between">
+                                <a href="/Customer/Register" class="btn btn-outline-secondary btn-sm">Create Account</a>
+                                <a href="/Account/ForgotPassword" class="btn btn-link btn-sm">Forgot Password?</a>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -56,4 +61,16 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+    function togglePasswordVisibility(inputId, btn) {
+        var input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            btn.textContent = "Hide";
+        } else {
+            input.type = "password";
+            btn.textContent = "Show";
+        }
+    }
+    </script>
 }

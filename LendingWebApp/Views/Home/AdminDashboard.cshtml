@@ -1,19 +1,10 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
 <div class="container py-4">
-    <h1 class="mb-4">
-        @if (User.IsInRole("SuperAdmin"))
-        {
-            <span>Super Admin Dashboard</span>
-        }
-        else
-        {
-            <span>Admin Dashboard</span>
-        }
-    </h1>
+    <h1 class="mb-4">Admin Dashboard</h1>
     @if (TempData["WelcomeMessage"] != null)
     {
         <div id="welcomeMsg" class="alert alert-success alert-dismissible fade show">
@@ -36,13 +27,7 @@
     }
     else
     {
-        <div id="welcomeMsg" class="alert alert-info">Welcome!</div>
-        <script>
-            setTimeout(function() {
-                var msg = document.getElementById('welcomeMsg');
-                if (msg) msg.style.display = 'none';
-            }, 10000);
-        </script>
+        <div class="alert alert-info">Welcome!</div>
     }
     <div class="row g-4 mb-4">
         <div class="col-md-4 col-lg-2">
@@ -132,4 +117,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> 

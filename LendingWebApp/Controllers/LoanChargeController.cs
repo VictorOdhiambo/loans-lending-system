@@ -3,9 +3,11 @@ using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LoanApplicationService.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public class LoanChargeController(ILoanChargeService loanChargeService, ILoanProductService loanProductService) : Controller
     {
         private readonly ILoanChargeService _loanChargeService = loanChargeService;
@@ -23,7 +25,7 @@ namespace LoanApplicationService.Web.Controllers
         [HttpGet]
         public async Task<ActionResult> Create()
         {
-            return View(new LoanChargeDto());
+            return View(new LoanChargeDto { Name = "", Description = "" });
         }
 
         [HttpPost]
@@ -103,7 +105,7 @@ namespace LoanApplicationService.Web.Controllers
             var LoanCharges = await _loanChargeService.GetAllCharges();
             ViewBag.LoanCharges = LoanCharges.Select(lc => new SelectListItem
             {
-                Value = lc.Id.ToString(),
+                Value = lc.LoanChargeId.ToString(),
                 Text = $"{lc.Name} - {lc.Amount} {lc.Description}"
             }).ToList();
             return View();
@@ -122,7 +124,7 @@ namespace LoanApplicationService.Web.Controllers
             var LoanCharges = await _loanChargeService.GetAllCharges();
             ViewBag.LoanCharges = LoanCharges.Select(lc => new SelectListItem
             {
-                Value = lc.Id.ToString(),
+                Value = lc.LoanChargeId.ToString(),
                 Text = $"{lc.Name} - {lc.Amount} {lc.Description}"
             }).ToList();
 
