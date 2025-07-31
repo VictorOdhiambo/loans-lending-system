@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using LoanApplicationService.Service.DTOs.LoanDisbursement;
 using LoanApplicationService.Service.DTOs.LoanPayment;
+using LoanApplicationService.CrossCutting.Utils;
 
 namespace LoanApplicationService.Service.Services
 {
@@ -54,7 +55,9 @@ namespace LoanApplicationService.Service.Services
         {
             var account = await _context.Accounts.FindAsync(accountId);
             if (account == null) return false;
-            _context.Accounts.Remove(account);
+            account.Status = (int)AccountStatus.Closed;
+            account.UpdatedAt = DateTime.UtcNow;
+            _context.Accounts.Update(account);
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -66,15 +69,19 @@ namespace LoanApplicationService.Service.Services
             return _mapper.Map<IEnumerable<AccountDto>>(accounts);
         }
 
-        public async Task<IEnumerable<AccountDto>> GetAccountsByApplicationIdAsync(int applicationId)
+        public async Task<AccountDto> GetAccountByApplicationIdAsync(int applicationId)
         {
-            var accounts = await _context.Accounts
+            var account = await _context.Accounts
                 .Where(a => a.ApplicationId == applicationId)
-                .ToListAsync();
-            return _mapper.Map<IEnumerable<AccountDto>>(accounts);
+                .FirstOrDefaultAsync();
+
+            if (account == null)
+                return null;
+
+            return _mapper.Map<AccountDto>(account);
         }
 
-        public async Task<IEnumerable<AccountDto>> GetAccountsByStatusAsync(string status)
+        public async Task<IEnumerable<AccountDto>> GetAccountsByStatusAsync(int status)
         {
             var accounts = await _context.Accounts
                 .Where(a => a.Status == status)
@@ -90,47 +97,18 @@ namespace LoanApplicationService.Service.Services
             return _mapper.Map<IEnumerable<AccountDto>>(accounts);
         }  
 
-        public async Task<bool> ApplyPaymentAsync(int accountId, decimal amount)
-        {
-            var account = await _context.Accounts.FindAsync(accountId);
-            if (account == null) return false;
-            account.OutstandingBalance -= amount;
-            account.UpdatedAt = DateTime.UtcNow;
-            _context.Accounts.Update(account);
-            return await _context.SaveChangesAsync() > 0;
-        }
-
-
-
         
-        public async Task<bool> WithdrawAsync(int accountId, LoanWithdawalDto dto)
+
+        public async Task<bool> GetAccountByApplicationId(int applicationId)
         {
-            var Account = await _context.Accounts.FindAsync(accountId);
-            if (Account == null || Account.Status != "Active")
-                return false; 
-
-            if (dto.Amount <= 0 || dto.Amount > Account.AvailableBalance)
-                return false; 
-
-            Account.AvailableBalance -= dto.Amount;
-            Account.UpdatedAt = DateTime.UtcNow;
-
-            var withdrawal = new LoanWithdrawal
-            {
-                AccountId = accountId,
-                Amount = dto.Amount,
-                 PaymentMethodId= dto.PaymentMethod,
-                WithdrawalDate = DateTime.UtcNow
-            };
-            
-
-            _context.Accounts.Update(Account);
-            await _context.LoanWithdrawal.AddAsync(withdrawal);
-            return await _context.SaveChangesAsync() > 0;
+            var account = await _context.Accounts
+                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+            return account != null;
         }
 
-       
-       
+
+
+
     }
 
 }

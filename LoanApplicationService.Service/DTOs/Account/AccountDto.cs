@@ -35,7 +35,9 @@ namespace LoanApplicationService.Service.DTOs.Account
 
     public DateTime NextPaymentDate { get; set; }
 
-    public string Status { get; set; } = "Active";
+    public int PaymentFrequency { get; set; }
+
+        public int Status { get; set; } 
 
     public DateTime? DisbursementDate { get; set; }
 

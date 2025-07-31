@@ -29,139 +29,26 @@ namespace LoanApplicationService.Web.Controllers
             return View(account);
         }
 
+        [ValidateModel]
+        [HttpPost]
         public async Task<IActionResult> CreateAccount(AccountDto accountDto)
         {
-            if (ModelState.IsValid)
-            {
-                var result = await _accountService.CreateAccountAsync(accountDto);
-                if (result)
-                {
-                    return RedirectToAction("Index");
-                }
-                ModelState.AddModelError("", "Failed to create account.");
-            }
-            return View(accountDto);
-        }
 
-        [HttpPost]
-        [RoleAuthorize("Customer")]
-
-        public async Task<IActionResult> Withdraw(LoanWithdawalDto dto)
-        {
-            var LoanAccount = await _accountService.GetAccountByIdAsync(dto.AccountId);
-            if (dto.Amount > LoanAccount.AvailableBalance)
-            {
-                ModelState.AddModelError("Amount", $"Payment amount exceeds available balance. The available balance is {LoanAccount.AvailableBalance}");
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
-               .Cast<PaymentMethods>()
-               .Select(e => new SelectListItem
-               {
-                   Value = ((int)e).ToString(),
-                   Text = EnumHelper.GetDescription(e)
-               }).ToList();
-                return View(dto);
-            }
-            var result = await _accountService.WithdrawAsync(dto.AccountId, dto);
-
+            var result = await _accountService.CreateAccountAsync(accountDto);
             if (result)
             {
                 return RedirectToAction("Index");
             }
+            ModelState.AddModelError("", "Failed to create account.");
 
-            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
-                .Cast<PaymentMethods>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = EnumHelper.GetDescription(e)
-                }).ToList();
-
-            ModelState.AddModelError("", "Failed to withdraw amount.");
-            return View(dto);
+            return View(accountDto);
         }
 
 
-        [HttpGet]
-        [RoleAuthorize("Customer")]
-
-        public async Task<IActionResult> Withdraw(int Id)
-        {
-            var account = await _accountService.GetAccountByIdAsync(Id);
-
-            if (account == null)
-            {
-                return View("NotFound");
-            }
-
-            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
-                .Cast<PaymentMethods>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = EnumHelper.GetDescription(e)
-                }).ToList();
-
-            var model = new LoanWithdawalDto
-            {
-                AccountId = account.AccountId
-            };
-
-            return View(model);
-        }
+        
 
 
-
-        [HttpPost]
-        [RoleAuthorize("Customer")]
-
-        public async Task<IActionResult> ApplyPayment(int accountId, decimal amount)
-        {
-            var LoanAccount = await _accountService.GetAccountByIdAsync(accountId);
-
-            if (ModelState.IsValid)
-            {
-
-                var result = await _accountService.ApplyPaymentAsync(accountId, amount);
-                if (result)
-                {
-                    return RedirectToAction("Index");
-                }
-                ModelState.AddModelError("", "Failed to apply payment.");
-            }
-
-            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
-                .Cast<PaymentMethods>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = EnumHelper.GetDescription(e)
-                }).ToList();
-            return View();
-        }
-
-        [HttpGet]
-
-        public async Task<IActionResult> MakePayment(int accountId, decimal amount)
-        {
-            if (ModelState.IsValid)
-            {
-                var result = await _accountService.ApplyPaymentAsync(accountId, amount);
-                if (result)
-                {
-                    return RedirectToAction("Index");
-                }
-                ModelState.AddModelError("", "Failed to make payment");
-            }
-            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
-                .Cast<PaymentMethods>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = EnumHelper.GetDescription(e)
-                }).ToList();
-
-            return View();
-        }
+        
     }
 }
 

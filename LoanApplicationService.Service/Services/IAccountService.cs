@@ -20,13 +20,11 @@ namespace LoanApplicationService.Service.Services
         Task<bool> DeleteAccountAsync(int accountId);
 
         Task<IEnumerable<AccountDto>> GetAccountsByCustomerIdAsync(int customerId);
-        Task<IEnumerable<AccountDto>> GetAccountsByApplicationIdAsync(int applicationId);
-        Task<IEnumerable<AccountDto>> GetAccountsByStatusAsync(string status);
+        Task<AccountDto> GetAccountByApplicationIdAsync(int applicationId);
 
         Task<IEnumerable<AccountDto>> GetAccountsByAccountTypeAsync(string accountType);
-        Task<bool> ApplyPaymentAsync(int accountId, decimal amount);
 
-        Task<bool> WithdrawAsync(int accountId, LoanWithdawalDto dto);
+
 
     }
 }
