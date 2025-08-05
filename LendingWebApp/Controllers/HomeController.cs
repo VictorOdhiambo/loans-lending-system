@@ -110,7 +110,7 @@ namespace LoanApplicationService.Web.Controllers
             // Calculate loan disbursed (sum of approved amounts for disbursed loans)
             var totalLoanDisbursed = applicationsList
                 .Where(a => a.Status == LoanStatus.Disbursed)
-                .Sum(a => a.ApprovedAmount ?? 0);
+                .Sum(a => a.ApprovedAmount);
             
             // Count pending applications
             var pendingApplications = applicationsList.Count(a => a.Status == LoanStatus.Pending);
@@ -122,10 +122,10 @@ namespace LoanApplicationService.Web.Controllers
             var rejectedApplications = applicationsList.Count(a => a.Status == LoanStatus.Rejected);
             
             // Count overdue loans (this would need more complex logic based on payment schedules)
-            var overdueLoans = 0; // TODO: Implement based on payment schedules and due dates
+            var overdueLoans = 0; 
             
             // Calculate repayment rate (this would need more complex logic)
-            var loanRepaymentRate = 0; // TODO: Implement based on actual repayment data
+            var loanRepaymentRate = 0; 
             
             // Get new notifications count (unread notifications from last 7 days)
             var newMessages = 0;
@@ -165,7 +165,7 @@ namespace LoanApplicationService.Web.Controllers
             // Calculate loan disbursed (sum of approved amounts for disbursed loans)
             var totalLoanDisbursed = applicationsList
                 .Where(a => a.Status == LoanStatus.Disbursed)
-                .Sum(a => a.ApprovedAmount ?? 0);
+                .Sum(a => a.ApprovedAmount);
             
             // Count pending applications
             var pendingApplications = applicationsList.Count(a => a.Status == LoanStatus.Pending);
@@ -176,13 +176,13 @@ namespace LoanApplicationService.Web.Controllers
             // Count rejected applications
             var rejectedApplications = applicationsList.Count(a => a.Status == LoanStatus.Rejected);
             
-            // Count overdue loans (this would need more complex logic based on payment schedules)
-            var overdueLoans = 0; // TODO: Implement based on payment schedules and due dates
+            // Count overdue loans 
+            var overdueLoans = 0; 
             
-            // Calculate repayment rate (this would need more complex logic)
-            var loanRepaymentRate = 0; // TODO: Implement based on actual repayment data
+            // Calculate repayment rate 
+            var loanRepaymentRate = 0; 
             
-            // Get new notifications count (unread notifications from last 7 days)
+            // Get new notifications count 
             var newMessages = 0;
             try
             {
@@ -210,24 +210,24 @@ namespace LoanApplicationService.Web.Controllers
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> CustomerDashboard()
         {
-            // Get current customer
             var customer = await _customerService.GetByEmailAsync(User.Identity.Name);
             if (customer == null)
             {
                 return NotFound();
             }
 
-            // Get customer's loan applications
             var loanApplications = await _loanApplicationService.GetByCustomerIdAsync(customer.CustomerId);
             var applicationsList = loanApplications.ToList();
 
             // Calculate statistics
             var totalApplications = applicationsList.Count;
             var activeLoans = applicationsList.Count(a => a.Status == LoanStatus.Approved || a.Status == LoanStatus.Disbursed);
-            var totalBorrowed = applicationsList.Where(a => a.Status == LoanStatus.Approved || a.Status == LoanStatus.Disbursed).Sum(a => a.ApprovedAmount ?? 0);
-            var availableCredit = 10000; // This could be calculated based on customer's credit limit
+            var totalBorrowed = applicationsList
+                .Where(a => a.Status == LoanStatus.Approved || a.Status == LoanStatus.Disbursed)
+                .Sum(a => a.ApprovedAmount);
+            var availableCredit = 10000; 
 
-            // Get recent applications (last 5)
+            // Get recent applications 
             var recentApplications = applicationsList
                 .OrderByDescending(a => a.ApplicationDate)
                 .Take(5)
@@ -240,7 +240,8 @@ namespace LoanApplicationService.Web.Controllers
             ViewBag.AvailableCredit = availableCredit;
             ViewBag.RecentApplications = recentApplications;
 
-            return View();
+            // Use the CustomerDashboard view
+            return View("~/Views/Customer/CustomerDashboard.cshtml");
         }
 
         [Authorize]

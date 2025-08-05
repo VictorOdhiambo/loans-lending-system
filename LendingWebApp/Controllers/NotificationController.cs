@@ -1,15 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LoanApplicationService.Service.Services;
+using Microsoft.Extensions.Logging;
+using LoanApplicationService.Web.Services;
 
-namespace LoanManagementApp.Controllers
+namespace LoanApplicationService.Web.Controllers
 {
     public class NotificationController : Controller
     {
         private readonly INotificationSenderService _notificationService;
-        public NotificationController(INotificationSenderService notificationService)
+        private readonly EmailService _emailService;
+        private readonly ILogger<NotificationController> _logger;
+
+        public NotificationController(INotificationSenderService notificationService, EmailService emailService, ILogger<NotificationController> logger)
         {
             _notificationService = notificationService;
+            _emailService = emailService;
+            _logger = logger;
         } 
 
         // GET: Notification
@@ -58,6 +65,29 @@ namespace LoanManagementApp.Controllers
             if (result.StartsWith("Failed") || result.Contains("not found"))
                 return BadRequest(new { message = result });
             return Ok(new { message = result });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TestEmail()
+        {
+            try
+            {
+                var testEmail = "kisueric4@gmail.com";
+                var subject = "Test Email from PesaSure";
+                var htmlContent = "<h1>This is a test email from PesaSure</h1><p>Email functionality is working!</p>";
+
+                await _emailService.SendEmailAsync(testEmail, subject, htmlContent);
+                
+                return Ok("Test email sent successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send test email");
+                return StatusCode(500, new { 
+                    message = "Failed to send test email",
+                    error = ex.Message
+                });
+            }
         }
 
         public class SendNotificationRequest

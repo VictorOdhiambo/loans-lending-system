@@ -1,4 +1,5 @@
 @model LoanApplicationService.Service.DTOs.UserModule.UserDTO
+@using LoanApplicationService.Core.Models
 @{
     ViewData["Title"] = "Edit User";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -19,7 +20,7 @@
         <div class="mb-3">
             <label class="form-label">Role</label>
             <select class="form-select" name="role">
-                @foreach (var role in ViewBag.RoleList as List<dynamic>)
+                @foreach (var role in ViewBag.RoleList as List<ApplicationRole>)
                 {
                     <option value="@role.Name" @(role.Name == ViewBag.CurrentUserRole ? "selected" : "")>@role.Name</option>
                 }

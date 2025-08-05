@@ -7,7 +7,7 @@ using LoanApplicationService.Service.DTOs.LoanApplicationModule;
 using LoanApplicationService.Service.DTOs.LoanModule;
 using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using System;
 using System.Collections.Generic;
@@ -84,7 +84,7 @@ namespace LoanApplicationService.Web.Controllers
                             ["FullName"] = customer.FirstName + " " + customer.LastName,
                             ["Email"] = customer.Email,
                             ["LoanProductId"] = application.ProductId.ToString(),
-                            ["LoanAmount"] = application.ApprovedAmount?.ToString("F2") ?? application.RequestedAmount.ToString("F2"),
+                            ["LoanAmount"] = (application.ApprovedAmount > 0 ? application.ApprovedAmount : application.RequestedAmount).ToString("F2"),
                             ["TermMonths"] = application.TermMonths.ToString(),
                             ["Purpose"] = application.Purpose ?? string.Empty
                         };
@@ -105,7 +105,6 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
-        [RoleAuthorize("Admin")]
         public async Task<IActionResult> Index(int? Status, int? customerId)
         {
             // If customerId is provided, ensure the user is either an admin/superadmin or the customer themselves
@@ -193,14 +192,13 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
-        [RoleAuthorize("Admin","Customer")]
         public async Task<IActionResult> Create(int? customerId, int? productId)
         {
             await PopulateLoanProductsDropdown();
 
             string customerName = null;
             int actualCustomerId = 0;
-            
+
             // If customerId is provided, use it (for admin/super admin creating for specific customer)
             if (customerId.HasValue)
             {
@@ -238,25 +236,24 @@ namespace LoanApplicationService.Web.Controllers
 
         [HttpPost]
         [ValidateModel]
-        [RoleAuthorize("Admin", "Customer")]
         public async Task<IActionResult> Create(LoanApplicationDto loanApplicationDto)
         {
             var applicantCustomer = await _customerService.GetByIdAsync(loanApplicationDto.CustomerId);
-            if(applicantCustomer == null)
+            if (applicantCustomer == null)
             {
                 ModelState.AddModelError("CustomerId", "Invalid customer selected.");
                 await PopulateLoanProductsDropdown();
 
                 return View(loanApplicationDto);
             }
-            
+
             // Fetch the selected loan product
             var product = await _loanProductService.GetLoanProductById(loanApplicationDto.ProductId);
             if (product == null)
             {
                 ModelState.AddModelError("ProductId", "Invalid loan product selected.");
                 await PopulateLoanProductsDropdown();
-                
+
                 return View(loanApplicationDto);
             }
             else
@@ -271,34 +268,17 @@ namespace LoanApplicationService.Web.Controllers
                 }
             }
 
-           
+
 
             //get user or customer Id
-            var userIdStr =  HttpContext.Session.GetString("UserId");
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr))
             {
-                // Re-populate ViewBag.LoanProducts for the view
-                var LoanProducts = await _loanProductService.GetAllProducts();
-                var loanProductSelectList = LoanProducts.Select(lp => new SelectListItem
-                {
-                    Value = lp.ProductId.ToString(),
-                    Text = $"{lp.ProductName} - {lp.InterestRate}%|{lp.MinTermMonths}|{lp.MaxTermMonths}|{lp.MinAmount}|{lp.MaxAmount}|{lp.InterestRate}",
-                    Selected = lp.ProductId == loanApplicationDto.ProductId
-                }).ToList();
-                ViewBag.LoanProducts = loanProductSelectList;
-                if (loanApplicationDto.CustomerId != 0)
-                {
-                    var customer = await _customerService.GetByIdAsync(loanApplicationDto.CustomerId);
-                    if (customer != null)
-                    {
-                        ViewBag.CustomerName = customer.FirstName + " " + customer.LastName;
-                        ViewBag.CustomerId = customer.CustomerId;
-                    }
-                }
-                return View(loanApplicationDto);
+                TempData["Error"] = "User session expired. Please log in again.";
+                return RedirectToAction("", "Home");
             }
-            loanApplicationDto.CreatedBy = Guid.Parse(userIdStr);
-            
+loanApplicationDto.CreatedBy = Guid.Parse(userIdStr ?? string.Empty);
+
             var result = await _loanApplicationService.CreateAsync(loanApplicationDto);
             if (result)
             {
@@ -328,11 +308,10 @@ namespace LoanApplicationService.Web.Controllers
 
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
-        [RoleAuthorize("Admin")]
 
         public async Task<IActionResult> Approve(int id)
         {
-            
+
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
@@ -340,15 +319,14 @@ namespace LoanApplicationService.Web.Controllers
             }
             await PopulateLoanProductsDropdown();
             return View(application);
-            
+
         }
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
-        [RoleAuthorize("Admin")]
         [ValidateModel]
         public async Task<IActionResult> Approve(LoanApplicationDto loanApplicationDto)
         {
-            var userIdStr = HttpContext.Session.GetString("UserId");
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr))
             {
                 TempData["Error"] = "User session expired. Please log in again.";
@@ -361,7 +339,7 @@ namespace LoanApplicationService.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            var ApprovedBy = Guid.Parse((HttpContext.Session.GetString("UserId")));
+            var ApprovedBy = Guid.Parse(userIdStr);
             if (LoanApplication.CreatedBy == ApprovedBy)
             {
                 ModelState.AddModelError(nameof(loanApplicationDto.ApprovedBy), "You cannot approve your own application.");
@@ -369,7 +347,7 @@ namespace LoanApplicationService.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            if (loanApplicationDto.ApprovedAmount == null)
+            if (loanApplicationDto.ApprovedAmount <= 0)
             {
                 ModelState.AddModelError(nameof(loanApplicationDto.ApprovedAmount), "Approved Amount is required.");
                 await PopulateLoanProductsDropdown();
@@ -377,40 +355,39 @@ namespace LoanApplicationService.Web.Controllers
                 return View(loanApplicationDto);
             }
 
-            
-            
-                await _loanApplicationService.ApproveAsync(loanApplicationDto.ApplicationId, loanApplicationDto.ApprovedAmount, ApprovedBy);
-                // Send notification to customer using the custom template
-                var customer = await _customerService.GetByIdAsync(loanApplicationDto.CustomerId);
-                if (customer != null)
+
+
+            await _loanApplicationService.ApproveAsync(loanApplicationDto.ApplicationId, loanApplicationDto.ApprovedAmount, ApprovedBy);
+            // Send notification to customer using the custom template
+            var customer = await _customerService.GetByIdAsync(loanApplicationDto.CustomerId);
+            if (customer != null)
+            {
+                var data = new Dictionary<string, string>
                 {
-                    var data = new Dictionary<string, string>
-                    {
-                        ["FirstName"] = customer.FirstName,
-                        ["LastName"] = customer.LastName,
-                        ["FullName"] = customer.FirstName + " " + customer.LastName,
-                        ["Email"] = customer.Email,
-                        ["LoanProductId"] = loanApplicationDto.ProductId.ToString(),
-                        ["LoanAmount"] = loanApplicationDto.ApprovedAmount.ToString("F2") ?? loanApplicationDto.RequestedAmount.ToString("F2"),
-                        ["TermMonths"] = loanApplicationDto.TermMonths.ToString(),
-                        ["Purpose"] = loanApplicationDto.Purpose ?? string.Empty
-                    };
-                    await _notificationSenderService.SendNotificationAsync(
-                        "Loan Approved",
-                        "email",
-                        data
-                    );
-                }
-                TempData["LoanApplicationSuccess"] = "Loan application approved successfully!";
-                return RedirectToAction("Index");
-            
-           
+                    ["FirstName"] = customer.FirstName,
+                    ["LastName"] = customer.LastName,
+                    ["FullName"] = customer.FirstName + " " + customer.LastName,
+                    ["Email"] = customer.Email,
+                    ["LoanProductId"] = loanApplicationDto.ProductId.ToString(),
+                    ["LoanAmount"] = (loanApplicationDto.ApprovedAmount > 0 ? loanApplicationDto.ApprovedAmount : loanApplicationDto.RequestedAmount).ToString("F2"),
+                    ["TermMonths"] = loanApplicationDto.TermMonths.ToString(),
+                    ["Purpose"] = loanApplicationDto.Purpose ?? string.Empty
+                };
+                await _notificationSenderService.SendNotificationAsync(
+                    "Loan Approved",
+                    "email",
+                    data
+                );
+            }
+            TempData["LoanApplicationSuccess"] = "Loan application approved successfully!";
+            return RedirectToAction("Index");
+
+
         }
 
 
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
-        [RoleAuthorize("Admin")]
 
         public async Task<IActionResult> Reject(int id)
         {
@@ -426,55 +403,54 @@ namespace LoanApplicationService.Web.Controllers
 
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
-        [RoleAuthorize("Admin")]
         [ValidateModel]
 
 
         public async Task<ActionResult> RejectAsync(int applicationId)
         {
-           
-                var userIdStr =Guid.Parse (HttpContext.Session.GetString("UserId"));
-                var loanApplication = await _loanApplicationService.GetByIdAsync(applicationId);
-                if (loanApplication.CreatedBy == userIdStr)
-                
-                {
-                    TempData["Error"] = "You cannot reject your own application.";
-                    return RedirectToAction("GetById", new { id = applicationId });
-                }
 
-                loanApplication.RejectedBy = userIdStr;
-                var result = await _loanApplicationService.RejectAsync(applicationId);
-                if (result )
+            var userIdStr = Guid.Parse(HttpContext.Session.GetString("UserId") ?? string.Empty);
+            var loanApplication = await _loanApplicationService.GetByIdAsync(applicationId);
+            if (loanApplication.CreatedBy == userIdStr)
+
+            {
+                TempData["Error"] = "You cannot reject your own application.";
+                return RedirectToAction("GetById", new { id = applicationId });
+            }
+
+            loanApplication.RejectedBy = userIdStr;
+            var result = await _loanApplicationService.RejectAsync(applicationId);
+            if (result)
+            {
+                // Send notification to customer using the 'Loan Rejected' template
+                var application = await _loanApplicationService.GetByIdAsync(applicationId);
+                if (application != null)
                 {
-                    // Send notification to customer using the 'Loan Rejected' template
-                    var application = await _loanApplicationService.GetByIdAsync(applicationId);
-                    if (application != null)
+                    var customer = await _customerService.GetByIdAsync(application.CustomerId);
+                    if (customer != null)
                     {
-                        var customer = await _customerService.GetByIdAsync(application.CustomerId);
-                        if (customer != null)
+                        var data = new Dictionary<string, string>
                         {
-                            var data = new Dictionary<string, string>
-                            {
-                                ["FirstName"] = customer.FirstName,
-                                ["LastName"] = customer.LastName,
-                                ["FullName"] = customer.FirstName + " " + customer.LastName,
-                                ["Email"] = customer.Email,
-                                ["LoanProductId"] = application.ProductId.ToString(),
-                                ["LoanAmount"] = application.RequestedAmount.ToString("F2"),
-                                ["TermMonths"] = application.TermMonths.ToString(),
-                                ["Purpose"] = application.Purpose ?? string.Empty
-                            };
-                            await _notificationSenderService.SendNotificationAsync(
-                                "Loan Rejected",
-                                "email",
-                                data
-                            );
-                        }
+                            ["FirstName"] = customer.FirstName,
+                            ["LastName"] = customer.LastName,
+                            ["FullName"] = customer.FirstName + " " + customer.LastName,
+                            ["Email"] = customer.Email,
+                            ["LoanProductId"] = application.ProductId.ToString(),
+                            ["LoanAmount"] = application.RequestedAmount.ToString("F2"),
+                            ["TermMonths"] = application.TermMonths.ToString(),
+                            ["Purpose"] = application.Purpose ?? string.Empty
+                        };
+                        await _notificationSenderService.SendNotificationAsync(
+                            "Loan Rejected",
+                            "email",
+                            data
+                        );
                     }
-                    TempData["LoanApplicationSuccess"] = "Loan application rejected successfully!";
-                    return RedirectToAction("Index");
                 }
-                TempData["Error"] = "Unexpected error occurred while rejecting the application.";
+                TempData["LoanApplicationSuccess"] = "Loan application rejected successfully!";
+                return RedirectToAction("Index");
+            }
+            TempData["Error"] = "Unexpected error occurred while rejecting the application.";
             return RedirectToAction("Index");
 
         }
@@ -495,7 +471,7 @@ namespace LoanApplicationService.Web.Controllers
                     return Forbid();
                 }
             }
-            
+
             var applications = await _loanApplicationService.GetByCustomerIdAsync(customerId);
             return View(applications);
         }
@@ -593,9 +569,8 @@ namespace LoanApplicationService.Web.Controllers
 
 
 
-        
+
         [HttpGet]
-        [RoleAuthorize("Admin")]
         public async Task<IActionResult> DisburseLoan(int id)
         {
             var application = await _loanApplicationService.GetByIdAsync(id);
@@ -634,8 +609,7 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpPost]
-        [RoleAuthorize("Admin")]
-        public async Task<IActionResult> Disburse(int applicationId)
+        public async Task<IActionResult> DisburseLoanConfirmed(int applicationId)
         {
             // 1. Fetch Loan Application and Loan Product details
             // Ensure your GetByIdAsync eagerly loads the LoanProduct
@@ -647,12 +621,12 @@ namespace LoanApplicationService.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-       
-           
+
+
 
             // 2. Calculate Upfront Charges
             var upfrontCharges = await _loanChargeService.GetUpFrontCharges(application.ProductId);
-            upfrontCharges ??= new List<LoanChargeDto>(); 
+            upfrontCharges ??= new List<LoanChargeDto>();
 
             decimal totalUpfrontFees = 0;
             decimal principalAmount = application.ApprovedAmount;
@@ -671,23 +645,23 @@ namespace LoanApplicationService.Web.Controllers
                 ApplicationId = application.ApplicationId,
                 CustomerId = application.CustomerId,
                 AccountNumber = "ACCT" + application.ApplicationId,
-                AccountType = "Loan", 
+                AccountType = "Loan",
                 PrincipalAmount = principalAmount,
-                DisbursedAmount = availableBalanceForDisbursement, 
+                DisbursedAmount = availableBalanceForDisbursement,
                 AvailableBalance = availableBalanceForDisbursement,
-                InterestRate = application.InterestRate, 
+                InterestRate = application.InterestRate,
                 OutstandingBalance = principalAmount,
-                TermMonths = application.TermMonths, 
-                PaymentFrequency = application.PaymentFrequency, 
+                TermMonths = application.TermMonths,
+                PaymentFrequency = application.PaymentFrequency,
                 Status = (int)AccountStatus.Active,
-                DisbursementDate = DateTime.UtcNow 
+                DisbursementDate = DateTime.UtcNow
             };
 
             // 4. Create the Account (this will save the account and give it an ID)
             var result = await _accountService.CreateAccountAsync(accountDto);
             if (!result)
             {
-               TempData["Error"] = "Failed to create loan account.";
+                TempData["Error"] = "Failed to create loan account.";
                 return RedirectToAction("Index");
             }
             var createdAccount = await _accountService.GetAccountByApplicationIdAsync(application.ApplicationId);
@@ -712,8 +686,8 @@ namespace LoanApplicationService.Web.Controllers
             else
             {
                 // Handle edge case: loan with 0 term or special conditions resulting in no schedule
-                createdAccount.NextPaymentDate = createdAccount.DisbursementDate.Value;
-                createdAccount.MaturityDate = createdAccount.DisbursementDate.Value;
+                createdAccount.NextPaymentDate = createdAccount.DisbursementDate ?? DateTime.UtcNow;
+                createdAccount.MaturityDate = createdAccount.DisbursementDate ?? DateTime.UtcNow;
                 createdAccount.MonthlyPayment = 0;
             }
             // Save these updates back to the account.

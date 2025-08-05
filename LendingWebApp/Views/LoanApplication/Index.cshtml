@@ -102,7 +102,7 @@ else if (ViewBag.CustomerId != null)
                         <td>@item.ApprovedAmount</td>
                         <td>@item.Purpose</td>
                         <td>@item.ApplicationDate.ToString()</td>
-                      <td>@(item.DecisionDate?.ToString() ?? "")</td>
+                      <td>@(item.DecisionDate != default(DateTimeOffset) ? item.DecisionDate.ToString() : "")</td>
                       @if (ViewBag.CustomerId == null)
                       {
                           <td>
@@ -121,13 +121,9 @@ else if (ViewBag.CustomerId != null)
         }
         if (item.Status.ToString() == "Approved")
         {
-            using (Html.BeginForm("DisburseConfirmed", "LoanApplication", new { id = item.ApplicationId }, FormMethod.Post, null, new { @class = "d-inline" }))
-            {
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-sm btn-success me-1" onclick="return confirm('Disburse this loan application?');">
-                    <i class="bi bi-cash-stack"></i> Disburse
-                </button>
-            }
+            <a href="/LoanApplication/DisburseLoan/@item.ApplicationId" class="btn btn-sm btn-success me-1">
+                <i class="bi bi-cash-stack"></i> Disburse
+            </a>
         }
     }
 }                </td>

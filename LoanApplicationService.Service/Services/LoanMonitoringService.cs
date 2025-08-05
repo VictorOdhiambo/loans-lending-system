@@ -11,7 +11,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class LoanMonitoringService : BackgroundService
+namespace LoanApplicationService.Service.Services
+{
+    public class LoanMonitoringService : BackgroundService
 {
     private readonly ILogger<LoanMonitoringService> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -106,12 +108,5 @@ public class LoanMonitoringService : BackgroundService
             logger.LogError(ex, "Error checking overdue payments.");
         }
     }
-
-
-
-
-
 }
-
-
-
+}

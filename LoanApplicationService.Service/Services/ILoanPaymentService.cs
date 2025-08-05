@@ -1,5 +1,6 @@
 ﻿using LoanApplicationService.Service.DTOs.LoanDisbursement;
 using LoanApplicationService.Service.DTOs.LoanPayment;
+using LoanApplicationService.Service.DTOs.LoanPenalty;
 using LoanApplicationService.Service.DTOs.Transactions;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,8 @@ namespace LoanApplicationService.Service.Services
         
        
         Task<IEnumerable<LoanPaymentDto>> GetAllPaymentsAsync();
+
+
 
     }
 }

@@ -1,13 +1,12 @@
-﻿using System;
+﻿using LoanApplicationService.Service.DTOs.Account;
+using LoanApplicationService.Service.DTOs.LoanDisbursement;
+using LoanApplicationService.Service.DTOs.LoanPayment;
+using LoanApplicationService.Service.DTOs.LoanPenalty;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-
-using LoanApplicationService.Service.DTOs.Account;
-using LoanApplicationService.Service.DTOs.LoanDisbursement;
-using LoanApplicationService.Service.DTOs.LoanPayment;
 
 namespace LoanApplicationService.Service.Services
 {
@@ -23,6 +22,11 @@ namespace LoanApplicationService.Service.Services
         Task<AccountDto> GetAccountByApplicationIdAsync(int applicationId);
 
         Task<IEnumerable<AccountDto>> GetAccountsByAccountTypeAsync(string accountType);
+
+        Task<IEnumerable<AccountDto>> GetAccountByUserId(Guid userId);
+
+        Task<IEnumerable<LoanPenaltyDto>> GetAccountPenalties(int accountId);
+
 
 
 

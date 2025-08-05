@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using LoanManagementApp.DTOs;
 using LoanManagementApp.Models;
 using LoanApplicationService.Core.Models;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 namespace LoanApplicationService.Service.Services
 {
@@ -82,45 +84,30 @@ namespace LoanApplicationService.Service.Services
             return notification.Success ? $"Notification sent to {recipientEmail}" : $"Failed to send notification: {notification.ErrorMessage}";
         }
 
-        private async Task SendEmailAsync(string to, string subject, string body)
+
+
+private async Task SendEmailAsync(string to, string subject, string body)
+    {
+        if (string.IsNullOrWhiteSpace(_emailSettings.FromEmail) || string.IsNullOrWhiteSpace(_emailSettings.ApiKey))
         {
-            if (string.IsNullOrWhiteSpace(_emailSettings.FromEmail))
-            {
-                throw new InvalidOperationException("FromEmail in EmailSettings cannot be null or empty.");
-            }
-
-            Console.WriteLine($"[Email] Preparing to send email to {to} via SMTP server {_emailSettings.Host}:{_emailSettings.Port} as {_emailSettings.FromEmail}");
-            var client = new SmtpClient(_emailSettings.Host, _emailSettings.Port)
-            {
-                Credentials = new NetworkCredential(_emailSettings.Username, _emailSettings.Password),
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false
-            };
-
-            var mail = new MailMessage
-            {
-                From = new MailAddress(_emailSettings.FromEmail, _emailSettings.FromName ?? string.Empty),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = false
-            };
-
-            mail.To.Add(to);
-
-            try
-            {
-                await client.SendMailAsync(mail);
-                Console.WriteLine($"[Email] Email sent successfully to {to}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Email] Failed to send email to {to}: {ex.Message}\n{ex.StackTrace}");
-                throw;
-            }
+            throw new InvalidOperationException("FromEmail or ApiKey is not configured.");
         }
 
-        private string ReplacePlaceholders(string text, Dictionary<string, string> data)
+        var client = new SendGridClient(_emailSettings.ApiKey);
+        var from = new EmailAddress(_emailSettings.FromEmail, _emailSettings.FromName);
+        var toAddress = new EmailAddress(to);
+        var msg = MailHelper.CreateSingleEmail(from, toAddress, subject, "", body);
+
+        var response = await client.SendEmailAsync(msg);
+        Console.WriteLine($"[Email] Sent to {to} - Status: {response.StatusCode}");
+
+        if ((int)response.StatusCode >= 400)
+        {
+            throw new Exception($"SendGrid failed: {response.StatusCode}");
+        }
+    }
+
+    private string ReplacePlaceholders(string text, Dictionary<string, string> data)
         {
             return Regex.Replace(text, @"\{\{(.*?)\}\}", match =>
             {
@@ -174,6 +161,9 @@ namespace LoanApplicationService.Service.Services
                 data["NationalId"] = customer.NationalId ?? string.Empty;
                 data["EmploymentStatus"] = customer.EmploymentStatus ?? string.Empty;
                 data["AnnualIncome"] = customer.AnnualIncome?.ToString() ?? string.Empty;
+                data["RiskLevel"] = customer.RiskLevel.ToString() ?? string.Empty;
+
+
 
                 // Fetch most recent loan application for this customer
                 var loanApp = await _context.LoanApplications
@@ -184,7 +174,11 @@ namespace LoanApplicationService.Service.Services
                 {
                     data["LoanAmount"] = loanApp.RequestedAmount.ToString("F2");
                     data["LoanProductId"] = loanApp.ProductId.ToString();
-                    // Add more loan fields as needed
+                    data["ApprovedAmount"] = loanApp.ApprovedAmount?.ToString("F2") ?? string.Empty;
+                    data["RequestedAmount"] = loanApp.RequestedAmount.ToString("F2");
+                    data["TermMonths"] = loanApp.TermMonths.ToString();
+                    data["ApplicationDate"] = loanApp.CreatedAt.ToString("yyyy-MM-dd");
+                    data["Purpose"] = loanApp.Purpose ?? string.Empty;
                 }
             }
 

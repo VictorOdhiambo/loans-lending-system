@@ -1,0 +1,3 @@
+@{
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
+} 

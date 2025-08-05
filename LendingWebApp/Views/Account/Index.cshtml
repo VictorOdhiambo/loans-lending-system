@@ -38,6 +38,7 @@
                    <td>@item.InterestRate</td>
                    <td>@item.MaturityDate</td>
                     <td class="text-end">
+                        <a href="@Url.Action("GetAccountById", "Account", new { id = item.AccountId })" class="btn btn-info">Details</a>
 
                     </td> 
                    </tr>

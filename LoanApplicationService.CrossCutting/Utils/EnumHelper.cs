@@ -23,7 +23,7 @@ namespace LoanApplicationService.CrossCutting.Utils
                 {
                     var description = (from m in value.GetType().GetMember(value.ToString())
                                        let attr = (DescriptionAttribute)m.GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault()
-                                       select attr == null ? value.ToString() : attr.Description).FirstOrDefault();
+                                       select attr == null ? value.ToString() : attr.Description).FirstOrDefault() ?? value.ToString();
 
                     _enumDescriptionCache.Add(value, description);
                 }

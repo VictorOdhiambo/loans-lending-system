@@ -124,6 +124,22 @@ namespace LoanApplicationService.Web.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetTransactionsByAccountId(int id)
+        {
+            var transactions = await _loanWithdrawalService.GetAllTransactionsAsync(id);
+            if (transactions == null || !transactions.Any())
+            {
+                return View("NotFound");
+            }
+            return View(transactions);
+        }                       
+
+
+
+
+
+
         private void GetPaymentMethods()
         {
             ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethods))
