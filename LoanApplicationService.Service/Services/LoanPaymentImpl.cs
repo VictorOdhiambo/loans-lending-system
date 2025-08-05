@@ -14,8 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static LoanApplicationService.Service.Services.LoanPaymentImpl;
-using LoanApplicationService.Service;
-using Microsoft.Extensions.Logging; 
+using LoanApplicationService.Service; 
 
 namespace LoanApplicationService.Service.Services
 {
@@ -137,7 +136,7 @@ namespace LoanApplicationService.Service.Services
                         item.PaidPrincipal >= item.PrincipalAmount - FinancialThreshold)
                     {
                         item.IsPaid = true;
-                        item.PaidDate = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(3)).UtcDateTime;                     }
+                        item.PaidDate = DateTime.UtcNow;                }
                         _context.LoanRepaymentSchedules.Update(item);
                 }
 

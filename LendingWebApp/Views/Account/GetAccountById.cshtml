@@ -1,5 +1,6 @@
 ﻿@model LoanApplicationService.Service.DTOs.Account.AccountDto
 
+
 @{
         ViewData["Title"] = "Account Details";
 }
@@ -40,9 +41,26 @@
 
             </div>
             <div class="mb-3">
-                <a href="/Account" class="btn btn-outline-danger"> Home</a>
+                @if (User.IsInRole("Customer"))
+                {
+                    <a href="/Account/GetAccountsByUserId" class="btn btn-outline-danger"> Home</a>
+
+                }
+                else
+                {
+                    <a href="/Account" class="btn btn-outline-danger"> Home</a>
+
+                }
+
                 
 
+            </div>
+               
+            <div class=" mb-3">
+                <a href="/Transactions/GetTransactionsByAccountId/@Model.AccountId" class=" btn btn-outline-danger"> Transactions History</a>
+            </div>
+            <div>
+                <a href="/Account/GetPenalties/@Model.AccountId" class="btn btn-default"> Loan Penalties</a>
             </div>
         }
 

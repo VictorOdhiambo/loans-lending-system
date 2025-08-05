@@ -16,19 +16,12 @@
                 </ul>
             </div>
         </li>
-        <!-- Payments -->
-        <li class="nav-item">
-            <a class="nav-link text-white" data-bs-toggle="collapse" href="#paymentsMenu" role="button" aria-expanded="false">
-                <i class="bi bi-credit-card"></i> Payments
-            </a>
-            <div class="collapse" id="paymentsMenu">
-                <ul class="nav flex-column ms-3">
-                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/MakePayment">Make a Payment</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/PaymentHistory">Payment History</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/OverduePenalties">Overdue Penalties</a></li>
-                </ul>
-            </div>
+
+        <!-- Account -->
+        <li class="nav-item mt-3">
+            <a class="nav-link text-white" href="/Account/GetAccountsByUserId"><i class="bi bi-box-arrow-right"></i> My Loan Accounts</a>
         </li>
+
         <!-- Notifications -->
         <li class="nav-item">
             <a class="nav-link text-white" data-bs-toggle="collapse" href="#notificationsMenu" role="button" aria-expanded="false">

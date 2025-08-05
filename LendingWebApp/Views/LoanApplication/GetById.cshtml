@@ -1,0 +1,174 @@
+@model LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto
+@using LoanApplicationService.CrossCutting.Utils
+@{
+    ViewData["Title"] = "Loan Application Details";
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Loan Application Details</h2>
+                <div>
+                    @if (User.IsInRole("Customer"))
+                    {
+                        <a href="@Url.Action("Index", "LoanApplication")" class="btn btn-secondary">Back to My Applications</a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Index", "LoanApplication")" class="btn btn-secondary">Back to Applications</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Application Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Application ID:</dt>
+                                <dd class="col-sm-8">@Model.ApplicationId</dd>
+
+                                <dt class="col-sm-4">Customer ID:</dt>
+                                <dd class="col-sm-8">@Model.CustomerId</dd>
+
+                                <dt class="col-sm-4">Product ID:</dt>
+                                <dd class="col-sm-8">@Model.ProductId</dd>
+
+                                <dt class="col-sm-4">Requested Amount:</dt>
+                                <dd class="col-sm-8">Ksh @Model.RequestedAmount.ToString("N2")</dd>
+
+                                <dt class="col-sm-4">Term (Months):</dt>
+                                <dd class="col-sm-8">@Model.TermMonths</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Status:</dt>
+                                <dd class="col-sm-8">
+                                    @{
+                                        var statusClass = Model.Status switch
+                                        {
+                                            LoanStatus.Pending => "badge bg-warning",
+                                            LoanStatus.Approved => "badge bg-success",
+                                            LoanStatus.Rejected => "badge bg-danger",
+                                            LoanStatus.Disbursed => "badge bg-primary",
+                                            LoanStatus.CustomerRejected => "badge bg-secondary",
+                                            LoanStatus.Closed => "badge bg-dark",
+                                            _ => "badge bg-secondary"
+                                        };
+                                        var statusText = Model.Status switch
+                                        {
+                                            LoanStatus.Pending => "Pending",
+                                            LoanStatus.Approved => "Approved",
+                                            LoanStatus.Rejected => "Rejected",
+                                            LoanStatus.Disbursed => "Disbursed",
+                                            LoanStatus.CustomerRejected => "Customer Rejected",
+                                            LoanStatus.Closed => "Closed",
+                                            _ => "Unknown"
+                                        };
+                                    }
+                                    <span class="@statusClass">@statusText</span>
+                                </dd>
+
+                                <dt class="col-sm-4">Approved Amount:</dt>
+                                <dd class="col-sm-8">
+                                    <span>Ksh @Model.ApprovedAmount.ToString("N2")</span>
+                                </dd>
+
+                                <dt class="col-sm-4">Interest Rate:</dt>
+                                <dd class="col-sm-8">
+                                    <span>@Model.InterestRate.ToString("F2")%</span>
+                                </dd>
+
+                                <dt class="col-sm-4">Application Date:</dt>
+                                <dd class="col-sm-8">@Model.ApplicationDate.UtcDateTime.ToString("yyyy-MM-dd")</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Purpose))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <dt>Purpose:</dt>
+                                <dd>@Model.Purpose</dd>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.DecisionDate != default(DateTimeOffset))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <dt>Decision Date:</dt>
+                                <dd>@Model.DecisionDate.UtcDateTime.ToString("yyyy-MM-dd")</dd>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <dt>Decision Date:</dt>
+                                <dd class="text-muted">Not yet decided</dd>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.DecisionNotes))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <dt>Decision Notes:</dt>
+                                <dd>@Model.DecisionNotes</dd>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    @if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+                    {
+                        @if (Model.Status == LoanStatus.Pending)
+                        {
+                            <a href="@Url.Action("Approve", "LoanApplication", new { id = Model.ApplicationId })" class="btn btn-success btn-block mb-2">
+                                <i class="bi bi-check-circle me-2"></i>Approve
+                            </a>
+                            <a href="@Url.Action("Reject", "LoanApplication", new { id = Model.ApplicationId })" class="btn btn-danger btn-block mb-2">
+                                <i class="bi bi-x-circle me-2"></i>Reject
+                            </a>
+                        }
+                        @if (Model.Status == LoanStatus.Approved)
+                        {
+                            <a href="@Url.Action("Disburse", "LoanApplication", new { id = Model.ApplicationId })" class="btn btn-primary btn-block mb-2">
+                                <i class="bi bi-cash me-2"></i>Disburse
+                            </a>
+                        }
+                    }
+                    @if (User.IsInRole("Customer") && Model.Status == LoanStatus.Approved)
+                    {
+                        <a href="@Url.Action("CustomerReject", "LoanApplication", new { id = Model.ApplicationId })" class="btn btn-warning btn-block mb-2">
+                            <i class="bi bi-x-circle me-2"></i>Reject Offer
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

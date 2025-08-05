@@ -168,14 +168,13 @@ namespace LendingApp.Controllers
             string recipientEmail = request.Email;
             if (string.IsNullOrWhiteSpace(recipientEmail) && request.CustomerId.HasValue)
             {
-                // Try to get user info from DB if UserId is provided
-                // No Customer table in context, so fallback to input only
+                
                 return BadRequest("User lookup by CustomerId is not supported in this context. Please provide Email or PhoneNumber.");
             }
             if (!string.IsNullOrWhiteSpace(recipientEmail))
             {
                 data["Email"] = recipientEmail;
-                // Fetch customer info and add to data dictionary
+                
                 var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email == recipientEmail);
                 if (customer != null)
                 {
@@ -199,7 +198,7 @@ namespace LendingApp.Controllers
                 return BadRequest("Recipient Email or PhoneNumber is required.");
             }
 
-            // Use template's NotificationHeader and Channel
+            
             var result = await _notificationSenderService.SendNotificationAsync(
                 template.NotificationHeader,
                 template.Channel,
@@ -219,7 +218,7 @@ namespace LendingApp.Controllers
             return Ok(notifications);
         }
 
-        // Helper function to sanitize log input
+        
         private static string SanitizeForLog(string? input)
         {
             if (input == null) return string.Empty;

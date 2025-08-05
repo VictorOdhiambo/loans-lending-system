@@ -14,12 +14,14 @@ namespace LoanApplicationService.Service.DTOs.Transactions
 
         public decimal Amount { get; set; }
 
-        public DateTime TransactionDate { get; set; }
+        public DateTimeOffset TransactionDate { get; set; }
         public int TransactionType { get; set; }
 
         public int PaymentMethod { get; set; }
-        public decimal PrincipalAmount { get; set; }
+        public decimal PrincipalAmount { get; set; } 
 
         public decimal InterestAmount { get; set; }
+
+        public decimal PenaltyAmount { get; set; }
     }
 }

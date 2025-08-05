@@ -63,7 +63,6 @@ namespace LoanApplicationService.Core.Models
 
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public virtual ICollection<AuditTrail> AuditTrails { get; set; } = new List<AuditTrail>();
-
-       
+        
     }
 }

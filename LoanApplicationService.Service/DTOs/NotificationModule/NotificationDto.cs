@@ -16,5 +16,7 @@ namespace LoanManagementApp.DTOs
         public string? SentAtFormatted => SentAt?.ToString("yyyy-MM-dd HH:mm") ?? "";
         public bool Success { get; set; }
         public string Status => Success ? "Sent" : (IsRead ? "Read" : "Failed");
+        public string? ErrorMessage { get; set; }
+        public int ? CustomerId { get; set; }
     }
 }    

@@ -1,0 +1,46 @@
+﻿@model IEnumerable<LoanApplicationService.Service.DTOs.Transactions.TransactionDto>
+@using LoanApplicationService.CrossCutting.Utils;
+
+@{
+    ViewBag.Title = "Transactions for Account";
+}
+
+<h2>Transactions for Account 
+</h2>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.TransactionId)</th>
+                <th>@Html.DisplayNameFor(model => model.TransactionType)</th>
+                <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                <th>@Html.DisplayNameFor(model => model.TransactionDate)</th>
+                <th>@Html.DisplayNameFor(model => model.PrincipalAmount)</th>
+                <th>@Html.DisplayNameFor(model => model.InterestAmount)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in Model)
+            {
+                <tr>
+                    <td>@transaction.TransactionId</td>
+                    @{
+                        var transactionType = (TransactionType)transaction.TransactionType;
+                        var transactionTypeName = EnumHelper.GetDescription(transactionType);
+           
+                    }
+                    <td>@transactionTypeName</td>
+                    <td>@transaction.Amount.ToString("C")</td>
+                    <td>@transaction.TransactionDate.ToString("g")</td>
+                  
+                    @if (transaction.TransactionType == (int)TransactionType.Payment)
+                        {
+                            <td>@transaction.PrincipalAmount.ToString()</td>
+                             <td>@transaction.InterestAmount.ToString()</td>
+                    }
+    
+    
+                </tr>
+            }
+        </tbody>
+    </table>

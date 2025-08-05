@@ -12,6 +12,7 @@ using Microsoft.Identity.Client;
 using LoanApplicationService.Service.DTOs.LoanDisbursement;
 using LoanApplicationService.Service.DTOs.LoanPayment;
 using LoanApplicationService.CrossCutting.Utils;
+using LoanApplicationService.Service.DTOs.LoanPenalty;
 
 namespace LoanApplicationService.Service.Services
 {
@@ -106,6 +107,29 @@ namespace LoanApplicationService.Service.Services
             return account != null;
         }
 
+        public async Task<IEnumerable<AccountDto>> GetAccountByUserId(Guid userId)
+        {
+            var customerId = await _context.Customers
+                .Where(c => c.UserId == userId)
+                .Select(c => c.CustomerId)
+                .FirstOrDefaultAsync();
+
+            var accounts = await _context.Accounts
+                .Where(a => a.CustomerId == customerId)
+                .ToListAsync();
+
+
+            return _mapper.Map<IEnumerable<AccountDto>>(accounts);
+        }
+
+
+        public async Task<IEnumerable<LoanPenaltyDto>> GetAccountPenalties(int accountId)
+        {
+            var penalties = await _context.LoanPenalties
+                .Where(p => p.AccountId == accountId)
+                .ToListAsync();
+            return _mapper.Map<IEnumerable<LoanPenaltyDto>>(penalties);
+        }
 
 
 

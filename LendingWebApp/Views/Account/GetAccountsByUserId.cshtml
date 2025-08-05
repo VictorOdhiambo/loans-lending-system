@@ -1,0 +1,56 @@
+﻿@model IEnumerable<LoanApplicationService.Service.DTOs.Account.AccountDto>;
+@using LoanApplicationService.CrossCutting.Utils;
+
+@{
+    ViewBag.Title = "Account Details";
+}
+
+<h1> Accounts</h1>
+@if (Model != null && Model.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                
+                <th>Account Number</th>
+                <th>Account Type</th>
+                <th>Principal Amount</th>
+                <th>Outstanding Balance</th>
+                <th>Disbursed Amount</th>
+                <th>Available Balance</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in Model)
+            {
+                <tr>
+                    
+                    <td>@account.AccountNumber</td>
+                    <td>@account.AccountType</td>
+                    <td>@account.PrincipalAmount.ToString("C")</td>
+                    <td>@account.OutstandingBalance.ToString("C")</td>
+                    <td>@account.DisbursedAmount.ToString("C")</td>
+                    <td>@account.AvailableBalance.ToString("C")</td>
+                    @{
+                        var accountStatus = (AccountStatus)account.Status;
+                        var accountStatusName = EnumHelper.GetDescription(accountStatus);
+                        
+                        
+   
+                    }
+                    <td>@accountStatusName</td>
+                    <td>
+                        <a href="@Url.Action("GetAccountById", "Account", new { id = account.AccountId })" class="btn btn-info">Details</a>
+                        <a href="@Url.Action("Withdraw", "Transactions", new { id = account.AccountId })" class="btn btn-warning">Withdraw</a>
+                        <a href="@Url.Action("LoanRepayment", "Transactions", new { id = account.AccountId })" class="btn btn-danger">Make Payment</a>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No accounts found for this customer.</p>
+}

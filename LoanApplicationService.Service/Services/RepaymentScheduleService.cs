@@ -90,7 +90,7 @@ namespace LoanApplicationService.Service.Services
             int numberOfRemainingPayments;
             DateTime firstNewInstallmentDueDate;
             DateTime firstNewInstallmentStartDate;
-            var businessDate = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(3)).Date; // EAT (UTC+3)
+            var businessDate = DateTime.UtcNow;
 
             if (isRecalculation)
             {

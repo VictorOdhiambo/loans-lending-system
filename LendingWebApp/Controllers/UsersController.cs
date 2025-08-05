@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using LoanApplicationService.Core.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using LoanApplicationService.Core.Repository;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -12,11 +13,15 @@ namespace LoanApplicationService.Web.Controllers
     {
         private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly LoanApplicationServiceDbContext _dbContext;
 
-        public UsersController(IUserService userService, UserManager<ApplicationUser> userManager)
+        public UsersController(IUserService userService, 
+            UserManager<ApplicationUser> userManager,
+            LoanApplicationServiceDbContext dbContext)
         {
             _userService = userService;
             _userManager = userManager;
+            _dbContext = dbContext;
         }
 
         // GET: /Users
@@ -29,7 +34,7 @@ namespace LoanApplicationService.Web.Controllers
 
             // Build a map of UserId to CustomerId for all customers
             var customerMap = new Dictionary<Guid, int>();
-            var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
+            var dbContext = _dbContext;
             if (dbContext != null)
             {
                 var customers = dbContext.Customers.ToList();
@@ -110,11 +115,8 @@ namespace LoanApplicationService.Web.Controllers
                 ViewBag.CurrentUserRole = roles.FirstOrDefault() ?? "No Role";
             }
             
-            var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-            if (dbContext != null)
-            {
-                ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-            }
+            // Get roles directly from injected context
+            ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
             return View(user);
         }
 
@@ -163,11 +165,7 @@ namespace LoanApplicationService.Web.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-            if (dbContext != null)
-            {
-                ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-            }
+            ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
             return View();
         }
 
@@ -179,11 +177,7 @@ namespace LoanApplicationService.Web.Controllers
             if (!ModelState.IsValid)
             {
                 // Repopulate ViewBag for the view
-                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-                if (dbContext != null)
-                {
-                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-                }
+                ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
                 return View(userDto);
             }
 
@@ -202,11 +196,7 @@ namespace LoanApplicationService.Web.Controllers
                     ModelState.AddModelError("", error.Description);
                 }
                 // Repopulate ViewBag for the view
-                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-                if (dbContext != null)
-                {
-                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-                }
+                ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
                 return View(userDto);
             }
 
@@ -221,11 +211,7 @@ namespace LoanApplicationService.Web.Controllers
                         ModelState.AddModelError("", $"Role assignment failed: {error.Description}");
                     }
                     // Repopulate ViewBag for the view
-                    var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-                    if (dbContext != null)
-                    {
-                        ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-                    }
+                    ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
                     return View(userDto);
                 }
             }
@@ -233,11 +219,7 @@ namespace LoanApplicationService.Web.Controllers
             {
                 ModelState.AddModelError("", "Role is required for user creation.");
                 // Repopulate ViewBag for the view
-                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-                if (dbContext != null)
-                {
-                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-                }
+                ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
                 return View(userDto);
             }
 
@@ -289,11 +271,7 @@ namespace LoanApplicationService.Web.Controllers
             if (!ModelState.IsValid)
             {
                 // Repopulate ViewBag for the view
-                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-                if (dbContext != null)
-                {
-                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-                }
+                ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
                 return View("Create", userDto);
             }
 
@@ -312,11 +290,7 @@ namespace LoanApplicationService.Web.Controllers
                     ModelState.AddModelError("", error.Description);
                 }
                 // Repopulate ViewBag for the view
-                var dbContext = HttpContext.RequestServices.GetService(typeof(LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext)) as LoanApplicationService.Core.Repository.LoanApplicationServiceDbContext;
-                if (dbContext != null)
-                {
-                    ViewBag.RoleList = dbContext.ApplicationRoles.ToList();
-                }
+                ViewBag.RoleList = _dbContext.ApplicationRoles.ToList();
                 return View("Create", userDto);
             }
 

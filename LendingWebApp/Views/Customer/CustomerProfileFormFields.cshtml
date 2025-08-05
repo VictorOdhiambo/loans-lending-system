@@ -1,0 +1,95 @@
+@model LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto
+
+<div class="form-group mb-3">
+    @Html.LabelFor(model => model.Email, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.Email, new { @class = "form-control", type = "email" })
+    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+</div>
+
+<div class="form-group mb-3">
+    @Html.LabelFor(model => model.PhoneNumber, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.PhoneNumber, new { @class = "form-control", type = "text", pattern = "\\d{10}", maxlength = "10", minlength = "10", title = "Phone number must be exactly 10 digits" })
+    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+</div>
+
+<div class="form-group mb-3">
+    @Html.LabelFor(model => model.EmploymentStatus, new { @class = "form-label" })
+    <select id="EmploymentStatus" name="EmploymentStatus" class="form-select" required>
+        <option value="">-- Select Employment Status --</option>
+        <option value="Employed" @(Model.EmploymentStatus == "Employed" ? "selected" : "")>Employed</option>
+        <option value="Unemployed" @(Model.EmploymentStatus == "Unemployed" ? "selected" : "")>Unemployed</option>
+        <option value="Self-Employed" @(Model.EmploymentStatus == "Self-Employed" ? "selected" : "")>Self-Employed</option>
+    </select>
+    @Html.ValidationMessageFor(model => model.EmploymentStatus, "", new { @class = "text-danger" })
+</div>
+
+<div class="form-group mb-3">
+    @Html.LabelFor(model => model.AnnualIncome, new { @class = "form-label" })
+    @Html.TextBoxFor(model => model.AnnualIncome, new { @class = "form-control", type = "number", step = "0.01", min = "0" })
+    @Html.ValidationMessageFor(model => model.AnnualIncome, "", new { @class = "text-danger" })
+</div>
+
+<div class="form-group mb-3">
+    <label for="NewPassword" class="form-label">New Password (leave blank to keep current)</label>
+    <div class="input-group">
+        <input id="NewPassword" name="NewPassword" class="form-control" type="password" placeholder="Enter new password" />
+        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('NewPassword', this)">Show</button>
+    </div>
+</div>
+
+<div class="form-group mb-3">
+    <label for="ConfirmNewPassword" class="form-label">Confirm New Password</label>
+    <div class="input-group">
+        <input id="ConfirmNewPassword" name="ConfirmNewPassword" class="form-control" type="password" placeholder="Confirm new password" />
+        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('ConfirmNewPassword', this)">Show</button>
+    </div>
+    <span id="password-match-error" class="text-danger" style="display:none;"></span>
+</div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    var input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "Hide";
+    } else {
+        input.type = "password";
+        btn.textContent = "Show";
+    }
+}
+
+// Password validation
+document.addEventListener('DOMContentLoaded', function() {
+    var newPassword = document.getElementById('NewPassword');
+    var confirmPassword = document.getElementById('ConfirmNewPassword');
+    var errorElement = document.getElementById('password-match-error');
+    
+    function validatePasswords() {
+        if (newPassword.value || confirmPassword.value) {
+            if (newPassword.value !== confirmPassword.value) {
+                errorElement.textContent = 'Passwords do not match';
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        errorElement.style.display = 'none';
+        return true;
+    }
+    
+    newPassword.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+    
+    // Form validation
+    var form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validatePasswords()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script> 

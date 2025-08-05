@@ -86,35 +86,15 @@
     </a>
 </div>
         <div class="col-md-4 col-lg-2">
-            <div class="card text-white bg-secondary h-100 shadow">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                    <i class="bi bi-envelope-fill display-5 mb-2"></i>
-                    <h5 class="card-title">New Messages</h5>
-                    <h3>@ViewBag.NewMessages</h3>
+            <a href="/Notification" style="text-decoration: none;">
+                <div class="card text-white bg-secondary h-100 shadow">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <i class="bi bi-envelope-fill display-5 mb-2"></i>
+                        <h5 class="card-title">Emails</h5>
+                        <h3>@ViewBag.NewMessages</h3>
+                    </div>
                 </div>
-            </div>
         </div>
     </div>
-    
-    <!-- Additional Statistics Row -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4 col-lg-2">
-            <div class="card text-white bg-dark h-100 shadow">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                    <i class="bi bi-x-octagon display-5 mb-2"></i>
-                    <h5 class="card-title">Overdue Loans</h5>
-                    <h3>@ViewBag.OverdueLoans</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 col-lg-2">
-            <div class="card text-white bg-info h-100 shadow">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                    <i class="bi bi-graph-up display-5 mb-2"></i>
-                    <h5 class="card-title">Repayment Rate</h5>
-                    <h3>@ViewBag.LoanRepaymentRate%</h3>
-                </div>
-            </div>
-        </div>
     </div>
 </div> 

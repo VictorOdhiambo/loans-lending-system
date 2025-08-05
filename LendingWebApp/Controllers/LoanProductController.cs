@@ -7,22 +7,28 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-
+using Microsoft.Extensions.Logging;
 
 namespace LoanApplicationService.Web.Controllers
 {
     [Authorize]
-    public class LoanProductController(ILoanProductService loanProductService) : Controller
+    public class LoanProductController : Controller
     {
-        private readonly ILoanProductService _loanProductService = loanProductService;
+        private readonly ILoanProductService _loanProductService;
+        private readonly ILogger<LoanProductController> _logger;
 
+        public LoanProductController(ILoanProductService loanProductService, ILogger<LoanProductController> logger)
+        {
+            _loanProductService = loanProductService;
+            _logger = logger;
+        }
 
         [HttpGet]
         public async Task<IActionResult> Index(int? customerId)
         {
             ViewBag.CustomerId = customerId;
             LoanApplicationService.Service.DTOs.CustomerModule.CustomerDto customer = null;
-            
+
             // If customerId is provided, use it (for admin/super admin viewing specific customer)
             if (customerId.HasValue)
             {
@@ -52,9 +58,9 @@ namespace LoanApplicationService.Web.Controllers
                     }
                 }
             }
-            
+
             var loanProducts = await _loanProductService.GetAllProducts();
-            
+
             // Apply risk-based filtering if customer is found
             if (customer != null)
             {
@@ -86,19 +92,18 @@ namespace LoanApplicationService.Web.Controllers
                 {
                     filtered = loanProducts.Where(lp => lp.RiskLevel == LoanApplicationService.CrossCutting.Utils.LoanRiskLevel.VeryHigh).ToList();
                 }
-                
+
                 if (!filtered.Any())
                 {
                     ViewBag.NoProductsMessage = "No loan products match your risk level.";
                 }
-                
+
                 return View(filtered);
             }
-            
+
             // For admin/super admin viewing all products
             return View(loanProducts);
         }
-
 
         [HttpGet]
         public async Task<IActionResult> GetById(int id)
@@ -112,9 +117,9 @@ namespace LoanApplicationService.Web.Controllers
         public async Task<IActionResult> Create()
         {
             PopulateDropdowns();
-            var dto = new LoanProductDto 
-            { 
-                ProductName = "", 
+            var dto = new LoanProductDto
+            {
+                ProductName = "",
                 IsActive = true
             };
             return View(dto);
@@ -122,30 +127,30 @@ namespace LoanApplicationService.Web.Controllers
 
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
-        [ValidateModel]
-        [RoleAuthorize("Admin")]
         public async Task<IActionResult> Create(LoanProductDto loanProductDto)
         {
             if (ModelState.IsValid)
             {
-                var result = await _loanProductService.AddLoanProduct(loanProductDto);
-                if (result)
+                try
                 {
-                    TempData["LoanProductSuccess"] = "Loan product created successfully!";
-                    return RedirectToAction("Index");
+                    var result = await _loanProductService.AddLoanProduct(loanProductDto);
+                    if (result)
+                    {
+                        TempData["LoanProductSuccess"] = "Loan product created successfully!";
+                        return RedirectToAction("Index");
+                    }
                 }
-
-                TempData["Error"] = "Unexpected error occurred while saving.";
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating loan product");
+                    TempData["Error"] = "An error occurred while creating the loan product. Please try again.";
+                }
             }
 
             TempData["Error"] = "Loan product creation failed. Please check validation errors.";
             PopulateDropdowns();
             return View(loanProductDto);
         }
-
-
-
-
 
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
@@ -220,8 +225,6 @@ namespace LoanApplicationService.Web.Controllers
             return RedirectToAction("Index");
         }
 
-
-
         private void PopulateDropdowns()
         {
             ViewBag.LoanProductTypes = Enum.GetValues(typeof(LoanProductType))
@@ -248,8 +251,5 @@ namespace LoanApplicationService.Web.Controllers
                     Text = EnumHelper.GetDescription(e)
                 }).ToList();
         }
-
     }
 }
-
-

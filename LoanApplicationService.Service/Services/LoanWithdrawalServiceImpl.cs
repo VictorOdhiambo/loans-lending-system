@@ -12,17 +12,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using LoanApplicationService.Service.DTOs.LoanPayment;
 using LoanApplicationService.CrossCutting.Utils;
-using System.Web.Mvc;
+using LoanApplicationService.Service.DTOs.Transactions;
 
 
 namespace LoanApplicationService.Service.Services
 {
-    public class LoanWithdrawalServiceImpl (LoanApplicationServiceDbContext loanApplicationServiceDbContext, IMapper mapper) : ILoanWithdrawalService
+    public class LoanWithdrawalServiceImpl(LoanApplicationServiceDbContext loanApplicationServiceDbContext, IMapper mapper) : ILoanWithdrawalService
     {
         private readonly LoanApplicationServiceDbContext _context = loanApplicationServiceDbContext;
         private readonly IMapper _mapper = mapper;
-      
-    
+
+
         public async Task<bool> WithdrawAsync(LoanWithdawalDto loanWithdawalDto)
         {
             var account = await _context.Accounts.FindAsync(loanWithdawalDto.AccountId);
@@ -48,6 +48,14 @@ namespace LoanApplicationService.Service.Services
             _context.Accounts.Update(account);
             await _context.Transactions.AddAsync(withdrawalTransaction);
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<IEnumerable<TransactionDto>> GetAllTransactionsAsync(int accountId)
+        {
+            var transactions = await _context.Transactions
+                .Where(t => t.AccountId == accountId)
+                .ToListAsync();
+            return _mapper.Map<IEnumerable<TransactionDto>>(transactions);
         }
     }
 }

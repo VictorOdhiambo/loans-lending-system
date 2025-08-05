@@ -1,0 +1,27 @@
+﻿@model IEnumerable<LoanApplicationService.Service.DTOs.LoanPenalty.LoanPenaltyDto>;
+
+@{
+    ViewData["Title"] = "Penalties Overview";
+}
+
+<h2 class="mb-4">Penalties Overview</h2>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.AccountId)</th>
+                <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                <th>@Html.DisplayNameFor(model => model.IsPaid)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var penalty in Model)
+            {
+                <tr>
+                    <td>@penalty.AccountId</td>
+                    <td>@penalty.Amount.ToString("C")</td>
+                    <td>@penalty.IsPaid.ToString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
