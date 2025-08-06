@@ -14,21 +14,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static LoanApplicationService.Service.Services.LoanPaymentImpl;
-using LoanApplicationService.Service; 
+using LoanApplicationService.Service;
 
 namespace LoanApplicationService.Service.Services
 {
-    public class LoanPaymentImpl (LoanApplicationServiceDbContext context, IMapper mapper, ILoanApplicationService loanApplicationService,IRepaymentScheduleService repaymentScheduleService, ILogger<LoanPaymentImpl> logger
+    public class LoanPaymentImpl(LoanApplicationServiceDbContext context, IMapper mapper, ILoanApplicationService loanApplicationService, IRepaymentScheduleService repaymentScheduleService, ILogger<LoanPaymentImpl> logger
         ) : ILoanPaymentService
     {
         private readonly LoanApplicationServiceDbContext _context = context;
-        private readonly IMapper _mapper = mapper;          
+        private readonly IMapper _mapper = mapper;
         private readonly ILoanApplicationService _loanApplicationService = loanApplicationService;
         private readonly IRepaymentScheduleService _repaymentScheduleService = repaymentScheduleService;
         private readonly ILogger<LoanPaymentImpl> _logger = logger;
 
 
-        // result type
         public record PaymentResult(
             bool Success,
             decimal AmountReceived,
@@ -64,20 +63,12 @@ namespace LoanApplicationService.Service.Services
                     return new PaymentResult(false, 0, 0, 0, 0, null, false);
                 }
 
-                if (account.DisbursementDate == null)
-                {
-                    _logger.LogError("Disbursement date is required for account {AccountId}.", loanPaymentDto.AccountId);
-                    return new PaymentResult(false, 0, 0, 0, 0, null, false);
-                }
-
-                var today = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(3)).Date; // EAT (UTC+3)
-
                 decimal paymentRemaining = Math.Round(loanPaymentDto.Amount, 2, MidpointRounding.AwayFromZero);
                 decimal totalPenaltiesPaid = 0m;
                 decimal totalInterestPaid = 0m;
                 decimal totalPrincipalPaid = 0m;
 
-                // 1. Pay off penalties (if applicable)
+                // Step 1: Pay unpaid penalties
                 var unpaidPenalties = await _context.LoanPenalties
                     .Where(p => p.AccountId == account.AccountId && !p.IsPaid)
                     .OrderBy(p => p.AppliedDate)
@@ -100,9 +91,9 @@ namespace LoanApplicationService.Service.Services
                     _context.LoanPenalties.Update(penalty);
                 }
 
-                // 2. Pay off due/past-due schedule items (interest first, then principal)
+                // Step 2: Pay due and unpaid installments (Interest first, then Principal)
                 var dueAndUnpaidScheduleItems = await _context.LoanRepaymentSchedules
-                    .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid && s.DueDate.Date <= today)
+                    .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid)
                     .OrderBy(s => s.DueDate)
                     .ThenBy(s => s.InstallmentNumber)
                     .ToListAsync(ct);
@@ -111,94 +102,102 @@ namespace LoanApplicationService.Service.Services
                 {
                     if (paymentRemaining <= FinancialThreshold) break;
 
-                    var interestDueForThisInstallment = item.InterestAmount - item.PaidInterest;
-                    if (interestDueForThisInstallment > FinancialThreshold)
+                    // Pay interest for this installment
+                    var interestDue = item.InterestAmount - item.PaidInterest;
+                    if (interestDue > FinancialThreshold)
                     {
-                        var amountToPayInterest = Math.Min(paymentRemaining, interestDueForThisInstallment);
-                        item.PaidInterest += amountToPayInterest;
-                        paymentRemaining -= amountToPayInterest;
-                        totalInterestPaid += amountToPayInterest;
+                        var interestPayment = Math.Min(paymentRemaining, interestDue);
+                        item.PaidInterest += interestPayment;
+                        paymentRemaining -= interestPayment;
+                        totalInterestPaid += interestPayment;
                     }
 
-                    if (paymentRemaining > FinancialThreshold && (item.PaidInterest >= item.InterestAmount - FinancialThreshold))
+                    // Pay principal for this installment
+                    if (paymentRemaining > FinancialThreshold)
                     {
-                        var principalDueForThisInstallment = item.PrincipalAmount - item.PaidPrincipal;
-                        if (principalDueForThisInstallment > FinancialThreshold)
+                        var principalDue = item.PrincipalAmount - item.PaidPrincipal;
+                        if (principalDue > FinancialThreshold)
                         {
-                            var amountToPayPrincipal = Math.Min(paymentRemaining, principalDueForThisInstallment);
-                            item.PaidPrincipal += amountToPayPrincipal;
-                            paymentRemaining -= amountToPayPrincipal;
-                            totalPrincipalPaid += amountToPayPrincipal;
+                            var principalPayment = Math.Min(paymentRemaining, principalDue);
+                            item.PaidPrincipal += principalPayment;
+                            paymentRemaining -= principalPayment;
+                            totalPrincipalPaid += principalPayment;
                         }
                     }
 
+                    // Mark installment as paid if all amounts are covered
                     if (item.PaidInterest >= item.InterestAmount - FinancialThreshold &&
                         item.PaidPrincipal >= item.PrincipalAmount - FinancialThreshold)
                     {
                         item.IsPaid = true;
-                        item.PaidDate = DateTime.UtcNow;                }
-                        _context.LoanRepaymentSchedules.Update(item);
+                        item.PaidDate = DateTime.UtcNow;
+                    }
+                    _context.LoanRepaymentSchedules.Update(item);
                 }
 
-                // 3. Handle remaining payment as principal prepayment
+                // Step 3: Apply any remaining payment to future installments' principal
                 if (paymentRemaining > FinancialThreshold)
                 {
-                    decimal principalPrepaymentAmount = paymentRemaining;
-                    account.OutstandingBalance -= principalPrepaymentAmount;
-                    totalPrincipalPaid += principalPrepaymentAmount;
-                    _logger.LogInformation("Applied prepayment of {Amount} to principal for account {AccountId}. New outstanding balance: {Balance}.",
-                        principalPrepaymentAmount, account.AccountId, account.OutstandingBalance);
-                }
-
-                // Ensure outstanding balance does not go negative
-                account.OutstandingBalance = Math.Max(0, account.OutstandingBalance);
-
-                // 4. Re-generate the remaining schedule
-                if (account.OutstandingBalance > FinancialThreshold)
-                {
-                    var firstUnpaidScheduleItem = await _context.LoanRepaymentSchedules
+                    var futureUnpaidScheduleItems = await _context.LoanRepaymentSchedules
                         .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid)
                         .OrderBy(s => s.DueDate)
-                        .FirstOrDefaultAsync(ct);
-
-                    var recalculationStartDate = firstUnpaidScheduleItem?.DueDate.Date ??
-                        GetNextDueDate(today, (PaymentFrequency)account.PaymentFrequency);
-
-                    await _repaymentScheduleService.GenerateAndSaveScheduleAsync(
-                        accountId: account.AccountId,
-                        isRecalculation: true,
-                        recalculationStartDate: recalculationStartDate,
-                        ct: ct);
-                    _logger.LogInformation("Loan schedule re-generated for account {AccountId}.", account.AccountId);
-                }
-                else
-                {
-                    var remainingUnpaidScheduleItems = await _context.LoanRepaymentSchedules
-                        .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid)
                         .ToListAsync(ct);
 
-                    if (remainingUnpaidScheduleItems.Any())
+                    foreach (var item in futureUnpaidScheduleItems)
                     {
-                        _context.LoanRepaymentSchedules.RemoveRange(remainingUnpaidScheduleItems);
-                        _logger.LogInformation("Removed {Count} remaining unpaid schedule items for account {AccountId} as loan is paid off.",
-                            remainingUnpaidScheduleItems.Count, account.AccountId);
+                        if (paymentRemaining <= FinancialThreshold) break;
+
+                        // Only pay off the principal of future installments
+                        var principalDue = item.PrincipalAmount - item.PaidPrincipal;
+                        if (principalDue > FinancialThreshold)
+                        {
+                            var principalPayment = Math.Min(paymentRemaining, principalDue);
+                            item.PaidPrincipal += principalPayment;
+                            paymentRemaining -= principalPayment;
+                            totalPrincipalPaid += principalPayment;
+
+                            // Update the account outstanding balance with the principal overpayment
+                            account.OutstandingBalance -= principalPayment;
+                        }
+
+                        // If a full principal prepayment makes the installment paid, mark it.
+                        if (item.PaidPrincipal >= item.PrincipalAmount - FinancialThreshold &&
+                            item.PaidInterest >= item.InterestAmount - FinancialThreshold)
+                        {
+                            item.IsPaid = true;
+                            item.PaidDate = DateTime.UtcNow;
+                        }
+
+                        _context.LoanRepaymentSchedules.Update(item);
                     }
                 }
 
-                // 5. Update Account details
-                account.UpdatedAt = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(3));
+                account.OutstandingBalance = Math.Max(0, account.OutstandingBalance);
 
-                var nextUnpaid = await _context.LoanRepaymentSchedules
+                // Step 4: No schedule recalculation. The schedule remains as-is.
+                if (account.OutstandingBalance <= FinancialThreshold)
+                {
+                    var remainingUnpaid = await _context.LoanRepaymentSchedules
+                        .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid)
+                        .ToListAsync(ct);
+                    if (remainingUnpaid.Any())
+                    {
+                        _context.LoanRepaymentSchedules.RemoveRange(remainingUnpaid);
+                    }
+                }
+
+                // Step 5: Update account and create transaction
+                account.UpdatedAt = DateTimeOffset.Now;
+
+                var nextUnpaidSchedule = await _context.LoanRepaymentSchedules
                     .AsNoTracking()
                     .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid)
                     .OrderBy(s => s.DueDate)
                     .FirstOrDefaultAsync(ct);
 
-                account.NextPaymentDate = nextUnpaid?.DueDate ?? null;
-
+                account.NextPaymentDate = nextUnpaidSchedule?.DueDate;
                 _context.Accounts.Update(account);
 
-                // 6. Record the transaction
                 var transaction = new Transactions
                 {
                     AccountId = loanPaymentDto.AccountId,
@@ -206,44 +205,30 @@ namespace LoanApplicationService.Service.Services
                     PrincipalAmount = Math.Round(totalPrincipalPaid, 2),
                     InterestAmount = Math.Round(totalInterestPaid, 2),
                     PenaltyAmount = Math.Round(totalPenaltiesPaid, 2),
-                    TransactionDate = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(3)),
+                    TransactionDate = DateTimeOffset.Now,
                     TransactionType = (int)TransactionType.Payment,
                     PaymentMethod = loanPaymentDto.PaymentMethod,
                 };
                 await _context.Transactions.AddAsync(transaction, ct);
 
-                // 7. Close the loan if paid off
+                // Step 6: Close loan if paid off
                 bool loanClosed = false;
                 if (account.OutstandingBalance <= FinancialThreshold)
                 {
-                    account.Status = (int)AccountStatus.Closed;
-                    var application = await _context.LoanApplications
-                        .AsTracking()
-                        .FirstOrDefaultAsync(x => x.ApplicationId == account.ApplicationId, ct);
-
-                    if (application != null)
-                    {
-                        application.Status = (int)LoanStatus.Closed;
-                        application.UpdatedAt = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(3));
-                    }
-                    loanClosed = true;
+                    loanClosed = await CloseLoanIfApplicable(account, FinancialThreshold, ct);
                 }
 
-                // 8. Save all changes
                 await _context.SaveChangesAsync(ct);
                 await tx.CommitAsync(ct);
 
-                _logger.LogInformation("Payment of {Amount} processed for account {AccountId}. Principal: {Principal}, Interest: {Interest}, Penalty: {Penalty}, New balance: {Balance}.",
-                    loanPaymentDto.Amount, account.AccountId, totalPrincipalPaid, totalInterestPaid, totalPenaltiesPaid, account.OutstandingBalance);
-
                 return new PaymentResult(
-                    Success: true,
-                    AmountReceived: loanPaymentDto.Amount,
-                    PrincipalPaid: Math.Round(totalPrincipalPaid, 2),
-                    InterestPaid: Math.Round(totalInterestPaid, 2),
-                    NewOutstandingBalance: Math.Round(account.OutstandingBalance, 2),
-                    NextPaymentDate: account.NextPaymentDate,
-                    LoanClosed: loanClosed
+                    true,
+                    loanPaymentDto.Amount,
+                    Math.Round(totalPrincipalPaid, 2),
+                    Math.Round(totalInterestPaid, 2),
+                    Math.Round(account.OutstandingBalance, 2),
+                    account.NextPaymentDate,
+                    loanClosed
                 );
             }
             catch (Exception ex)
@@ -253,7 +238,6 @@ namespace LoanApplicationService.Service.Services
                 throw new InvalidOperationException($"Failed to process payment for account {loanPaymentDto.AccountId}.", ex);
             }
         }
-
         private DateTime GetNextDueDate(DateTime currentDueDate, PaymentFrequency frequency)
         {
             return frequency switch
@@ -266,130 +250,79 @@ namespace LoanApplicationService.Service.Services
             };
         }
 
-
-
-
-
         public async Task<IEnumerable<LoanPaymentDto>> GetPaymentsByAccountIdAsync(int accountId)
-            {
-                var payments = await _context.Transactions
-                    .Where(t => t.AccountId == accountId && t.TransactionType == (int)TransactionType.Payment)
-                    .Select(t => new LoanPaymentDto
-                    {
-                        Id = t.TransactionId,
-                        AccountId = t.AccountId,
-                        Amount = t.Amount,
-                        PaymentDate = t.TransactionDate,
-                        PaymentMethod = t.PaymentMethod
-                    })
-                    .ToListAsync();
-                return payments;
-            }
-
-            public async Task<IEnumerable<LoanPaymentDto>> GetAllPaymentsAsync()
-            {
-                var payments = await _context.Transactions
-                    .Where(t => t.TransactionType == (int)TransactionType.Payment)
-                    .ToListAsync();
-                return payments.Select(t => new LoanPaymentDto
+        {
+            var payments = await _context.Transactions
+                .Where(t => t.AccountId == accountId && t.TransactionType == (int)TransactionType.Payment)
+                .Select(t => new LoanPaymentDto
                 {
                     Id = t.TransactionId,
                     AccountId = t.AccountId,
                     Amount = t.Amount,
                     PaymentDate = t.TransactionDate,
                     PaymentMethod = t.PaymentMethod
-                }).ToList();
-            }
+                })
+                .ToListAsync();
+            return payments;
+        }
 
-            public async Task<decimal> GetTotalArrears(int accountId)
+        public async Task<IEnumerable<LoanPaymentDto>> GetAllPaymentsAsync()
+        {
+            var payments = await _context.Transactions
+                .Where(t => t.TransactionType == (int)TransactionType.Payment)
+                .ToListAsync();
+            return payments.Select(t => new LoanPaymentDto
             {
-                var arrears = await _context.LoanRepaymentSchedules
-                    .Where(s => s.AccountId == accountId && s.DueDate < DateTime.UtcNow && !s.IsPaid)
-                    .ToListAsync();
+                Id = t.TransactionId,
+                AccountId = t.AccountId,
+                Amount = t.Amount,
+                PaymentDate = t.TransactionDate,
+                PaymentMethod = t.PaymentMethod
+            }).ToList();
+        }
 
-                return arrears.Sum(a => (a.PrincipalAmount - a.PaidPrincipal) +
-                                         (a.InterestAmount - a.PaidInterest));
-            }
+        public async Task<decimal> GetTotalArrears(int accountId)
+        {
+            var arrears = await _context.LoanRepaymentSchedules
+                .Where(s => s.AccountId == accountId && s.DueDate < DateTime.UtcNow && !s.IsPaid)
+                .ToListAsync();
 
+            return arrears.Sum(a => (a.PrincipalAmount - a.PaidPrincipal) +
+                                     (a.InterestAmount - a.PaidInterest));
+        }
 
-            private async Task<bool> CloseLoanIfApplicable(Account account, decimal financialThreshold, CancellationToken ct)
+        private async Task<bool> CloseLoanIfApplicable(Account account, decimal financialThreshold, CancellationToken ct)
+        {
+            if (account.OutstandingBalance > financialThreshold) return false;
+
+            var hasUnpaidPenalties = await _context.LoanPenalties
+                .AnyAsync(p => p.AccountId == account.AccountId && p.Amount > financialThreshold, ct);
+
+            var hasUnpaidSchedules = await _context.LoanRepaymentSchedules
+                .AnyAsync(s => s.AccountId == account.AccountId && !s.IsPaid &&
+                               (s.PrincipalAmount - s.PaidPrincipal > financialThreshold ||
+                                s.InterestAmount - s.PaidInterest > financialThreshold), ct);
+
+            if (hasUnpaidPenalties || hasUnpaidSchedules) return false;
+
+            var application = await _context.LoanApplications
+                .FirstOrDefaultAsync(x => x.ApplicationId == account.ApplicationId, ct);
+
+            if (application != null)
             {
-                if (account.OutstandingBalance > financialThreshold) return false;
+                application.Status = (int)LoanStatus.Closed;
+                application.UpdatedAt = DateTime.UtcNow;
+                _context.LoanApplications.Update(application);
 
-                var hasUnpaidPenalties = await _context.LoanPenalties
-                    .AnyAsync(p => p.AccountId == account.AccountId && p.Amount > financialThreshold, ct); // Check actual amount remaining
+                account.Status = (int)AccountStatus.Closed;
+                account.MaturityDate = DateTime.UtcNow;
+                account.NextPaymentDate = null;
 
-                var hasUnpaidSchedules = await _context.LoanRepaymentSchedules
-                    .AnyAsync(s => s.AccountId == account.AccountId && !s.IsPaid &&
-                                   (s.PrincipalAmount - s.PaidPrincipal > financialThreshold ||
-                                    s.InterestAmount - s.PaidInterest > financialThreshold), ct); // Check if actual amount due
-
-                if (hasUnpaidPenalties || hasUnpaidSchedules) return false;
-
-                var application = await _context.LoanApplications
-                    .FirstOrDefaultAsync(x => x.ApplicationId == account.ApplicationId, ct);
-
-                if (application != null)
-                {
-                    application.Status = (int)LoanStatus.Closed;
-                    application.UpdatedAt = DateTime.UtcNow;
-                    _context.LoanApplications.Update(application);
-
-                    account.Status = (int)AccountStatus.Closed;
-                    account.MaturityDate = DateTime.UtcNow; 
-                    account.NextPaymentDate = null; 
-
-                    _context.Accounts.Update(account);
-
-                }
-               _logger.LogInformation("Loan {AccountId} has been closed.", account.AccountId);
-                return true;
+                _context.Accounts.Update(account);
             }
+
+            _logger.LogInformation("Loan {AccountId} has been closed.", account.AccountId);
+            return true;
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-            
-           
-    
-        
-
-
-
-       
-        
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
+}
