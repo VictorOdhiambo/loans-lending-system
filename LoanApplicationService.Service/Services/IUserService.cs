@@ -7,6 +7,10 @@ namespace LoanApplicationService.Service.Services
         Task<UserDTO?> LoginAsync(LoginDto loginDto);
         Task<bool> RegisterAsync(UserDTO dto);
         Task<bool> ChangePasswordAsync(ChangePasswordDto dto);
+        Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto);
+        Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+        Task<UserDTO?> GetUserByEmailAsync(string email);
+        Task<string?> GeneratePasswordResetTokenAsync(string email);
         Task<List<UserDTO>> GetAllUsersAsync();
         Task<List<UserDTO>> GetAdminsAsync();
         Task<bool> UpdateUserRoleAsync(Guid userId, string newRole);

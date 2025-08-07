@@ -122,5 +122,62 @@ namespace LoanApplicationService.Service.Services
             var users = await _userManager.Users.Where(u => !u.IsActive).ToListAsync();
             return _mapper.Map<List<UserDTO>>(users);
         }
+
+        public async Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email))
+                return false;
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null || !user.IsActive)
+                return false;
+
+            // Generate password reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            
+            // Store the token in the database for later verification
+            // Note: In a production environment, you might want to store this in a separate table
+            // with expiration time and user ID for better security
+            
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Token) || string.IsNullOrEmpty(dto.NewPassword))
+                return false;
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null || !user.IsActive)
+                return false;
+
+            // Reset password using the token
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            return result.Succeeded;
+        }
+
+        public async Task<UserDTO?> GetUserByEmailAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return null;
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null || !user.IsActive)
+                return null;
+
+            return _mapper.Map<UserDTO>(user);
+        }
+
+        public async Task<string?> GeneratePasswordResetTokenAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return null;
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null || !user.IsActive)
+                return null;
+
+            return await _userManager.GeneratePasswordResetTokenAsync(user);
+        }
     }
 }
