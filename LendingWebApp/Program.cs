@@ -44,6 +44,7 @@ builder.Services.AddScoped<ILoanPaymentService, LoanPaymentImpl>();
 builder.Services.AddScoped<IRepaymentScheduleService, LoanRepaymentScheduleService>();
 builder.Services.AddScoped<ILoanWithdrawalService, LoanWithdrawalServiceImpl>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IReportService, ReportServiceImpl>();    
 
 
 // Email service
