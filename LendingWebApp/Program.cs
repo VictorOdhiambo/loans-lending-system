@@ -14,6 +14,7 @@ using AutoMapper;
 // ✅ Avoid ambiguous Role reference
 using AppRole = LoanApplicationService.CrossCutting.Utils.Role;
 using LoanApplicationService.Service.Mapper.TransactionsModuleMapper;
+using LoanApplicationService.Service.Mapper.RepaymentScheduleMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddAutoMapper(typeof(LoansProfile).Assembly);
 
 builder.Services.AddAutoMapper(typeof(TransactionsProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(RepaymentScheduleProfile).Assembly);
 
 // EF Core DbContext
 builder.Services.AddDbContext<LoanApplicationServiceDbContext>(options =>

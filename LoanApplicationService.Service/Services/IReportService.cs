@@ -1,6 +1,5 @@
 ﻿using LoanApplicationService.Core.Models;
 using LoanApplicationService.Service.DTOs.LoanPortFolioOverview;
-using LoanApplicationService.Service.DTOs.LoanReports;
 using System;
 using System.Collections.Generic;
 using System.Linq;

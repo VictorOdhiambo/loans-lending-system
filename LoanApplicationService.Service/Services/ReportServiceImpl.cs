@@ -2,7 +2,6 @@
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.CrossCutting.Utils;
 using LoanApplicationService.Service.DTOs.LoanPortFolioOverview;
-using LoanApplicationService.Service.DTOs.LoanReports;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

@@ -1,7 +1,9 @@
-﻿using LoanApplicationService.Core.Models;
+﻿using AutoMapper;
+using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.CrossCutting.Utils;
 using LoanApplicationService.Service.DTOs.Account;
+using LoanApplicationService.Service.DTOs.RepaymentSchedule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,199 +19,139 @@ namespace LoanApplicationService.Service.Services
     {
         private readonly LoanApplicationServiceDbContext _dbContext;
         private readonly ILogger<IRepaymentScheduleService> _logger;
-        public LoanRepaymentScheduleService(LoanApplicationServiceDbContext dbContext, ILogger<IRepaymentScheduleService>logger)
+        private readonly IMapper _mapper;
+        public LoanRepaymentScheduleService(LoanApplicationServiceDbContext dbContext, ILogger<IRepaymentScheduleService>logger, IMapper mapper)
         {
             _dbContext = dbContext;
             _logger = logger;
+            _mapper = mapper;
         }
 
 
 
-       
-            public async Task<List<LoanRepaymentSchedule>> GenerateAndSaveScheduleAsync(
-                int accountId,
-                bool isRecalculation = false,
-                DateTime? recalculationStartDate = null,
-                CancellationToken ct = default)
+
+        public async Task<List<LoanRepaymentSchedule>> GenerateAndSaveScheduleAsync(int accountId, CancellationToken ct = default)
+        {
+            const decimal FinancialThreshold = 0.01m;
+
+            var account = await _dbContext.Accounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.AccountId == accountId, ct);
+
+            if (account == null)
             {
-                const decimal FinancialThreshold = 0.01m;
-
-                var account = await _dbContext.Accounts
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(a => a.AccountId == accountId, ct);
-
-                if (account == null)
-                {
-                    _logger.LogError("Account with ID {AccountId} not found.", accountId);
-                    throw new ArgumentException($"Account with ID {accountId} not found.", nameof(accountId));
-                }
-
-                if (account.DisbursementDate == null || account.PrincipalAmount == 0)
-                {
-                    _logger.LogError("Disbursement date or principal amount is required for account {AccountId}.", accountId);
-                    throw new InvalidOperationException("Account disbursement date and principal amount are required.");
-                }
-
-                if (isRecalculation && recalculationStartDate.HasValue && recalculationStartDate.Value < account.DisbursementDate.Value.Date)
-                {
-                    _logger.LogWarning("Recalculation start date {RecalculationStartDate} is before disbursement date {DisbursementDate} for account {AccountId}.",
-                        recalculationStartDate.Value, account.DisbursementDate.Value, accountId);
-                    throw new ArgumentException("Recalculation start date cannot be before disbursement date.", nameof(recalculationStartDate));
-                }
-
-                var paymentFrequency = (PaymentFrequency)account.PaymentFrequency;
-
-                if (isRecalculation)
-                {
-                    var existingUnpaidSchedules = await _dbContext.LoanRepaymentSchedules
-                        .Where(s => s.AccountId == accountId && !s.IsPaid)
-                        .ToListAsync(ct);
-                    if (existingUnpaidSchedules.Any())
-                    {
-                        _dbContext.LoanRepaymentSchedules.RemoveRange(existingUnpaidSchedules);
-                        _logger.LogInformation("Removed {Count} unpaid schedules for account {AccountId} during recalculation.", existingUnpaidSchedules.Count, accountId);
-                    }
-                }
-
-                var schedule = new List<LoanRepaymentSchedule>();
-                decimal annualInterestRate = account.InterestRate;
-                var businessDate = DateTime.UtcNow;
-
-                double GetPaymentsPerYear(PaymentFrequency frequency)
-                {
-                    return frequency switch
-                    {
-                        PaymentFrequency.Monthly => 12,
-                        PaymentFrequency.Biweekly => 26,
-                        PaymentFrequency.Weekly => 52,
-                        PaymentFrequency.Quarterly => 4,
-                        _ => throw new ArgumentOutOfRangeException(nameof(frequency), "Unsupported payment frequency."),
-                    };
-                }
-
-                var totalOriginalPayments = (int)Math.Ceiling(account.TermMonths * (GetPaymentsPerYear(paymentFrequency) / 12d));
-
-                int numberOfRemainingPayments;
-                DateTime firstNewInstallmentDueDate;
-                DateTime firstNewInstallmentStartDate;
-
-                if (isRecalculation)
-                {
-                    var paymentsMade = await _dbContext.LoanRepaymentSchedules
-                        .AsNoTracking()
-                        .CountAsync(s => s.AccountId == accountId && s.IsPaid, ct);
-                    numberOfRemainingPayments = Math.Max(0, totalOriginalPayments - paymentsMade);
-
-                    var lastPaidSchedule = await _dbContext.LoanRepaymentSchedules
-                        .AsNoTracking()
-                        .Where(s => s.AccountId == accountId && s.IsPaid)
-                        .OrderByDescending(s => s.InstallmentNumber)
-                        .FirstOrDefaultAsync(ct);
-
-                    firstNewInstallmentStartDate = recalculationStartDate?.Date ??
-                        (lastPaidSchedule?.DueDate.AddDays(1).Date ?? account.DisbursementDate.Value.Date);
-                    firstNewInstallmentDueDate = GetNextDueDate(firstNewInstallmentStartDate, paymentFrequency);
-
-                    if (firstNewInstallmentDueDate < businessDate)
-                    {
-                        firstNewInstallmentDueDate = GetNextDueDate(businessDate, paymentFrequency);
-                        firstNewInstallmentStartDate = firstNewInstallmentDueDate.AddDays(GetPreviousIntervalDays(paymentFrequency) * -1);
-                        _logger.LogInformation("Adjusted first due date to {DueDate} for account {AccountId} as it was in the past.", firstNewInstallmentDueDate, accountId);
-                    }
-                }
-                else
-                {
-                    numberOfRemainingPayments = totalOriginalPayments;
-                    firstNewInstallmentStartDate = account.DisbursementDate.Value.Date;
-                    firstNewInstallmentDueDate = firstNewInstallmentStartDate;
-                    _logger.LogInformation("Initial schedule for account {AccountId} starts with due date {DueDate}.", accountId, firstNewInstallmentDueDate);
-                }
-
-                if (numberOfRemainingPayments <= 0)
-                {
-                    _dbContext.LoanRepaymentSchedules.AddRange(schedule);
-                    return schedule;
-                }
-
-                decimal totalLoanInterest = Math.Round(account.PrincipalAmount * (annualInterestRate * account.TermMonths / 12m), 2, MidpointRounding.AwayFromZero);
-
-                decimal fixedPrincipalPerInstallment = Math.Round(account.PrincipalAmount / totalOriginalPayments, 2);
-                decimal fixedInterestPerInstallment = Math.Round(totalLoanInterest / totalOriginalPayments, 2);
-
-                decimal totalPrincipalRounded = fixedPrincipalPerInstallment * totalOriginalPayments;
-                decimal totalInterestRounded = fixedInterestPerInstallment * totalOriginalPayments;
-
-                decimal principalRoundingDifference = account.PrincipalAmount - totalPrincipalRounded;
-                decimal interestRoundingDifference = totalLoanInterest - totalInterestRounded;
-
-                DateTime currentDueDate = firstNewInstallmentDueDate;
-                DateTime currentStartDate = firstNewInstallmentStartDate;
-
-                for (int i = 1; i <= numberOfRemainingPayments; i++)
-                {
-                    decimal principalForPeriod = fixedPrincipalPerInstallment;
-                    decimal interestForPeriod = fixedInterestPerInstallment;
-
-                    if (i == numberOfRemainingPayments)
-                    {
-                        principalForPeriod += principalRoundingDifference;
-                        interestForPeriod += interestRoundingDifference;
-                    }
-
-                    if (isRecalculation)
-                    {
-                        if (account.OutstandingBalance < principalForPeriod + interestForPeriod)
-                        {
-                            principalForPeriod = Math.Max(0, account.OutstandingBalance - interestForPeriod);
-                            interestForPeriod = Math.Min(interestForPeriod, account.OutstandingBalance);
-                        }
-                    }
-
-                    DateTime periodEndDate = currentDueDate;
-
-                    schedule.Add(new LoanRepaymentSchedule
-                    {
-                        AccountId = account.AccountId,
-                        InstallmentNumber = i,
-                        DueDate = currentDueDate,
-                        StartDate = currentStartDate,
-                        EndDate = periodEndDate,
-                        ScheduledAmount = Math.Round(principalForPeriod + interestForPeriod, 2, MidpointRounding.AwayFromZero),
-                        InterestAmount = interestForPeriod,
-                        PrincipalAmount = principalForPeriod,
-                        IsPaid = false,
-                        PaidPrincipal = 0,
-                        PaidInterest = 0,
-                    });
-
-                    if (i < numberOfRemainingPayments)
-                    {
-                        currentStartDate = currentDueDate.AddDays(1);
-                        currentDueDate = GetNextDueDate(currentDueDate, paymentFrequency);
-                    }
-                }
-
-                _dbContext.LoanRepaymentSchedules.AddRange(schedule);
-                _logger.LogInformation("Generated {Count} schedule items for account {AccountId}. First due date: {DueDate}.",
-                    schedule.Count, accountId, firstNewInstallmentDueDate);
-
-                return schedule;
+                _logger.LogError("Account with ID {AccountId} not found.", accountId);
+                throw new ArgumentException($"Account with ID {accountId} not found.", nameof(accountId));
             }
 
-            private DateTime GetNextDueDate(DateTime currentDueDate, PaymentFrequency frequency)
+            if (account.DisbursementDate == null || account.PrincipalAmount == 0)
+            {
+                _logger.LogError("Disbursement date or principal amount is required for account {AccountId}.", accountId);
+                throw new InvalidOperationException("Account disbursement date and principal amount are required.");
+            }
+
+            var paymentFrequency = (PaymentFrequency)account.PaymentFrequency;
+
+            var schedule = new List<LoanRepaymentSchedule>();
+            decimal annualInterestRate = account.InterestRate;
+
+            double GetPaymentsPerYear(PaymentFrequency frequency)
             {
                 return frequency switch
                 {
-                    PaymentFrequency.Monthly => currentDueDate.AddMonths(1),
-                    PaymentFrequency.Biweekly => currentDueDate.AddDays(14),
-                    PaymentFrequency.Weekly => currentDueDate.AddDays(7),
-                    PaymentFrequency.Quarterly => currentDueDate.AddMonths(3),
+                    PaymentFrequency.Monthly => 12,
+                    PaymentFrequency.Biweekly => 26,
+                    PaymentFrequency.Weekly => 52,
+                    PaymentFrequency.Quarterly => 4,
                     _ => throw new ArgumentOutOfRangeException(nameof(frequency), "Unsupported payment frequency."),
                 };
             }
 
+            var totalOriginalPayments = (int)Math.Ceiling(account.TermMonths * (GetPaymentsPerYear(paymentFrequency) / 12d));
+
+            int numberOfRemainingPayments = totalOriginalPayments;
+
+            DateTime firstNewInstallmentStartDate = account.DisbursementDate.Value.Date;
+            DateTime currentDueDate = GetNextDueDate(firstNewInstallmentStartDate, paymentFrequency);
+
+            _logger.LogInformation("Initial schedule for account {AccountId} starts with due date {DueDate}.", accountId, currentDueDate);
+
+            if (numberOfRemainingPayments <= 0)
+            {
+                _dbContext.LoanRepaymentSchedules.AddRange(schedule);
+                return schedule;
+            }
+
+            decimal totalLoanInterest = Math.Round(account.PrincipalAmount * (annualInterestRate * account.TermMonths / 12m), 2, MidpointRounding.AwayFromZero);
+            decimal fixedPrincipalPerInstallment = Math.Round(account.PrincipalAmount / totalOriginalPayments, 2);
+            decimal fixedInterestPerInstallment = Math.Round(totalLoanInterest / totalOriginalPayments, 2);
+            decimal totalPrincipalRounded = fixedPrincipalPerInstallment * totalOriginalPayments;
+            decimal totalInterestRounded = fixedInterestPerInstallment * totalOriginalPayments;
+            decimal principalRoundingDifference = account.PrincipalAmount - totalPrincipalRounded;
+            decimal interestRoundingDifference = totalLoanInterest - totalInterestRounded;
+
+            // CORRECTED LINE: Initialize the previousEndDate to the day BEFORE the first installment's start date.
+            DateTime previousEndDate = firstNewInstallmentStartDate.AddDays(-1);
+
+            for (int i = 1; i <= numberOfRemainingPayments; i++)
+            {
+                decimal principalForPeriod = fixedPrincipalPerInstallment;
+                decimal interestForPeriod = fixedInterestPerInstallment;
+
+                if (i == numberOfRemainingPayments)
+                {
+                    principalForPeriod += principalRoundingDifference;
+                    interestForPeriod += interestRoundingDifference;
+                }
+
+                DateTime periodStartDate = previousEndDate.AddDays(1);
+                DateTime periodEndDate = currentDueDate;
+
+                schedule.Add(new LoanRepaymentSchedule
+                {
+                    AccountId = account.AccountId,
+                    InstallmentNumber = i,
+                    DueDate = currentDueDate,
+                    StartDate = periodStartDate,
+                    EndDate = periodEndDate,
+                    ScheduledAmount = Math.Round(principalForPeriod + interestForPeriod, 2, MidpointRounding.AwayFromZero),
+                    InterestAmount = interestForPeriod,
+                    PrincipalAmount = principalForPeriod,
+                    IsPaid = false,
+                    PaidPrincipal = 0,
+                    PaidInterest = 0,
+                });
+
+                if (i < numberOfRemainingPayments)
+                {
+                    previousEndDate = periodEndDate;
+                    currentDueDate = GetNextDueDate(currentDueDate, paymentFrequency);
+                }
+            }
+
+            _dbContext.LoanRepaymentSchedules.AddRange(schedule);
+            _logger.LogInformation("Generated {Count} schedule items for account {AccountId}. First due date: {DueDate}.",
+                schedule.Count, accountId, currentDueDate);
+
+            return schedule;
+        }
+
+        private DateTime GetNextDueDate(DateTime currentDueDate, PaymentFrequency frequency)
+        {
+            return frequency switch
+            {
+                PaymentFrequency.Monthly => currentDueDate.AddMonths(1),
+                PaymentFrequency.Biweekly => currentDueDate.AddDays(14),
+                PaymentFrequency.Weekly => currentDueDate.AddDays(7),
+                PaymentFrequency.Quarterly => currentDueDate.AddMonths(3),
+                _ => throw new ArgumentOutOfRangeException(nameof(frequency), "Unsupported payment frequency."),
+            };
+        }
+       
+
         private int GetPreviousIntervalDays(PaymentFrequency frequency)
         {
+            // This helper method is no longer used in the new logic but is kept for completeness.
             return frequency switch
             {
                 PaymentFrequency.Monthly => 30,
@@ -219,16 +161,11 @@ namespace LoanApplicationService.Service.Services
                 _ => throw new ArgumentOutOfRangeException(nameof(frequency), "Unsupported payment frequency."),
             };
         }
-           
+        
 
+      
 
-        public async Task<List<LoanRepaymentSchedule>> GetScheduleByAccountAsync(int accountId)
-        {
-            return await _dbContext.LoanRepaymentSchedules
-                .Where(s => s.AccountId == accountId)
-                .OrderBy(s => s.DueDate)
-                .ToListAsync();
-        }
+        
 
         public async Task MarkInstallmentPaidAsync(int scheduleId)
         {
@@ -239,6 +176,18 @@ namespace LoanApplicationService.Service.Services
                 await _dbContext.SaveChangesAsync();
             }
  
+        }
+
+        public async Task <IEnumerable<RepaymentScheduleDto>> GetScheduleByAccount (int accountId)
+        {
+            var repaymentSchedule = await _dbContext.LoanRepaymentSchedules
+                .Where(s => s.AccountId == accountId)
+                .OrderBy(s => s.DueDate)
+                .ToListAsync();
+            var schedule = _mapper.Map<IEnumerable<RepaymentScheduleDto>>(repaymentSchedule);
+            return schedule;
+
+
         }
     }
 

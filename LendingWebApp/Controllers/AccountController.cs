@@ -10,32 +10,24 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LoanApplicationService.Web.Controllers
 {
-    public class AccountController : Controller
     [Authorize]
-    public class AccountController : Controller
-    public class AccountController(IAccountService accountService) : Controller
+    public class AccountController: Controller
     {
         private readonly IAccountService _accountService;
+        private readonly IRepaymentScheduleService _repaymentScheduleService;
         private readonly IUserService _userService;
         private readonly INotificationSenderService _notificationService;
 
-        public AccountController(IAccountService accountService, IUserService userService, INotificationSenderService notificationService)
+        public AccountController(IAccountService accountService, IUserService userService, INotificationSenderService notificationService, IRepaymentScheduleService repaymentScheduleService)
         {
             _accountService = accountService;
             _userService = userService;
             _notificationService = notificationService;
+            _repaymentScheduleService = repaymentScheduleService;
         }
-        private readonly IAccountService _accountService = accountService;
-        private readonly IAccountService _accountService;
-        private readonly IUserService _userService;
-        private readonly INotificationSenderService _notificationService;
+        
 
-        public AccountController(IAccountService accountService, IUserService userService, INotificationSenderService notificationService)
-        {
-            _accountService = accountService;
-            _userService = userService;
-            _notificationService = notificationService;
-        }
+       
         
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
@@ -214,6 +206,18 @@ namespace LoanApplicationService.Web.Controllers
 
             ModelState.AddModelError("", "Invalid reset token or email address.");
             return View(model);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetScheduleByAccount (int Id)
+        {
+            var schedules = await _repaymentScheduleService.GetScheduleByAccount(Id);
+            if (schedules == null || !schedules.Any())
+            {
+                return View("NotFound");
+            }
+            return View(schedules);
         }
     }
 }
