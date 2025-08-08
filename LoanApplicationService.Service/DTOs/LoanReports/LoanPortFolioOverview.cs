@@ -31,13 +31,13 @@ namespace LoanApplicationService.Service.DTOs.LoanPortFolioOverview
         public decimal Paid { get; set; }
 
         public IEnumerable<MonthlyAmount> MonthlyDisbursements { get; set; } = new List<MonthlyAmount>();
-        public IEnumerable<MonthlyAmount> MonthlyPayments { get; set; } = new List<MonthlyAmount>();
+    public IEnumerable<MonthlyAmount> MonthlyPayments { get; set; } = new List<MonthlyAmount>();
 
-        public class MonthlyAmount
-        {
-            public string Month { get; set; } // e.g., "2025-08"
-            public decimal Amount { get; set; }
-        }
+    public class MonthlyAmount
+    {
+        public string Month { get; set; } // e.g., "2025-08"
+        public decimal Amount { get; set; }
+    }
 
         public IEnumerable<RiskDistribution> CustomerRiskDistribution { get; set; } = new List<RiskDistribution>();         
 

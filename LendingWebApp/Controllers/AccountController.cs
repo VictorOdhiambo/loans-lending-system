@@ -13,14 +13,16 @@ namespace LoanApplicationService.Web.Controllers
     public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
+        private readonly IRepaymentScheduleService _repaymentScheduleService;
         private readonly IUserService _userService;
         private readonly INotificationSenderService _notificationService;
 
-        public AccountController(IAccountService accountService, IUserService userService, INotificationSenderService notificationService)
+        public AccountController(IAccountService accountService, IUserService userService, INotificationSenderService notificationService, IRepaymentScheduleService repaymentScheduleService)
         {
             _accountService = accountService;
             _userService = userService;
             _notificationService = notificationService;
+            _repaymentScheduleService = repaymentScheduleService;
         }
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
@@ -172,6 +174,18 @@ namespace LoanApplicationService.Web.Controllers
 
             ModelState.AddModelError("", "Invalid reset token or email address.");
             return View(model);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetScheduleByAccount (int Id)
+        {
+            var schedules = await _repaymentScheduleService.GetScheduleByAccount(Id);
+            if (schedules == null || !schedules.Any())
+            {
+                return View("NotFound");
+            }
+            return View(schedules);
         }
     }
 }

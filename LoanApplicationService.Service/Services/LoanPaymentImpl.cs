@@ -91,9 +91,10 @@ namespace LoanApplicationService.Service.Services
                     _context.LoanPenalties.Update(penalty);
                 }
 
-                // Step 2: Pay due and unpaid installments (Interest first, then Principal)
+
+                // Step 2: Pay due and unpaid installments
                 var dueAndUnpaidScheduleItems = await _context.LoanRepaymentSchedules
-                    .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid)
+                    .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid && s.StartDate <= DateTime.UtcNow)
                     .OrderBy(s => s.DueDate)
                     .ThenBy(s => s.InstallmentNumber)
                     .ToListAsync(ct);
@@ -102,7 +103,6 @@ namespace LoanApplicationService.Service.Services
                 {
                     if (paymentRemaining <= FinancialThreshold) break;
 
-                    // Pay interest for this installment
                     var interestDue = item.InterestAmount - item.PaidInterest;
                     if (interestDue > FinancialThreshold)
                     {
@@ -112,7 +112,6 @@ namespace LoanApplicationService.Service.Services
                         totalInterestPaid += interestPayment;
                     }
 
-                    // Pay principal for this installment
                     if (paymentRemaining > FinancialThreshold)
                     {
                         var principalDue = item.PrincipalAmount - item.PaidPrincipal;
@@ -125,7 +124,6 @@ namespace LoanApplicationService.Service.Services
                         }
                     }
 
-                    // Mark installment as paid if all amounts are covered
                     if (item.PaidInterest >= item.InterestAmount - FinancialThreshold &&
                         item.PaidPrincipal >= item.PrincipalAmount - FinancialThreshold)
                     {
@@ -139,7 +137,7 @@ namespace LoanApplicationService.Service.Services
                 if (paymentRemaining > FinancialThreshold)
                 {
                     var futureUnpaidScheduleItems = await _context.LoanRepaymentSchedules
-                        .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid)
+                        .Where(s => s.AccountId == loanPaymentDto.AccountId && !s.IsPaid && s.StartDate > DateTime.UtcNow)
                         .OrderBy(s => s.DueDate)
                         .ToListAsync(ct);
 
@@ -147,7 +145,6 @@ namespace LoanApplicationService.Service.Services
                     {
                         if (paymentRemaining <= FinancialThreshold) break;
 
-                        // Only pay off the principal of future installments
                         var principalDue = item.PrincipalAmount - item.PaidPrincipal;
                         if (principalDue > FinancialThreshold)
                         {
@@ -156,11 +153,9 @@ namespace LoanApplicationService.Service.Services
                             paymentRemaining -= principalPayment;
                             totalPrincipalPaid += principalPayment;
 
-                            // Update the account outstanding balance with the principal overpayment
                             account.OutstandingBalance -= principalPayment;
                         }
 
-                        // If a full principal prepayment makes the installment paid, mark it.
                         if (item.PaidPrincipal >= item.PrincipalAmount - FinancialThreshold &&
                             item.PaidInterest >= item.InterestAmount - FinancialThreshold)
                         {
@@ -172,9 +167,9 @@ namespace LoanApplicationService.Service.Services
                     }
                 }
 
+
                 account.OutstandingBalance = Math.Max(0, account.OutstandingBalance);
 
-                // Step 4: No schedule recalculation. The schedule remains as-is.
                 if (account.OutstandingBalance <= FinancialThreshold)
                 {
                     var remainingUnpaid = await _context.LoanRepaymentSchedules
@@ -211,7 +206,6 @@ namespace LoanApplicationService.Service.Services
                 };
                 await _context.Transactions.AddAsync(transaction, ct);
 
-                // Step 6: Close loan if paid off
                 bool loanClosed = false;
                 if (account.OutstandingBalance <= FinancialThreshold)
                 {

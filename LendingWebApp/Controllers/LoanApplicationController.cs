@@ -667,12 +667,9 @@ loanApplicationDto.CreatedBy = Guid.Parse(userIdStr ?? string.Empty);
             var createdAccount = await _accountService.GetAccountByApplicationIdAsync(application.ApplicationId);
 
             // 5. Generate the initial repayment schedule
-            // Pass the accountId and indicate it's not a recalculation.
-            // The recalculationStartDate should be the DisbursementDate of the account.
+           
             var initialSchedule = await _loanRepaymentScheduleService.GenerateAndSaveScheduleAsync(
-                createdAccount.AccountId,
-                isRecalculation: false,
-                recalculationStartDate: createdAccount.DisbursementDate
+                createdAccount.AccountId
             );
 
             // 6. Update Account with derived schedule info (NextPaymentDate, MaturityDate, MonthlyPayment)
@@ -691,15 +688,13 @@ loanApplicationDto.CreatedBy = Guid.Parse(userIdStr ?? string.Empty);
                 createdAccount.MonthlyPayment = 0;
             }
             // Save these updates back to the account.
-            await _accountService.UpdateAccountAsync(createdAccount); // Assuming an update method exists
+            await _accountService.UpdateAccountAsync(createdAccount);
 
             // 7. Update Loan Application Status
             application.Status = LoanStatus.Disbursed;
             await _loanApplicationService.UpdateAsync(application);
 
-            // 8. (Optional) Perform actual fund disbursement via external API (e.g., M-Pesa)
-            // You would add this integration here. Error handling for this is critical.
-            // If it fails, you'd need to reverse the loan creation or mark it as "Disbursement Failed".
+            
 
             TempData["Success"] = $"Loan for application {applicationId} disbursed successfully.";
             return RedirectToAction("Index");
