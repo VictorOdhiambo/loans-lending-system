@@ -1,7 +1,8 @@
 ﻿@model LoanApplicationService.Service.DTOs.LoanDisbursement.LoanWithdawalDto
 
 @{
-    ViewBag.Title = "Withdraw Funds";
+    Layout = "~/Views/Customer/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = "Withdraw Funds";
     var paymentMethods = ViewBag.PaymentMethods as List<SelectListItem>;
 }
 

@@ -15,6 +15,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -105,82 +106,34 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Index(int? Status, int? customerId)
         {
-            // If customerId is provided, ensure the user is either an admin/superadmin or the customer themselves
-            if (customerId.HasValue)
-            {
-                if (!User.IsInRole("SuperAdmin") && !User.IsInRole("Admin"))
-                {
-                    // For customers, verify they can only see their own applications
-                    var customer = await _customerService.GetByIdAsync(customerId.Value);
-                    if (customer == null || customer.Email != User.Identity.Name)
-                    {
-                        return Forbid();
-                    }
-                }
-            }
-            else
-            {
-                // If no customerId provided, handle based on user role
-                if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
-                {
-                    // Admins and SuperAdmins can see all applications when no customerId is provided
-                    customerId = null;
-                }
-                else if (User.IsInRole("Customer"))
-                {
-                    // For customers, automatically get their customer ID
-                    var currentCustomer = await _customerService.GetByEmailAsync(User.Identity.Name);
-                    if (currentCustomer != null)
-                    {
-                        customerId = currentCustomer.CustomerId;
-                    }
-                    else
-                    {
-                        return Forbid();
-                    }
-                }
-                else
-                {
-                    return Forbid();
-                }
-            }
-
+            // Only Admin/SuperAdmin can view all applications
             var applications = await _loanApplicationService.GetAllAsync();
+            var applicationsList = applications.ToList();
 
+            // Filter by status if provided
             if (Status.HasValue)
             {
-                applications = applications.Where(a => a.Status == (LoanStatus)Status.Value);
+                applicationsList = applicationsList.Where(a => (int)a.Status == Status.Value).ToList();
             }
+
+            // Filter by customer if provided
             if (customerId.HasValue)
             {
-                applications = applications.Where(a => a.CustomerId == customerId.Value);
-                ViewBag.CustomerId = customerId.Value;
-                // Fetch customer full name
-                var customer = await _customerService.GetByIdAsync(customerId.Value);
-                if (customer != null)
-                {
-                    ViewBag.CustomerName = customer.FirstName + " " + customer.LastName;
-                }
+                applicationsList = applicationsList.Where(a => a.CustomerId == customerId.Value).ToList();
             }
 
-            var statusList = Enum.GetValues(typeof(LoanStatus))
-                .Cast<LoanStatus>()
-                .Select(s => new SelectListItem
-                {
-                    Value = ((int)s).ToString(),
-                    Text = s.ToString(),
-                    Selected = Status.HasValue && (int)s == Status.Value
-                }).ToList();
+            ViewBag.Status = Status;
+            ViewBag.CustomerId = customerId;
+            ViewBag.Applications = applicationsList;
 
-            ViewBag.StatusList = statusList;
-            ViewBag.SelectedStatus = Status;
-
-            return View(applications);
+            return View(applicationsList);
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetById(int id)
         {
             var application = await _loanApplicationService.GetByIdAsync(id);
@@ -192,117 +145,87 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> Create(int? customerId, int? productId)
         {
+            // If user is Customer, they can only create applications for themselves
+            if (User.IsInRole("Customer"))
+            {
+                if (customerId.HasValue)
+                {
+                    // Verify the customer is creating for themselves
+                    var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                    if (customerService != null)
+                    {
+                        var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                        if (currentCustomer == null || currentCustomer.CustomerId != customerId.Value)
+                        {
+                            return RedirectToAction("AccessDenied", "Home");
+                        }
+                    }
+                }
+            }
+            // Admin and SuperAdmin can create applications for any customer
+
             await PopulateLoanProductsDropdown();
+            ViewBag.CustomerId = customerId;
+            ViewBag.ProductId = productId;
 
-            string customerName = null;
-            int actualCustomerId = 0;
-
-            // If customerId is provided, use it (for admin/super admin creating for specific customer)
-            if (customerId.HasValue)
+            var loanApplicationDto = new LoanApplicationDto
             {
-                var customer = await _customerService.GetByIdAsync(customerId.Value);
-                if (customer != null)
-                {
-                    customerName = customer.FirstName + " " + customer.LastName;
-                    ViewBag.CustomerName = customerName;
-                    ViewBag.CustomerId = customer.CustomerId;
-                    actualCustomerId = customer.CustomerId;
-                }
-            }
-            // If no customerId but user is a customer, get their own information
-            else if (User.IsInRole("Customer"))
-            {
-                var customer = await _customerService.GetByEmailAsync(User.Identity.Name);
-                if (customer != null)
-                {
-                    customerName = customer.FirstName + " " + customer.LastName;
-                    ViewBag.CustomerName = customerName;
-                    ViewBag.CustomerId = customer.CustomerId;
-                    actualCustomerId = customer.CustomerId;
-                }
-            }
-
-            var loanApplicationDto = new LoanApplicationDto();
-            if (customerId.HasValue) loanApplicationDto.CustomerId = customerId.Value;
-            if (productId.HasValue) loanApplicationDto.ProductId = productId.Value;
+                CustomerId = customerId ?? 0,
+                ProductId = productId ?? 0
+            };
 
             return View(loanApplicationDto);
         }
 
-
-
-
         [HttpPost]
         [ValidateModel]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> Create(LoanApplicationDto loanApplicationDto)
         {
-            var applicantCustomer = await _customerService.GetByIdAsync(loanApplicationDto.CustomerId);
-            if (applicantCustomer == null)
+            // If user is Customer, they can only create applications for themselves
+            if (User.IsInRole("Customer"))
             {
-                ModelState.AddModelError("CustomerId", "Invalid customer selected.");
-                await PopulateLoanProductsDropdown();
-
-                return View(loanApplicationDto);
-            }
-
-            // Fetch the selected loan product
-            var product = await _loanProductService.GetLoanProductById(loanApplicationDto.ProductId);
-            if (product == null)
-            {
-                ModelState.AddModelError("ProductId", "Invalid loan product selected.");
-                await PopulateLoanProductsDropdown();
-
-                return View(loanApplicationDto);
-            }
-            else
-            {
-                if (loanApplicationDto.TermMonths < product.MinTermMonths || loanApplicationDto.TermMonths > product.MaxTermMonths)
+                // Verify the customer is creating for themselves
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
                 {
-                    ModelState.AddModelError("TermMonths", $"Term must be between {product.MinTermMonths} and {product.MaxTermMonths} months.");
-                }
-                if (loanApplicationDto.RequestedAmount < product.MinAmount || loanApplicationDto.RequestedAmount > product.MaxAmount)
-                {
-                    ModelState.AddModelError("RequestedAmount", $"Requested amount must be between {product.MinAmount} and {product.MaxAmount}.");
-                }
-            }
-
-
-
-            //get user or customer Id
-            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdStr))
-            {
-                TempData["Error"] = "User session expired. Please log in again.";
-                return RedirectToAction("", "Home");
-            }
-loanApplicationDto.CreatedBy = Guid.Parse(userIdStr ?? string.Empty);
-
-            var result = await _loanApplicationService.CreateAsync(loanApplicationDto);
-            if (result)
-            {
-                // Send notification to customer using the template ID (2 = Loan Application Received)
-                var customer = await _customerService.GetByIdAsync(loanApplicationDto.CustomerId);
-                if (customer != null)
-                {
-                    var data = new Dictionary<string, string>
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != loanApplicationDto.CustomerId)
                     {
-                        ["FirstName"] = customer.FirstName,
-                        ["Email"] = customer.Email,
-                        ["LoanProductId"] = loanApplicationDto.ProductId.ToString(),
-                        ["LoanAmount"] = loanApplicationDto.RequestedAmount.ToString("F2")
-                    };
-                    await _notificationSenderService.SendNotificationByTemplateId(2, data);
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
                 }
-                TempData["LoanApplicationSuccess"] = "Loan application created successfully!";
-                if (loanApplicationDto.CustomerId != 0)
-                {
-                    return RedirectToAction("Index", new { customerId = loanApplicationDto.CustomerId });
-                }
-                return RedirectToAction("Index");
             }
-            TempData["Error"] = "Unexpected error occurred while saving.";
+            // Admin and SuperAdmin can create applications for any customer
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateLoanProductsDropdown();
+                return View(loanApplicationDto);
+            }
+
+            try
+            {
+                var result = await _loanApplicationService.CreateAsync(loanApplicationDto);
+                if (result)
+                {
+                    TempData["LoanApplicationSuccess"] = "Loan application submitted successfully!";
+                    return RedirectToAction("CustomerView", new { customerId = loanApplicationDto.CustomerId });
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Failed to create loan application.");
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            await PopulateLoanProductsDropdown();
             return View(loanApplicationDto);
         }
 
@@ -408,17 +331,27 @@ loanApplicationDto.CreatedBy = Guid.Parse(userIdStr ?? string.Empty);
 
         public async Task<ActionResult> RejectAsync(int applicationId)
         {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+            {
+                TempData["Error"] = "User session expired. Please log in again.";
+                return RedirectToAction("Index", "Home");
+            }
 
-            var userIdStr = Guid.Parse(HttpContext.Session.GetString("UserId") ?? string.Empty);
             var loanApplication = await _loanApplicationService.GetByIdAsync(applicationId);
-            if (loanApplication.CreatedBy == userIdStr)
+            if (loanApplication == null)
+            {
+                TempData["Error"] = "Loan application not found.";
+                return RedirectToAction("Index");
+            }
 
+            if (loanApplication.CreatedBy == userId)
             {
                 TempData["Error"] = "You cannot reject your own application.";
                 return RedirectToAction("GetById", new { id = applicationId });
             }
 
-            loanApplication.RejectedBy = userIdStr;
+            loanApplication.RejectedBy = userId;
             var result = await _loanApplicationService.RejectAsync(applicationId);
             if (result)
             {
@@ -457,23 +390,32 @@ loanApplicationDto.CreatedBy = Guid.Parse(userIdStr ?? string.Empty);
 
         //customer views
         // GET: LoanApplication/CustomerView
-        [Authorize]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         [HttpGet("/LoanApplication/CustomerView/{customerId}")]
         public async Task<IActionResult> CustomerView(int customerId)
         {
-            // Ensure the user is either an admin/superadmin or the customer themselves
-            if (!User.IsInRole("SuperAdmin") && !User.IsInRole("Admin"))
+            // If user is Customer, verify they are viewing their own applications
+            if (User.IsInRole("Customer"))
             {
-                // For customers, verify they can only see their own applications
-                var customer = await _customerService.GetByIdAsync(customerId);
-                if (customer == null || customer.Email != User.Identity.Name)
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
                 {
-                    return Forbid();
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != customerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
                 }
             }
+            // Admin and SuperAdmin can view any customer's applications
 
             var applications = await _loanApplicationService.GetByCustomerIdAsync(customerId);
-            return View(applications);
+            var applicationsList = applications.ToList();
+
+            ViewBag.CustomerId = customerId;
+            ViewBag.Applications = applicationsList;
+
+            return View(applicationsList);
         }
 
         // POST: LoanApplication/CustomerReject

@@ -1,7 +1,8 @@
 ﻿    @model LoanApplicationService.Service.DTOs.LoanPayment.LoanPaymentDto;
 
 @{
-    ViewBag.Title = "Make Payment";
+    Layout = "~/Views/Customer/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = "Make Payment";
     var paymentMethods = ViewBag.PaymentMethods as List<SelectListItem>;
 }
 

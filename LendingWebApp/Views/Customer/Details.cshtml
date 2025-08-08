@@ -69,6 +69,7 @@
         <a href="/Customer/ChangePassword/@Model.CustomerId" class="btn btn-warning">Change Password</a>
         <a href="/Customer/Index" class="btn btn-secondary">Back to Customer List</a>
         <a class="btn btn-info" href="/LoanApplication/Index?customerId=@Model.CustomerId">View Customer Loans</a>
+        <a class="btn btn-success" href="/LoanApplication/Create?customerId=@Model.CustomerId">Apply for Loan</a>
     }
     else if (User.IsInRole("Customer"))
     {

@@ -1,0 +1,207 @@
+@{
+    Layout = "~/Views/Customer/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = "Customer Dashboard";
+}
+@using LoanApplicationService.CrossCutting.Utils
+
+<div class="container py-4">
+    <h1 class="mb-4">My Dashboard</h1>
+
+    @if (TempData["WelcomeMessage"] != null)
+    {
+        <div id="welcomeMsg" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["WelcomeMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <script>
+            setTimeout(function() {
+                var msg = document.getElementById('welcomeMsg');
+                if (msg) {
+                    msg.style.opacity = '0';
+                    msg.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(function() {
+                        if (msg) msg.style.display = 'none';
+                    }, 500);
+                }
+            }, 4000);
+        </script>
+    }
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <a href="/LoanApplication/CustomerView/@ViewBag.CustomerId" class="text-decoration-none">
+                <div class="card text-white bg-primary h-100 shadow hover-lift">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <i class="bi bi-file-earmark-text display-5 mb-2"></i>
+                        <h5 class="card-title">Total Applications</h5>
+                        <h3>@ViewBag.TotalApplications</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="/Account/GetAccountsByUserId" class="text-decoration-none">
+                <div class="card text-white bg-success h-100 shadow hover-lift">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <i class="bi bi-cash-stack display-5 mb-2"></i>
+                        <h5 class="card-title">Active Loans</h5>
+                        <h3>@ViewBag.ActiveLoans</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info h-100 shadow">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-currency-dollar display-5 mb-2"></i>
+                    <h5 class="card-title">Total Borrowed</h5>
+                    <h3>@ViewBag.TotalBorrowed.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            @{
+                var riskLevel = ViewBag.CustomerRiskLevel ?? LoanRiskLevel.Medium;
+                var bgColor = riskLevel switch
+                {
+                    LoanRiskLevel.VeryLow => "#28a745",    // Green
+                    LoanRiskLevel.Low => "#17a2b8",        // Blue
+                    LoanRiskLevel.Medium => "#ffc107",     // Yellow
+                    LoanRiskLevel.High => "#fd7e14",       // Orange
+                    LoanRiskLevel.VeryHigh => "#dc3545",   // Red
+                    _ => "#6c757d"                         // Gray (default)
+                };
+                var riskText = riskLevel switch
+                {
+                    LoanRiskLevel.VeryLow => "Very Low",
+                    LoanRiskLevel.Low => "Low",
+                    LoanRiskLevel.Medium => "Medium",
+                    LoanRiskLevel.High => "High",
+                    LoanRiskLevel.VeryHigh => "Very High",
+                    _ => "Unknown"
+                };
+            }
+            <div class="card text-white h-100 shadow" style="background-color: @bgColor">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-shield-check display-5 mb-2"></i>
+                    <h5 class="card-title">Risk Level</h5>
+                    <h3>@riskText</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Recent Applications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.RecentApplications != null && ViewBag.RecentApplications.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Application ID</th>
+                                        <th>Product</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var app in ViewBag.RecentApplications)
+                                    {
+                                        <tr>
+                                            <td>@app.ApplicationId</td>
+                                            <td>@(app.ProductName ?? "N/A")</td>
+                                            <td>@app.RequestedAmount.ToString("C")</td>
+                                            <td>
+                                                @{
+                                                    var statusClass = app.Status switch
+                                                    {
+                                                        LoanStatus.Pending => "badge bg-warning",
+                                                        LoanStatus.Approved => "badge bg-success",
+                                                        LoanStatus.Rejected => "badge bg-danger",
+                                                        LoanStatus.Disbursed => "badge bg-info",
+                                                        _ => "badge bg-secondary"
+                                                    };
+                                                    var statusText = app.Status switch
+                                                    {
+                                                        LoanStatus.Pending => "Pending",
+                                                        LoanStatus.Approved => "Approved",
+                                                        LoanStatus.Rejected => "Rejected",
+                                                        LoanStatus.Disbursed => "Disbursed",
+                                                        _ => "Unknown"
+                                                    };
+                                                }
+                                                <span class="@statusClass">@statusText</span>
+                                            </td>
+                                            <td>@app.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("MMM dd, yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox display-4 text-muted"></i>
+                            <p class="text-muted mt-2">No applications yet. <a href="/LoanProduct" class="text-decoration-none">Apply for your first loan!</a></p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="/LoanProduct" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Apply for Loan
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Account/GetAccountsByUserId" class="btn btn-success w-100">
+                                <i class="bi bi-bank me-2"></i>
+                                View My Accounts
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Account/GetAccountsByUserId" class="btn btn-info w-100">
+                                <i class="bi bi-credit-card me-2"></i>
+                                Make Payment
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Customer/EditProfile" class="btn btn-warning w-100">
+                                <i class="bi bi-person-gear me-2"></i>
+                                Update Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -90,7 +90,7 @@
                                 </dd>
 
                                 <dt class="col-sm-4">Application Date:</dt>
-                                <dd class="col-sm-8">@Model.ApplicationDate.UtcDateTime.ToString("yyyy-MM-dd")</dd>
+                                <dd class="col-sm-8">@Model.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy HH:mm:ss +03:00")</dd>
                             </dl>
                         </div>
                     </div>
@@ -110,7 +110,7 @@
                         <div class="row mt-3">
                             <div class="col-12">
                                 <dt>Decision Date:</dt>
-                                <dd>@Model.DecisionDate.UtcDateTime.ToString("yyyy-MM-dd")</dd>
+                                <dd>@Model.DecisionDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy HH:mm:ss +03:00")</dd>
                             </div>
                         </div>
                     }

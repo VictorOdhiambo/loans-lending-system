@@ -1,8 +1,17 @@
-<nav class="nav flex-column p-3">
+<nav class="d-flex flex-column flex-shrink-0 p-3 position-fixed vh-100" style="width: 220px; background: #1565c0;">
     <ul class="nav flex-column">
         <a href="/Home/CustomerDashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
             <span class="navbar-brand mb-0 h1">PesaSure®</span>
         </a>
+        <hr class="border-light">
+        
+        <!-- My Dashboard -->
+        <li class="nav-item">
+            <a class="nav-link text-white" href="/Home/CustomerDashboard">
+                <i class="bi bi-house-door"></i> My Dashboard
+            </a>
+        </li>
+        
         <!-- My Loans -->
         <li class="nav-item">
             <a class="nav-link text-white" data-bs-toggle="collapse" href="#loansMenu" role="button" aria-expanded="false">
@@ -14,21 +23,13 @@
                     <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/ActiveLoans">Active Loans</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Index">Loan History</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="/Account/GetAccountsByUserId">My Loan Accounts</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/Transactions">Make Payments</a></li>
                 </ul>
             </div>
         </li>
         <!-- Notifications -->
-        <li class="nav-item">
-            <a class="nav-link text-white" data-bs-toggle="collapse" href="#notificationsMenu" role="button" aria-expanded="false">
-                <i class="bi bi-bell"></i> Notifications
-            </a>
-            <div class="collapse" id="notificationsMenu">
-                <ul class="nav flex-column ms-3">
-                    <li class="nav-item"><a class="nav-link text-white" asp-page="/Customer/ViewMessages">View Messages</a></li>
-                </ul>
-            </div>
-        </li>
-        <!-- Profile -->
+        
+        <!-- My Profile -->
         <li class="nav-item">
             <a class="nav-link text-white" data-bs-toggle="collapse" href="#profileMenu" role="button" aria-expanded="false">
                 <i class="bi bi-person"></i> Profile
@@ -40,12 +41,19 @@
                 </ul>
             </div>
         </li>
-        <li class="nav-item mt-3"> 
-            <a class="nav-link text-white" href="/Home/FAQ"><i class="bi bi-box-arrow-right"></i> FAQs</a>
+        
+        <!-- Help & Support -->
+        <li class="nav-item">
+            <a class="nav-link text-white" href="/Home/FAQ">
+                <i class="bi bi-question-circle"></i> Help & FAQ
+            </a>
         </li>
+        
         <!-- Logout -->
         <li class="nav-item mt-3">
-            <a class="nav-link text-white" href="/Home/Logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            <a class="nav-link text-white" href="/Home/Logout">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
         </li>
     </ul>
 </nav> 

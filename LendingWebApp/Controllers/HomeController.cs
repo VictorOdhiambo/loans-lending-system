@@ -97,7 +97,7 @@ namespace LoanApplicationService.Web.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> Dashboard()
         {
             // Get dashboard statistics
@@ -152,7 +152,7 @@ namespace LoanApplicationService.Web.Controllers
             return View();
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AdminDashboard()
         {
             // Get admin dashboard statistics
@@ -207,9 +207,20 @@ namespace LoanApplicationService.Web.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> CustomerDashboard()
         {
+            // If user is Admin or SuperAdmin, redirect to their appropriate dashboard
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("AdminDashboard");
+            }
+            else if (User.IsInRole("SuperAdmin"))
+            {
+                return RedirectToAction("Dashboard");
+            }
+
+            // Only customers should reach this point
             var customer = await _customerService.GetByEmailAsync(User.Identity.Name);
             if (customer == null)
             {
@@ -225,7 +236,7 @@ namespace LoanApplicationService.Web.Controllers
             var totalBorrowed = applicationsList
                 .Where(a => a.Status == LoanStatus.Approved || a.Status == LoanStatus.Disbursed)
                 .Sum(a => a.ApprovedAmount);
-            var availableCredit = 10000; 
+            var availableCredit = 10000; // This should be calculated based on customer's credit limit
 
             // Get recent applications 
             var recentApplications = applicationsList
@@ -239,9 +250,9 @@ namespace LoanApplicationService.Web.Controllers
             ViewBag.TotalBorrowed = totalBorrowed;
             ViewBag.AvailableCredit = availableCredit;
             ViewBag.RecentApplications = recentApplications;
+            ViewBag.CustomerId = customer.CustomerId;
 
-            // Use the CustomerDashboard view
-            return View("~/Views/Customer/CustomerDashboard.cshtml");
+            return View();
         }
 
         [Authorize]
@@ -255,6 +266,27 @@ namespace LoanApplicationService.Web.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        [Authorize]
+        public IActionResult FAQ()
+        {
+            return View();
+        }
+
+        [Authorize]
+        public async Task<IActionResult> DebugRoles()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Content("User not found");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var roleList = string.Join(", ", roles);
+            
+            return Content($"User: {user.Email}, Roles: {roleList}, IsAuthenticated: {User.Identity.IsAuthenticated}");
         }
     }
 
