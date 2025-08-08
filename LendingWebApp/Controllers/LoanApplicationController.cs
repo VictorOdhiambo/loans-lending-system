@@ -531,10 +531,7 @@ namespace LoanApplicationService.Web.Controllers
             return View(application);
         }
 
-        private bool IsUserAuthenticated()
-        {
-            return !string.IsNullOrEmpty(HttpContext.Session.GetString("UserId"));
-        }
+
 
         private async Task PopulateLoanProductsDropdown()
         {
