@@ -44,6 +44,7 @@ builder.Services.AddScoped<ILoanPaymentService, LoanPaymentImpl>();
 builder.Services.AddScoped<IRepaymentScheduleService, LoanRepaymentScheduleService>();
 builder.Services.AddScoped<ILoanWithdrawalService, LoanWithdrawalServiceImpl>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IReportService, ReportServiceImpl>();    
 
 
 // Email service
@@ -124,6 +125,7 @@ using (var scope = app.Services.CreateScope())
 {
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<LoanApplicationServiceDbContext>();
 
     // Seed Roles
     foreach (var roleName in Enum.GetNames(typeof(AppRole)))
@@ -151,6 +153,40 @@ using (var scope = app.Services.CreateScope())
         {
             userManager.AddToRoleAsync(superAdmin, superAdminRole.Name ?? "SuperAdmin").Wait();
         }
+    }
+
+    // Seed Password Reset Email Template
+    if (!dbContext.NotificationTemplates.Any(t => t.NotificationHeader == "Password Reset" && t.Channel == "email"))
+    {
+        var passwordResetTemplate = new NotificationTemplate
+        {
+            NotificationHeader = "Password Reset",
+            Channel = "email",
+            Subject = "Password Reset Request - Loan Management System",
+            BodyText = @"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                    <h2 style='color: #333;'>Password Reset Request</h2>
+                    <p>Hello {{UserName}},</p>
+                    <p>We received a request to reset your password for your Loan Management System account.</p>
+                    <p>Click the button below to reset your password:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='{{ResetLink}}' style='background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a>
+                    </div>
+                    <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                    <p style='word-break: break-all; color: #666;'>{{ResetLink}}</p>
+                    <p><strong>Important:</strong></p>
+                    <ul>
+                        <li>This link will expire in 24 hours</li>
+                        <li>If you didn't request this password reset, please ignore this email</li>
+                        <li>For security reasons, this link can only be used once</li>
+                    </ul>
+                    <p>If you have any questions, please contact our support team.</p>
+                    <p>Best regards,<br>Loan Management System Team</p>
+                </div>"
+        };
+
+        dbContext.NotificationTemplates.Add(passwordResetTemplate);
+        dbContext.SaveChanges();
     }
 }
 

@@ -1,0 +1,445 @@
+﻿@model LoanApplicationService.Service.DTOs.LoanPortFolioOverview.LoanPortFolioOverview
+
+@{
+    ViewData["Title"] = "Reports Overview";
+
+    
+
+}
+
+<!DOCTYPE html>
+<html lang="en">                                                                                
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>@ViewData["Title"]</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .portfolio-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1a3c6d;
+        }
+        .metric-card {
+            background: #ffffff;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #5a6a85;
+            margin-bottom: 0.5rem;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a3c6d;
+        }
+        .metric-value.currency::before {
+            content: "$";
+            font-size: 1.2rem;
+        }
+        .row {
+            margin-bottom: 1.5rem;
+        }
+        .container {
+            max-width: 1400px;
+            padding: 2rem;
+        }
+        @@media (max-width: 768px) {
+            .metric-card {
+                margin-bottom: 1rem;
+            }
+            .metric-value {
+                font-size: 1.2rem;
+            }
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-height: 350px;
+            height: 350px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="portfolio-header">Loan Reports</h2>
+
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Total Outstanding</div>
+                    <div class="metric-value ">Kshs @Model.TotalOutstanding.ToString("N2")</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Principal Outstanding</div>
+                    <div class="metric-value ">Kshs @Model.PrincipalOutstanding.ToString("N2")</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Interest Outstanding</div>
+                    <div class="metric-value ">Kshs @Model.InterestOutstanding.ToString("N2")</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Penalty Outstanding</div>
+                    <div class="metric-value ">Kshs @Model.PenaltyOutstanding.ToString("N2")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Fees Outstanding</div>
+                    <div class="metric-value ">Kshs @Model.FeesOutstanding.ToString("N2")</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Open Loans</div>
+                    <div class="metric-value">@Model.OpenLoans</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Processing Loans</div>
+                    <div class="metric-value">@Model.ProcessingLoans</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Defaulted Loans</div>
+                    <div class="metric-value">@Model.DefaultedLoans</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Rejected Applications</div>
+                    <div class="metric-value">@Model.DeniedLoans</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Fully Paid Loans</div>
+                    <div class="metric-value">@Model.FullyPaidLoans</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Not Taken Up Loans</div>
+                    <div class="metric-value">@Model.NotTakenUpLoans</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="metric-card">
+                    <div class="metric-label">Number of Customers</div>
+                    <div class="metric-value">@Model.NumberOfCustomers.ToString()</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap 5 JS (for potential interactivity, optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+
+   
+
+    <div class="container mt-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm rounded-4 p-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Disbursements vs Payments</h5>
+                        <div class="chart-container">
+                            <canvas id="summaryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm rounded-4 p-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Risk Distribution</h5>
+                        <div class="chart-container">
+                            <canvas id="riskPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card mb-4">
+        <div class="card-header">Disbursements vs Payments (Monthly)</div>
+        <div class="card-body">
+            <canvas id="disbursementsPaymentsChart" height="300"></canvas>
+        </div>
+    </div>
+
+
+    
+    @section Scripts {
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                var totalDisbursed = @Html.Raw(Json.Serialize(Model.Disbursed));
+                var totalPaid = @Html.Raw(Json.Serialize(Model.Paid));
+
+                var ctxPie = document.getElementById('summaryChart').getContext('2d');
+
+                var pieChart = new Chart(ctxPie, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Total Disbursed', 'Total Paid'],
+                        datasets: [{
+                            data: [totalDisbursed, totalPaid],
+                            backgroundColor: [
+                                'rgba(0, 0, 255, 0.6)',
+                                'rgba(0, 255, 0, 0.6)'
+                            ],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 20,
+                                    padding: 15,
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: ''
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        let value = context.parsed;
+                                        return label + ': ' + new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+            
+            var labels = @Html.Raw(ViewBag.RiskLabels);
+            var data = @Html.Raw(ViewBag.RiskData);
+
+            var ctx = document.getElementById('riskPieChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut', // or 'pie'
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.6)', // Very Low
+                            'rgba(255, 159, 64, 0.6)', // Low
+                            'rgba(255, 205, 86, 0.6)', // Medium
+                            'rgba(75, 192, 192, 0.6)', // High
+                            'rgba(54, 162, 235, 0.6)'  // Very High
+                        ],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: ''
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.parsed;
+                                    return label + ': ' + value; // or format as percentage
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+                    
+            const months = @Html.Raw(Json.Serialize(Model.MonthlyDisbursements.Select(x => x.Month).Union(Model.MonthlyPayments.Select(x => x.Month)).Distinct().OrderBy(x => x)))
+            const disbursementsData = @Html.Raw(Json.Serialize(Model.MonthlyDisbursements.OrderBy(x => x.Month).Select(x => x.Amount)))
+            const paymentsData = @Html.Raw(Json.Serialize(Model.MonthlyPayments.OrderBy(x => x.Month).Select(x => x.Amount)))
+
+
+
+            const barCtx = document.getElementById('disbursementsPaymentsChart').getContext('2d');
+
+            const disbursementsPaymentsChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: months, // e.g., ['Jan', 'Feb', 'Mar', ...]
+                    datasets: [
+                        {
+                            label: 'Disbursements',
+                            data: disbursementsData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            borderRadius: 5,
+                            barThickness: 30
+                        },
+                        {
+                            label: 'Payments',
+                            data: paymentsData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            borderRadius: 5,
+                            barThickness: 30
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 10,
+                            right: 10
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '',
+                            font: {
+                                size: 18,
+                                weight: 'bold',
+                                family: 'Arial'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            },
+                            color: '#333'
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Arial',
+                                    size: 12
+                                },
+                                color: '#444'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw || 0;
+                                    return context.dataset.label + ': KES ' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'KES ' + value.toLocaleString();
+                                },
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                drawBorder: false,
+                                color: '#e0e0e0'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+
+        
+
+        
+            </script>
+            }
+
+
+
+   
+</body>
+</html>
