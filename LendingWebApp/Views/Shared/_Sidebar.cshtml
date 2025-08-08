@@ -1,14 +1,29 @@
 <div class="d-flex flex-column flex-shrink-0 p-3 position-fixed vh-100" style="width: 220px; background: #1565c0;">
-    <a href="/Home/Dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+    <a href="@(User.IsInRole("Customer") ? "/Home/CustomerDashboard" : "/Home/Dashboard")" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <span class="navbar-brand mb-0 h1">PesaSure®</span>
     </a>
     <hr class="border-light">
     <ul class="nav flex-column mb-auto">
         <!-- Dashboard -->
         <li class="nav-item">
-            <a class="nav-link text-white" href="/Home/Dashboard">
-                <i class="bi bi-house-door"></i> Dashboard
-            </a>
+            @if (User.IsInRole("Customer"))
+            {
+                <a class="nav-link text-white" href="/Home/CustomerDashboard">
+                    <i class="bi bi-house-door"></i> My Dashboard
+                </a>
+            }
+            else if (User.IsInRole("SuperAdmin"))
+            {
+                <a class="nav-link text-white" href="/Home/Dashboard">
+                    <i class="bi bi-house-door"></i> Super Admin Dashboard
+                </a>
+            }
+            else if (User.IsInRole("Admin"))
+            {
+                <a class="nav-link text-white" href="/Home/AdminDashboard">
+                    <i class="bi bi-house-door"></i> Admin Dashboard
+                </a>
+            }
         </li>
         
         @if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
@@ -16,13 +31,14 @@
             <!-- Loans Dropdown - Admin/SuperAdmin Only -->
             <li class="nav-item">
                 <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminLoansMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-cash-stack me-2"></i> Loans
+                    <i class="bi bi-cash-stack me-2"></i> Loans Management
                 </a>
                 <div class="collapse" id="adminLoansMenu">
                     <ul class="nav flex-column ms-3">
                         <li class="nav-item"><a class="nav-link text-white" href="/Account">View All Loan Accounts</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/LoanProduct">View All Loan Products</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Index">View All Loan Applications</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Create">Apply Loan for Customer</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/LoanCharge/Index">Loan Charges</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/LoanCharge/AddChargeToLoanProduct">Add Loan Charge To Loan Product</a></li>
                     </ul>
@@ -32,7 +48,7 @@
             <!-- Users Dropdown - Admin/SuperAdmin Only -->
             <li class="nav-item">
                 <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminUsersMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-people me-2"></i> Users
+                    <i class="bi bi-people me-2"></i> User Management
                 </a>
                 <div class="collapse" id="adminUsersMenu">
                     <ul class="nav flex-column ms-3">
@@ -73,6 +89,35 @@
                     <ul class="nav flex-column ms-3">
                         <li class="nav-item"><a class="nav-link text-white" href="/Reports/LoanSummary">Loan Summary</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/Reports/SMSDeliveryLogs">SMS Delivery Logs</a></li>
+                    </ul>
+                </div>
+            </li>
+        }
+        
+        @if (User.IsInRole("Customer"))
+        {
+            <!-- Customer-specific menu -->
+            <li class="nav-item">
+                <a class="nav-link text-white" data-bs-toggle="collapse" href="#customerLoansMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-cash-stack me-2"></i> My Loans
+                </a>
+                <div class="collapse" id="customerLoansMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanProduct">Apply for Loan</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Account/GetAccountsByUserId">My Loan Accounts</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Transactions">Make Payments</a></li>
+                    </ul>
+                </div>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link text-white" data-bs-toggle="collapse" href="#customerProfileMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-person me-2"></i> My Profile
+                </a>
+                <div class="collapse" id="customerProfileMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-white" href="/Customer/Profile">View Profile</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Customer/EditProfile">Edit Profile</a></li>
                     </ul>
                 </div>
             </li>

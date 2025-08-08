@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace LoanApplicationService.Web.Controllers
 {
     public class AccountController : Controller
+    [Authorize]
+    public class AccountController : Controller
+    public class AccountController(IAccountService accountService) : Controller
     {
         private readonly IAccountService _accountService;
         private readonly IUserService _userService;
@@ -22,6 +25,18 @@ namespace LoanApplicationService.Web.Controllers
             _userService = userService;
             _notificationService = notificationService;
         }
+        private readonly IAccountService _accountService = accountService;
+        private readonly IAccountService _accountService;
+        private readonly IUserService _userService;
+        private readonly INotificationSenderService _notificationService;
+
+        public AccountController(IAccountService accountService, IUserService userService, INotificationSenderService notificationService)
+        {
+            _accountService = accountService;
+            _userService = userService;
+            _notificationService = notificationService;
+        }
+        
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Index()
@@ -31,6 +46,7 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetAccountById(int Id)
         {
             var account = await _accountService.GetAccountByIdAsync(Id);
@@ -43,6 +59,7 @@ namespace LoanApplicationService.Web.Controllers
 
         [ValidateModel]
         [HttpPost]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> CreateAccount(AccountDto accountDto)
         {
 
@@ -57,15 +74,21 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetAccountsByUserId()
         {
             var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (userIdString == string.Empty)
+            if (string.IsNullOrEmpty(userIdString))
             {
                 TempData["Error"] = "User is not logged in or session expired";
-                RedirectToAction("", "Home");
+                return RedirectToAction("Index", "Home");
             }
-            var userId = Guid.Parse(userIdString);
+            
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                TempData["Error"] = "Invalid user ID";
+                return RedirectToAction("Index", "Home");
+            }
 
             var accounts = await _accountService.GetAccountByUserId(userId);
             if (accounts == null || !accounts.Any())
@@ -76,8 +99,27 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetPenalties (int accountId)
         {
+            // Get the account first to verify ownership
+            var account = await _accountService.GetAccountByIdAsync(accountId);
+            if (account == null)
+            {
+                return View("NotFound");
+            }
+
+            // Verify the customer owns this account
+            var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+            if (customerService != null)
+            {
+                var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+            }
+
             var penalties = await _accountService.GetAccountPenalties(accountId);
             if (penalties == null || !penalties.Any())
             {

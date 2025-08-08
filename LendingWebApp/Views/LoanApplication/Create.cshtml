@@ -1,9 +1,7 @@
 ﻿@model LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto;
 
 @{
-        ViewData["Title"] = "Loan Application";
-    var loanProducts = ViewBag.LoanProducts as List<SelectListItem>;
-    var customers = ViewBag.Customers as List<SelectListItem>;
+    ViewData["Title"] = "Create Loan Application";
     Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -44,6 +42,7 @@ else
     @Html.LabelFor(model => model.ProductId, "Loan Product", new { @class = "form-label" })
     @if (Model.ProductId != 0)
     {
+        var loanProducts = ViewBag.LoanProducts as List<SelectListItem>;
         var selectedProduct = loanProducts?.FirstOrDefault(p => p.Value == Model.ProductId.ToString());
         <input type="text" class="form-control" value="@(selectedProduct != null ? selectedProduct.Text.Split('|')[0] : "")" readonly />
         @Html.HiddenFor(model => model.ProductId)
@@ -52,12 +51,14 @@ else
     {
         <select id="ProductId" name="ProductId" class="form-select">
             <option value="">-- Select Loan Product --</option>
-            @if (loanProducts != null)
+            @if (ViewBag.LoanProducts != null)
             {
-                foreach (var product in loanProducts)
+                foreach (var product in (List<SelectListItem>)ViewBag.LoanProducts)
                 {
                     <text>
-                        <option value="@product.Value" @(product.Selected ? "selected" : "")>@product.Text</option>
+                        <option value="@product.Value" @(product.Value == Model.ProductId.ToString() ? "selected" : "")>
+                            @product.Text
+                        </option>
                     </text>
                 }
             }

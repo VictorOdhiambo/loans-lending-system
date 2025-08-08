@@ -24,6 +24,7 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> Index(int? customerId)
         {
             ViewBag.CustomerId = customerId;
@@ -32,6 +33,12 @@ namespace LoanApplicationService.Web.Controllers
             // If customerId is provided, use it (for admin/super admin viewing specific customer)
             if (customerId.HasValue)
             {
+                // Only Admin/SuperAdmin can view specific customer's products
+                if (!User.IsInRole("Admin") && !User.IsInRole("SuperAdmin"))
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+                
                 // Fetch customer details for display
                 var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
                 if (customerService != null)
@@ -101,15 +108,20 @@ namespace LoanApplicationService.Web.Controllers
                 return View(filtered);
             }
 
-            // For admin/super admin viewing all products
+            // For Admin/SuperAdmin viewing all products
             return View(loanProducts);
         }
 
         [HttpGet]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> GetById(int id)
         {
-            var loanProducts = await _loanProductService.GetLoanProductById(id);
-            return View(loanProducts);
+            var product = await _loanProductService.GetLoanProductById(id);
+            if (product == null)
+            {
+                return View("NotFound");
+            }
+            return View(product);
         }
 
         [Authorize(Roles = "SuperAdmin,Admin")]
