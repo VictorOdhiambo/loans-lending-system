@@ -1,10 +1,25 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom px-4">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: #1976d2; margin-left:220px;">
     <div class="container-fluid">
-        <span class="navbar-text">
-            Welcome, @User.Identity.Name!
-        </span>
-        <div class="ms-auto">
-            <a href="/Home/Logout" class="btn btn-outline-danger btn-sm">Logout</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i> 
+                        <span>Customer</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-primary" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item text-white" href="/Customer/Profile">My Profile</a></li>
+                        <li><a class="dropdown-item text-white" href="/Customer/EditProfile">Edit Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-white" href="/Home/FAQ">Help & FAQ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-white" href="/Home/Logout">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
         </div>
     </div>
 </nav> 

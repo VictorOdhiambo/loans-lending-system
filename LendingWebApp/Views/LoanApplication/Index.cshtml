@@ -1,9 +1,19 @@
-@model IEnumerable<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>;
+@model IEnumerable<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>
+@using LoanApplicationService.CrossCutting.Utils
 
 @{
-    var statusList = ViewBag.StatusList as List<SelectListItem>;
-    int? selectedStatus = ViewBag.SelectedStatus as int?;
+    ViewData["Title"] = "Loan Applications";
     Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
+    
+    // Create status dropdown list
+    var statusList = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "-- All --" },
+        new SelectListItem { Value = "0", Text = "Pending" },
+        new SelectListItem { Value = "1", Text = "Approved" },
+        new SelectListItem { Value = "2", Text = "Rejected" },
+        new SelectListItem { Value = "3", Text = "Disbursed" }
+    };
 }
 
   
@@ -101,8 +111,8 @@ else if (ViewBag.CustomerId != null)
                         <td>@item.RequestedAmount</td>
                         <td>@item.ApprovedAmount</td>
                         <td>@item.Purpose</td>
-                        <td>@item.ApplicationDate.ToString()</td>
-                      <td>@(item.DecisionDate != default(DateTimeOffset) ? item.DecisionDate.ToString() : "")</td>
+                        <td>@item.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy HH:mm:ss +03:00")</td>
+                      <td>@(item.DecisionDate != default(DateTimeOffset) ? item.DecisionDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy HH:mm:ss +03:00") : "")</td>
                       @if (ViewBag.CustomerId == null)
                       {
                           <td>
