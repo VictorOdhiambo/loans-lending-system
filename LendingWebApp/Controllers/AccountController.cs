@@ -10,10 +10,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LoanApplicationService.Web.Controllers
 {
-    public class AccountController : Controller
     [Authorize]
-    public class AccountController : Controller
-    public class AccountController(IAccountService accountService) : Controller
+    public class AccountController: Controller
     {
         private readonly IAccountService _accountService;
         private readonly IRepaymentScheduleService _repaymentScheduleService;
@@ -27,17 +25,9 @@ namespace LoanApplicationService.Web.Controllers
             _notificationService = notificationService;
             _repaymentScheduleService = repaymentScheduleService;
         }
-        private readonly IAccountService _accountService = accountService;
-        private readonly IAccountService _accountService;
-        private readonly IUserService _userService;
-        private readonly INotificationSenderService _notificationService;
+        
 
-        public AccountController(IAccountService accountService, IUserService userService, INotificationSenderService notificationService)
-        {
-            _accountService = accountService;
-            _userService = userService;
-            _notificationService = notificationService;
-        }
+       
         
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
