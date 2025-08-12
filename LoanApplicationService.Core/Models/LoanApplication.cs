@@ -28,8 +28,7 @@ namespace LoanApplicationService.Core.Models
 
         public int PaymentFrequency { get; set; }
 
-        [MaxLength(200)]
-        public string? Purpose { get; set; }
+        public int Purpose { get; set; }
 
         public int Status { get; set; } 
 

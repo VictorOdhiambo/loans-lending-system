@@ -6,16 +6,17 @@ using LoanApplicationService.Service.DTOs.Account;
 using LoanApplicationService.Service.DTOs.LoanApplicationModule;
 using LoanApplicationService.Service.DTOs.LoanModule;
 using LoanApplicationService.Service.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -87,7 +88,7 @@ namespace LoanApplicationService.Web.Controllers
                             ["LoanProductId"] = application.ProductId.ToString(),
                             ["LoanAmount"] = (application.ApprovedAmount > 0 ? application.ApprovedAmount : application.RequestedAmount).ToString("F2"),
                             ["TermMonths"] = application.TermMonths.ToString(),
-                            ["Purpose"] = application.Purpose ?? string.Empty
+                            ["Purpose"] = EnumHelper.GetDescription((LoanApplicationPurpose) application.Purpose )
                         };
                         await _notificationSenderService.SendNotificationAsync(
                             "Loan Disbursed",
@@ -166,7 +167,7 @@ namespace LoanApplicationService.Web.Controllers
                 }
             }
             // Admin and SuperAdmin can create applications for any customer
-
+             PopulateLoanApplicationPurpose();
             await PopulateLoanProductsDropdown();
             ViewBag.CustomerId = customerId;
             ViewBag.ProductId = productId;
@@ -176,6 +177,7 @@ namespace LoanApplicationService.Web.Controllers
                 CustomerId = customerId ?? 0,
                 ProductId = productId ?? 0
             };
+
 
             return View(loanApplicationDto);
         }
@@ -209,6 +211,7 @@ namespace LoanApplicationService.Web.Controllers
 
             try
             {
+                loanApplicationDto.CreatedBy =Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 var result = await _loanApplicationService.CreateAsync(loanApplicationDto);
                 if (result)
                 {
@@ -294,7 +297,7 @@ namespace LoanApplicationService.Web.Controllers
                     ["LoanProductId"] = loanApplicationDto.ProductId.ToString(),
                     ["LoanAmount"] = (loanApplicationDto.ApprovedAmount > 0 ? loanApplicationDto.ApprovedAmount : loanApplicationDto.RequestedAmount).ToString("F2"),
                     ["TermMonths"] = loanApplicationDto.TermMonths.ToString(),
-                    ["Purpose"] = loanApplicationDto.Purpose ?? string.Empty
+                    ["Purpose"] = EnumHelper.GetDescription((LoanApplicationPurpose)loanApplicationDto.Purpose)
                 };
                 await _notificationSenderService.SendNotificationAsync(
                     "Loan Approved",
@@ -371,7 +374,7 @@ namespace LoanApplicationService.Web.Controllers
                             ["LoanProductId"] = application.ProductId.ToString(),
                             ["LoanAmount"] = application.RequestedAmount.ToString("F2"),
                             ["TermMonths"] = application.TermMonths.ToString(),
-                            ["Purpose"] = application.Purpose ?? string.Empty
+                            ["Purpose"] = EnumHelper.GetDescription((LoanApplicationPurpose)application.Purpose)
                         };
                         await _notificationSenderService.SendNotificationAsync(
                             "Loan Rejected",
@@ -609,7 +612,7 @@ namespace LoanApplicationService.Web.Controllers
             var createdAccount = await _accountService.GetAccountByApplicationIdAsync(application.ApplicationId);
 
             // 5. Generate the initial repayment schedule
-           
+
             var initialSchedule = await _loanRepaymentScheduleService.GenerateAndSaveScheduleAsync(
                 createdAccount.AccountId
             );
@@ -636,15 +639,48 @@ namespace LoanApplicationService.Web.Controllers
             application.Status = LoanStatus.Disbursed;
             await _loanApplicationService.UpdateAsync(application);
 
-            
+
 
             TempData["Success"] = $"Loan for application {applicationId} disbursed successfully.";
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetApplicationsByCustomerId(int customerId)
+        {
+            // If user is Customer, verify they are viewing their own applications
+            if (User.IsInRole("Customer"))
+            {
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
+                {
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != customerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
+                }
+            }
+            // Admin and SuperAdmin can view any customer's applications
+            var applications = await _loanApplicationService.GetByCustomerIdAsync(customerId);
+            return View(applications);
+        }
+
+        private void PopulateLoanApplicationPurpose()
+        {
+            ViewBag.LoanPurpose = Enum.GetValues(typeof(LoanApplicationPurpose))
+                    .Cast<LoanApplicationPurpose>()
+                    .Select(e => new SelectListItem
+                    {
+                        Value = ((int)e).ToString(),
+                        Text = e.ToString().Replace("_", " ")
+                    }).ToList();
+        }
+
+
     }
-
-
 }
 
-
+ 
 

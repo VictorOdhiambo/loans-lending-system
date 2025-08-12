@@ -33,6 +33,8 @@ namespace LoanApplicationService.Core.Repository
         public DbSet<ApplicationUserRole> ApplicationUserRoles { get; set; } = default!;
 
         public DbSet<Transactions> Transactions { get; set; } = default!;
+
+        public DbSet<AuditTrail> AuditTrail { get; set; } = default!;
         public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
         {
             public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)
