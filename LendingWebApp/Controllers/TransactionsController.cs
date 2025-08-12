@@ -24,24 +24,27 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> LoanRepayment(int Id)
         {
             var account = await _accountService.GetAccountByIdAsync(Id);
 
             if (account == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
 
-            // Verify the customer owns this account
-            var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
-            if (customerService != null)
+            // Verify the customer owns this account (only for Customer role)
+            if (User.IsInRole("Customer"))
             {
-                var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
-                if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
                 {
-                    return RedirectToAction("AccessDenied", "Home");
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
                 }
             }
 
@@ -57,7 +60,7 @@ namespace LoanApplicationService.Web.Controllers
 
         [HttpPost]
         [ValidateModel]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> LoanRePayment(LoanPaymentDto loanPaymentDto)
         {
             var account = await _accountService.GetAccountByIdAsync(loanPaymentDto.AccountId);
@@ -76,7 +79,8 @@ namespace LoanApplicationService.Web.Controllers
                 var result = await _loanPaymentService.MakePaymentAsync(loanPaymentDto, userId, userIpAddress);
                 if (result.Success)
                 {
-                    return RedirectToAction("GetAccountById", "Account", new { id = loanPaymentDto.AccountId });
+                    TempData["SuccessMessage"] = "Payment completed successfully!";
+                    return RedirectToAction("GetTransactionsByAccountId", "Transactions", new { id = loanPaymentDto.AccountId });
                 }
                 ModelState.AddModelError("", "Failed to make payment.");
                 PopulatePaymentMethods();
@@ -89,7 +93,7 @@ namespace LoanApplicationService.Web.Controllers
         
 
         [HttpPost]
-      //  [ValidateModel]
+       [ValidateModel]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> Withdraw(LoanWithdawalDto loanWithdawalDto ,Guid userId, string userIpAddress)
         {
@@ -100,7 +104,7 @@ namespace LoanApplicationService.Web.Controllers
 
             if (loanAccount == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
 
             if (loanWithdawalDto.Amount > loanAccount.AvailableBalance)
@@ -114,7 +118,8 @@ namespace LoanApplicationService.Web.Controllers
 
             if (result)
             {
-                return RedirectToAction("");
+                TempData["SuccessMessage"] = "Withdrawal completed successfully!";
+                return RedirectToAction("GetTransactionsByAccountId", "Transactions", new { id = loanWithdawalDto.AccountId });
             }
 
             GetPaymentMethods();
@@ -125,24 +130,27 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpGet]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> Withdraw(int Id)
         {
             var account = await _accountService.GetAccountByIdAsync(Id);
 
             if (account == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
 
-            // Verify the customer owns this account
-            var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
-            if (customerService != null)
+            // Verify the customer owns this account (only for Customer role)
+            if (User.IsInRole("Customer"))
             {
-                var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
-                if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
                 {
-                    return RedirectToAction("AccessDenied", "Home");
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
                 }
             }
 
@@ -157,32 +165,38 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> GetTransactionsByAccountId(int id)
         {
             // Get the account first to verify ownership
             var account = await _accountService.GetAccountByIdAsync(id);
             if (account == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
 
-            // Verify the customer owns this account
-            var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
-            if (customerService != null)
+            // Verify the customer owns this account (only for Customer role)
+            if (User.IsInRole("Customer"))
             {
-                var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
-                if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
                 {
-                    return RedirectToAction("AccessDenied", "Home");
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
                 }
             }
 
             var transactions = await _loanWithdrawalService.GetAllTransactionsAsync(id);
             if (transactions == null || !transactions.Any())
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
+            
+            ViewBag.AccountNumber = account.AccountNumber;
+            ViewBag.AccountId = account.AccountId;
             return View(transactions);
         }                       
 

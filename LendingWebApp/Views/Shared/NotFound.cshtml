@@ -1,0 +1,119 @@
+@{
+    ViewData["Title"] = "Not Found";
+    Layout = "_Layout";
+    
+    // Get the current controller and action to provide context-specific messaging
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower();
+    var action = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
+    
+    string title = "Resource Not Found";
+    string message = "The requested resource could not be found.";
+    string primaryActionText = "Go to Dashboard";
+    string primaryActionUrl = Url.Action("Index", "Home");
+    string secondaryActionText = "Go Back";
+    string secondaryActionUrl = "javascript:history.back()";
+    
+    // Customize messaging based on context
+    if (controller == "account" && action == "getaccountsbyuserid")
+    {
+        title = "No Active Loans Found";
+        message = "You currently don't have any active loan accounts. This could mean:";
+        primaryActionText = "Apply for a Loan";
+        primaryActionUrl = Url.Action("Index", "LoanApplication");
+    }
+    else if (controller == "account" && action == "getpenalties")
+    {
+        title = "No Penalties Found";
+        message = "No penalties were found for this account.";
+        primaryActionText = "View Account";
+        primaryActionUrl = Url.Action("GetAccountsByUserId", "Account");
+    }
+    else if (controller == "account" && action == "getschedulebyaccount")
+    {
+        title = "No Repayment Schedule Found";
+        message = "No repayment schedule was found for this account.";
+        primaryActionText = "View Account";
+        primaryActionUrl = Url.Action("GetAccountsByUserId", "Account");
+    }
+    else if (controller == "loanapplication")
+    {
+        title = "Loan Application Not Found";
+        message = "The requested loan application could not be found or may have been removed.";
+        primaryActionText = "View All Applications";
+        primaryActionUrl = Url.Action("Index", "LoanApplication");
+    }
+    else if (controller == "transactions")
+    {
+        title = "Transaction Not Found";
+        message = "The requested transaction or account could not be found.";
+        primaryActionText = "View Accounts";
+        primaryActionUrl = Url.Action("GetAccountsByUserId", "Account");
+    }
+    else if (controller == "loanproduct")
+    {
+        title = "Loan Product Not Found";
+        message = "The requested loan product could not be found or may have been removed.";
+        primaryActionText = "View All Products";
+        primaryActionUrl = Url.Action("Index", "LoanProduct");
+    }
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-search fa-3x text-muted"></i>
+                    </div>
+                    <h2 class="card-title text-muted mb-3">@title</h2>
+                    <p class="card-text text-muted mb-4">
+                        @message
+                    </p>
+                    
+                    @if (controller == "account" && action == "getaccountsbyuserid")
+                    {
+                        <ul class="list-unstyled text-muted mb-4">
+                            <li>• You haven't applied for a loan yet</li>
+                            <li>• Your loan applications are still being processed</li>
+                            <li>• Your previous loans have been fully repaid</li>
+                        </ul>
+                    }
+                    
+                    <div class="d-grid gap-2 d-md-block">
+                        <a href="@primaryActionUrl" class="btn btn-primary me-md-2">
+                            <i class="fas fa-arrow-right"></i> @primaryActionText
+                        </a>
+                        <a href="@secondaryActionUrl" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> @secondaryActionText
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+    
+    .card-body {
+        padding: 3rem 2rem;
+    }
+    
+    .btn {
+        border-radius: 25px;
+        padding: 10px 25px;
+    }
+    
+    .text-muted {
+        color: #6c757d !important;
+    }
+    
+    .list-unstyled li {
+        margin-bottom: 0.5rem;
+    }
+</style>

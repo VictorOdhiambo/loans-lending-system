@@ -362,8 +362,12 @@ namespace LoanApplicationService.Web.Controllers
         public async Task<IActionResult> Profile()
         {
             var email = User.Identity.Name;
-            var customers = await _customerService.GetAllAsync();
-            var currentCustomer = customers.FirstOrDefault(c => c.Email == email);
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+            
+            var currentCustomer = await _customerService.GetByEmailAsync(email);
             if (currentCustomer == null)
                 return NotFound();
             ViewData["IsProfile"] = true;
@@ -376,8 +380,12 @@ namespace LoanApplicationService.Web.Controllers
         public async Task<IActionResult> EditProfile()
         {
             var email = User.Identity.Name;
-            var customers = await _customerService.GetAllAsync();
-            var currentCustomer = customers.FirstOrDefault(c => c.Email == email);
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+            
+            var currentCustomer = await _customerService.GetByEmailAsync(email);
             if (currentCustomer == null)
                 return NotFound();
             return View(currentCustomer);
@@ -392,8 +400,13 @@ namespace LoanApplicationService.Web.Controllers
                 return View(dto);
 
             var email = User.Identity.Name;
-            var customers = await _customerService.GetAllAsync();
-            var currentCustomer = customers.FirstOrDefault(c => c.Email == email);
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["Error"] = "You must be logged in to edit your profile.";
+                return RedirectToAction("AccessDenied", "Home");
+            }
+            
+            var currentCustomer = await _customerService.GetByEmailAsync(email);
             if (currentCustomer == null || currentCustomer.CustomerId != dto.CustomerId)
             {
                 TempData["Error"] = "You can only edit your own profile.";

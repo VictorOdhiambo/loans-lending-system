@@ -12,7 +12,7 @@ using Microsoft.Identity.Client;
 namespace LoanApplicationService.Web.Controllers
 {
     [Authorize]
-    public class AccountController: Controller
+    public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
         private readonly IRepaymentScheduleService _repaymentScheduleService;
@@ -26,10 +26,7 @@ namespace LoanApplicationService.Web.Controllers
             _notificationService = notificationService;
             _repaymentScheduleService = repaymentScheduleService;
         }
-        
-
        
-        
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Index()
@@ -39,13 +36,27 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
-      [Authorize]
+        [Authorize(Roles = "Admin,SuperAdmin,Customer")]
         public async Task<IActionResult> GetAccountById(int Id)
         {
             var account = await _accountService.GetAccountByIdAsync(Id);
             if (account == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
+            }
+
+            // If user is Customer, verify they own this account
+            if (User.IsInRole("Customer"))
+            {
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
+                {
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
+                }
             }
 
             var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
@@ -62,6 +73,34 @@ namespace LoanApplicationService.Web.Controllers
                 }
             }
             return View(account);
+        }
+
+        // Add the missing GetAccountDetails method that the URL is trying to access
+        [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin,Customer")]
+        public async Task<IActionResult> GetAccountDetails(int id)
+        {
+            var account = await _accountService.GetAccountByIdAsync(id);
+            if (account == null)
+            {
+                return View("~/Views/Shared/NotFound.cshtml");
+            }
+
+            // If user is Customer, verify they own this account
+            if (User.IsInRole("Customer"))
+            {
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
+                {
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
+                }
+            }
+
+            return View("GetAccountById", account);
         }
 
         [ValidateModel]
@@ -100,37 +139,41 @@ namespace LoanApplicationService.Web.Controllers
             var accounts = await _accountService.GetAccountByUserId(userId);
             if (accounts == null || !accounts.Any())
             {
-                return View("NotFound");
+                // Return the NotFound view from Shared folder
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             return View(accounts);
         }
 
         [HttpGet]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> GetPenalties (int accountId)
         {
             // Get the account first to verify ownership
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
 
-            // Verify the customer owns this account
-            var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
-            if (customerService != null)
+            // Verify the customer owns this account (only for Customer role)
+            if (User.IsInRole("Customer"))
             {
-                var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
-                if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
                 {
-                    return RedirectToAction("AccessDenied", "Home");
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
                 }
             }
 
             var penalties = await _accountService.GetAccountPenalties(accountId);
             if (penalties == null || !penalties.Any())
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             return View(penalties);
         }
@@ -225,12 +268,34 @@ namespace LoanApplicationService.Web.Controllers
 
 
         [HttpGet]
+        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
         public async Task<IActionResult> GetScheduleByAccount (int Id)
         {
+            // Get the account first to verify ownership
+            var account = await _accountService.GetAccountByIdAsync(Id);
+            if (account == null)
+            {
+                return View("~/Views/Shared/NotFound.cshtml");
+            }
+
+            // Verify the customer owns this account (only for Customer role)
+            if (User.IsInRole("Customer"))
+            {
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
+                {
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
+                }
+            }
+
             var schedules = await _repaymentScheduleService.GetScheduleByAccount(Id);
             if (schedules == null || !schedules.Any())
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             var account = await _accountService.GetAccountByIdAsync(Id);
             if (account == null)

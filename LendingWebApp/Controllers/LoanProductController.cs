@@ -119,7 +119,7 @@ namespace LoanApplicationService.Web.Controllers
             var product = await _loanProductService.GetLoanProductById(id);
             if (product == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             return View(product);
         }

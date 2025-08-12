@@ -59,7 +59,7 @@ namespace LoanApplicationService.Web.Controllers
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             return View(application);
         }
@@ -107,12 +107,22 @@ namespace LoanApplicationService.Web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin,SuperAdmin,Customer")]
         public async Task<IActionResult> Index(int? Status, int? customerId)
         {
-            // Only Admin/SuperAdmin can view all applications
             var applications = await _loanApplicationService.GetAllAsync();
             var applicationsList = applications.ToList();
+
+            // If user is Customer, they can only view their own applications
+            if (User.IsInRole("Customer"))
+            {
+                var currentCustomer = await _customerService.GetByEmailAsync(User.Identity.Name);
+                if (currentCustomer == null)
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+                applicationsList = applicationsList.Where(a => a.CustomerId == currentCustomer.CustomerId).ToList();
+            }
 
             // Filter by status if provided
             if (Status.HasValue)
@@ -120,8 +130,8 @@ namespace LoanApplicationService.Web.Controllers
                 applicationsList = applicationsList.Where(a => (int)a.Status == Status.Value).ToList();
             }
 
-            // Filter by customer if provided
-            if (customerId.HasValue)
+            // Filter by customer if provided (only for Admin/SuperAdmin)
+            if (customerId.HasValue && !User.IsInRole("Customer"))
             {
                 applicationsList = applicationsList.Where(a => a.CustomerId == customerId.Value).ToList();
             }
@@ -140,9 +150,30 @@ namespace LoanApplicationService.Web.Controllers
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             return View(application);
+        }
+
+        // GET: LoanApplication/CustomerGetById - For customers to view their own application details
+        [Authorize(Roles = "Customer")]
+        [HttpGet]
+        public async Task<IActionResult> CustomerGetById(int id)
+        {
+            var application = await _loanApplicationService.GetByIdAsync(id);
+            if (application == null)
+            {
+                return View("~/Views/Shared/NotFound.cshtml");
+            }
+
+            // Verify the customer owns this application using the injected service
+            var currentCustomer = await _customerService.GetByEmailAsync(User.Identity.Name);
+            if (currentCustomer == null || currentCustomer.CustomerId != application.CustomerId)
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+
+            return View("CustomerGetById", application);
         }
 
         [HttpGet]
@@ -241,7 +272,7 @@ namespace LoanApplicationService.Web.Controllers
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             await PopulateLoanProductsDropdown();
             return View(application);
@@ -320,7 +351,7 @@ namespace LoanApplicationService.Web.Controllers
             var application = await _loanApplicationService.GetByIdAsync(id);
             if (application == null)
             {
-                return View("NotFound");
+                return View("~/Views/Shared/NotFound.cshtml");
             }
             await PopulateLoanProductsDropdown();
 
@@ -419,6 +450,29 @@ namespace LoanApplicationService.Web.Controllers
             ViewBag.Applications = applicationsList;
 
             return View(applicationsList);
+        }
+
+        // GET: LoanApplication/MyApplications - For customers to view their own applications
+        [Authorize(Roles = "Customer")]
+        [HttpGet]
+        public async Task<IActionResult> MyApplications()
+        {
+            // Get the current customer using the injected service
+            var currentCustomer = await _customerService.GetByEmailAsync(User.Identity.Name);
+            if (currentCustomer == null)
+            {
+                TempData["Error"] = "Customer not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Get the customer's applications
+            var applications = await _loanApplicationService.GetByCustomerIdAsync(currentCustomer.CustomerId);
+            var applicationsList = applications.ToList();
+
+            ViewBag.CustomerId = currentCustomer.CustomerId;
+            ViewBag.Applications = applicationsList;
+
+            return View("CustomerView", applicationsList);
         }
 
         // POST: LoanApplication/CustomerReject
@@ -534,10 +588,7 @@ namespace LoanApplicationService.Web.Controllers
             return View(application);
         }
 
-        private bool IsUserAuthenticated()
-        {
-            return !string.IsNullOrEmpty(HttpContext.Session.GetString("UserId"));
-        }
+
 
         private async Task PopulateLoanProductsDropdown()
         {
