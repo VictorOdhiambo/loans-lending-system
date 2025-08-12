@@ -43,7 +43,7 @@
                     }
                     <td>@accountStatusName</td>
                     <td>
-                        <a href="@Url.Action("GetAccountDetails", "Account", new { id = account.AccountId })" class="btn btn-info">Details</a>
+                        <a href="@Url.Action("GetAccountById", "Account", new { id = account.AccountId })" class="btn btn-info">Details</a>
                         <a href="@Url.Action("Withdraw", "Transactions", new { id = account.AccountId })" class="btn btn-warning">Withdraw</a>
                         <a href="@Url.Action("LoanRepayment", "Transactions", new { id = account.AccountId })" class="btn btn-danger">Make Payment</a>
                 </tr>

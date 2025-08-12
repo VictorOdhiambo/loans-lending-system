@@ -1,4 +1,5 @@
-﻿using LoanApplicationService.Service.DTOs.LoanDisbursement;
+﻿using LoanApplicationService.Core.Models;
+using LoanApplicationService.Service.DTOs.LoanDisbursement;
 using LoanApplicationService.Service.DTOs.LoanPayment;
 using LoanApplicationService.Service.DTOs.LoanPenalty;
 using LoanApplicationService.Service.DTOs.Transactions;
@@ -13,12 +14,14 @@ namespace LoanApplicationService.Service.Services
 {
     public interface ILoanPaymentService
     {
-        Task<PaymentResult> MakePaymentAsync(LoanPaymentDto loanPaymentDto, CancellationToken ct = default);
+        Task<PaymentResult> MakePaymentAsync(LoanPaymentDto loanPaymentDto,Guid userId, string userIpAddress, CancellationToken ct = default);
 
         Task<IEnumerable<LoanPaymentDto>> GetPaymentsByAccountIdAsync(int accountId);
         
        
         Task<IEnumerable<LoanPaymentDto>> GetAllPaymentsAsync();
+
+        Task<AuditTrail> RecordPaymentLog(int accountId);
 
 
 

@@ -22,8 +22,7 @@ namespace LoanApplicationService.Service.Services
         private readonly LoanApplicationServiceDbContext _context = loanApplicationServiceDbContext;
         private readonly IMapper _mapper = mapper;
 
-
-        public async Task<bool> WithdrawAsync(LoanWithdawalDto loanWithdawalDto)
+        public async Task<bool> WithdrawAsync(LoanWithdawalDto loanWithdawalDto, Guid userId, string userIpAddress)
         {
             var account = await _context.Accounts.FindAsync(loanWithdawalDto.AccountId);
             if (account == null || account.Status != (int)AccountStatus.Active)
@@ -44,8 +43,27 @@ namespace LoanApplicationService.Service.Services
                 TransactionDate = DateTimeOffset.UtcNow
             };
 
+            var WithdrawalAuditTrail = new AuditTrail
+            {
+                AccountId = loanWithdawalDto.AccountId,
+                Action = "Withdrawal",
+                CustomerId = account.CustomerId,
+                Customer = account.Customer,
+                ApplicationId = account.ApplicationId,
+                LoanApplication = account.LoanApplication,
+                EntityType = "Account",
+                EntityId = account.AccountId,
+                OldValues = (account.AvailableBalance + loanWithdawalDto.Amount).ToString(),
+                NewValues = account.AvailableBalance .ToString(),
+                Account = account,
+                UserId = userId,
+                IpAddress = userIpAddress,
+                CreatedAt = DateTime.UtcNow
+            };
+
 
             _context.Accounts.Update(account);
+            await _context.AuditTrail.AddAsync(WithdrawalAuditTrail);
             await _context.Transactions.AddAsync(withdrawalTransaction);
             return await _context.SaveChangesAsync() > 0;
         }
@@ -57,5 +75,7 @@ namespace LoanApplicationService.Service.Services
                 .ToListAsync();
             return _mapper.Map<IEnumerable<TransactionDto>>(transactions);
         }
+
+        
     }
 }
