@@ -1,7 +1,7 @@
 ﻿@model LoanApplicationService.Service.DTOs.LoanDisbursement.LoanWithdawalDto
 
 @{
-    Layout = "~/Views/Customer/Shared/_CustomerLayout.cshtml";
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Withdraw Funds";
     var paymentMethods = ViewBag.PaymentMethods as List<SelectListItem>;
 }

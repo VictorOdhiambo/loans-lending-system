@@ -1,0 +1,27 @@
+@model LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto
+@using LoanApplicationService.CrossCutting.Utils
+
+@{
+    ViewData["Title"] = "Loan Application Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>Loan Application Details</h1>
+    <a href="@Url.Action("MyApplications", "LoanApplication")" class="btn btn-secondary">Back to My Applications</a>
+    
+    <div class="card mt-3">
+        <div class="card-body">
+            <p><strong>Application ID:</strong> #@Model.ApplicationId</p>
+            <p><strong>Loan Product:</strong> @Model.ProductName</p>
+            <p><strong>Status:</strong> @((LoanStatus)Model.Status)</p>
+            <p><strong>Requested Amount:</strong> @Model.RequestedAmount.ToString("C")</p>
+            <p><strong>Approved Amount:</strong> @(Model.ApprovedAmount > 0 ? Model.ApprovedAmount.ToString("C") : "Not yet approved")</p>
+            <p><strong>Application Date:</strong> @Model.ApplicationDate.ToString("MMMM dd, yyyy")</p>
+            @if (!string.IsNullOrEmpty(Model.Purpose))
+            {
+                <p><strong>Purpose:</strong> @Model.Purpose</p>
+            }
+        </div>
+    </div>
+</div>

@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<LoanApplicationService.Service.DTOs.LoanPenalty.LoanPenaltyDto>;
 
 @{
-    Layout = "~/Views/Customer/Shared/_CustomerLayout.cshtml";
+    Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Penalties";
 }
 

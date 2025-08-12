@@ -251,6 +251,7 @@ namespace LoanApplicationService.Web.Controllers
             ViewBag.AvailableCredit = availableCredit;
             ViewBag.RecentApplications = recentApplications;
             ViewBag.CustomerId = customer.CustomerId;
+            ViewBag.CustomerRiskLevel = customer.RiskLevel;
 
             return View();
         }
