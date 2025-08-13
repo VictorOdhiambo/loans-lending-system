@@ -41,7 +41,15 @@ else
                 <tr>
                     <td>@charge.Name</td>
                     <td>@charge.Description</td>
-                    <td>@charge.Amount.ToString("C")</td>
+                    @if (charge.IsPercentage)
+                    {
+                        <td>@charge.Amount.ToString("P0")</td>
+                    }
+                    else
+                    {
+                        <td>@charge.Amount.ToString("C")</td>
+
+                    }
                     <td>@charge.IsPenalty</td>
                     <td>@charge.IsUpfront</td>
                 </tr>
