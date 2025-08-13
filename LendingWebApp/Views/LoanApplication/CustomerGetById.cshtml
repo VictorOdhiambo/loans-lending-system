@@ -18,10 +18,14 @@
             <p><strong>Requested Amount:</strong> @Model.RequestedAmount.ToString("C")</p>
             <p><strong>Approved Amount:</strong> @(Model.ApprovedAmount > 0 ? Model.ApprovedAmount.ToString("C") : "Not yet approved")</p>
             <p><strong>Application Date:</strong> @Model.ApplicationDate.ToString("MMMM dd, yyyy")</p>
-            @if (!string.IsNullOrEmpty(Model.Purpose))
-            {
-                <p><strong>Purpose:</strong> @Model.Purpose</p>
+            @{
+                var purpose = ((LoanApplicationPurpose)@Model.Purpose);
+                var purposeDefinition = EnumHelper.GetDescription(purpose);
             }
+            <p><strong> Purpose: </strong> @purposeDefinition </p>
+            
+
+            
         </div>
     </div>
 </div>
