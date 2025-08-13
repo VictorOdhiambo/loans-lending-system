@@ -297,20 +297,11 @@ namespace LoanApplicationService.Web.Controllers
             {
                 return View("~/Views/Shared/NotFound.cshtml");
             }
-            var account = await _accountService.GetAccountByIdAsync(Id);
             if (account == null)
             {
                 return View("NotFound");
             }
-            var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
-            if (customerService != null)
-            {
-                var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
-                if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
-                {
-                    return RedirectToAction("AccessDenied", "Home");
-                }
-            }
+           
             return View(schedules);
         }
 
