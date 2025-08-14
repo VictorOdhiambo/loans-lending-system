@@ -9,48 +9,39 @@ public class AuditTrail
     [Key]
     public int AuditId { get; set; }
 
+    [ForeignKey("UserId")]
     public Guid? UserId { get; set; }
 
+    [ForeignKey("CustomerId")]
     public int? CustomerId { get; set; }
 
+    [ForeignKey("ApplicationId")]
     public int? ApplicationId { get; set; }
 
+    [ForeignKey("AccountId")]
     public int? AccountId { get; set; }
 
     [Required]
     [MaxLength(50)]
-    public string? EntityType { get; set; }
+    public string EntityType { get; set; }
 
     public int EntityId { get; set; }
 
     [Required]
-    [MaxLength(50)]
-    public string? Action { get; set; }
+    [MaxLength(2000)]
+    public string Action { get; set; }
 
     [MaxLength(2000)]
-    public string? OldValues { get; set; }
+    public string OldValues { get; set; }
 
     [MaxLength(2000)]
-    public string? NewValues { get; set; }
+    public string NewValues { get; set; }
 
     [MaxLength(45)]
-    public string? IpAddress { get; set; }
+    public string IpAddress { get; set; }
 
     [MaxLength(500)]
-    public string? UserAgent { get; set; }
+    public string UserAgent { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    // Navigation Properties
-    [ForeignKey("UserId")]
-    public virtual ApplicationUser? User { get; set; }
-
-    [ForeignKey("CustomerId")]
-    public required virtual Customer Customer { get; set; }
-
-    [ForeignKey("ApplicationId")]
-    public required virtual LoanApplication LoanApplication { get; set; }
-
-    [ForeignKey("AccountId")]
-    public required virtual Account Account { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
