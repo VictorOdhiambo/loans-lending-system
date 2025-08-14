@@ -3,9 +3,10 @@ using LoanApplicationService.Service.DTOs.LoanDisbursement;
 using LoanApplicationService.Service.DTOs.LoanPayment;
 using LoanApplicationService.Service.DTOs.Transactions;
 using LoanApplicationService.Service.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -63,6 +64,9 @@ namespace LoanApplicationService.Web.Controllers
         public async Task<IActionResult> LoanRePayment(LoanPaymentDto loanPaymentDto)
         {
             var account = await _accountService.GetAccountByIdAsync(loanPaymentDto.AccountId);
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userIpAddress = GetUserIpAddress();
+
             if (loanPaymentDto.Amount > account.OutstandingBalance)
             {
                 ModelState.AddModelError("", $"The Payment amount cannot be greater than your Outstanding Balance , which is {account.OutstandingBalance:C}.");
@@ -72,7 +76,7 @@ namespace LoanApplicationService.Web.Controllers
 
             }
            
-                var result = await _loanPaymentService.MakePaymentAsync(loanPaymentDto);
+                var result = await _loanPaymentService.MakePaymentAsync(loanPaymentDto, userId, userIpAddress);
                 if (result.Success)
                 {
                     TempData["SuccessMessage"] = "Payment completed successfully!";
@@ -89,11 +93,15 @@ namespace LoanApplicationService.Web.Controllers
         
 
         [HttpPost]
-        [ValidateModel]
-        [Authorize(Roles = "Customer,Admin,SuperAdmin")]
-        public async Task<IActionResult> Withdraw(LoanWithdawalDto loanWithdawalDto)
+       [ValidateModel]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> Withdraw(LoanWithdawalDto loanWithdawalDto ,Guid userId, string userIpAddress)
         {
             var loanAccount = await _accountService.GetAccountByIdAsync(loanWithdawalDto.AccountId);
+            var myUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var ipAddress = GetUserIpAddress();
+
+
             if (loanAccount == null)
             {
                 return View("~/Views/Shared/NotFound.cshtml");
@@ -106,7 +114,7 @@ namespace LoanApplicationService.Web.Controllers
 
                 return View(loanWithdawalDto);
             }
-            var result = await _loanWithdrawalService.WithdrawAsync(loanWithdawalDto);
+            var result = await _loanWithdrawalService.WithdrawAsync(loanWithdawalDto, myUserId, ipAddress);
 
             if (result)
             {
@@ -217,6 +225,28 @@ namespace LoanApplicationService.Web.Controllers
                     Value = ((int)e).ToString(),
                     Text = EnumHelper.GetDescription(e)
                 }).ToList();
+        }
+
+
+        private string GetUserIpAddress()
+        {
+            string ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                var ipList = ipAddress.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                ipAddress = ipList.FirstOrDefault()?.Trim();
+            }
+            else
+            {
+                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
+
+            if (ipAddress == "::1" || string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = "127.0.0.1";
+            }
+
+            return ipAddress.Length > 45 ? ipAddress.Substring(0, 45) : ipAddress;
         }
     }
 }

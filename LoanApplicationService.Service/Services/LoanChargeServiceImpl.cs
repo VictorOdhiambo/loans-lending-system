@@ -63,6 +63,7 @@ namespace LoanApplicationService.Service.Services
             Description = x.LoanCharge.Description,
             IsPenalty = x.LoanCharge.IsPenalty,
             IsUpfront = x.LoanCharge.IsUpfront,
+            IsPercentage = x.LoanCharge.IsPercentage
         })
         .ToListAsync();
 

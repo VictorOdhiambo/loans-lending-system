@@ -111,8 +111,8 @@ else if (ViewBag.CustomerId != null)
                         <td>@item.RequestedAmount</td>
                         <td>@item.ApprovedAmount</td>
                         <td>@item.Purpose</td>
-                        <td>@item.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy HH:mm:ss +03:00")</td>
-                      <td>@(item.DecisionDate != default(DateTimeOffset) ? item.DecisionDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy HH:mm:ss +03:00") : "")</td>
+                        <td>@item.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy")</td>
+                      <td>@(item.DecisionDate != default(DateTimeOffset) ? item.DecisionDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy ") : "")</td>
                       @if (ViewBag.CustomerId == null)
                       {
                           <td>

@@ -2,7 +2,9 @@
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.CrossCutting.Utils;
+using LoanApplicationService.Service;
 using LoanApplicationService.Service.DTOs.Account;
+using LoanApplicationService.Service.DTOs.LoanApplicationModule;
 using LoanApplicationService.Service.DTOs.LoanDisbursement;
 using LoanApplicationService.Service.DTOs.LoanPayment;
 using LoanApplicationService.Service.DTOs.Transactions;
@@ -11,10 +13,13 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using static LoanApplicationService.Service.Services.LoanPaymentImpl;
-using LoanApplicationService.Service;
+using Microsoft.AspNetCore.Http;
+
 
 namespace LoanApplicationService.Service.Services
 {
@@ -39,7 +44,7 @@ namespace LoanApplicationService.Service.Services
         );
 
 
-        public async Task<PaymentResult> MakePaymentAsync(LoanPaymentDto loanPaymentDto, CancellationToken ct = default)
+        public async Task<PaymentResult> MakePaymentAsync(LoanPaymentDto loanPaymentDto, Guid userId, string userIpAddress, CancellationToken ct = default)
         {
             const decimal FinancialThreshold = 0.01m;
 
@@ -121,6 +126,8 @@ namespace LoanApplicationService.Service.Services
                             item.PaidPrincipal += principalPayment;
                             paymentRemaining -= principalPayment;
                             totalPrincipalPaid += principalPayment;
+                            account.OutstandingBalance -= principalPayment;
+
                         }
                     }
 
@@ -130,6 +137,7 @@ namespace LoanApplicationService.Service.Services
                         item.IsPaid = true;
                         item.PaidDate = DateTime.UtcNow;
                     }
+
                     _context.LoanRepaymentSchedules.Update(item);
                 }
 
@@ -205,6 +213,15 @@ namespace LoanApplicationService.Service.Services
                     PaymentMethod = loanPaymentDto.PaymentMethod,
                 };
                 await _context.Transactions.AddAsync(transaction, ct);
+
+                //record payment log
+                var paymentLog = await RecordPaymentLog(loanPaymentDto.AccountId);
+                paymentLog.UserId = userId;
+                paymentLog.IpAddress = userIpAddress;
+                paymentLog.OldValues = (account.OutstandingBalance + totalPrincipalPaid) .ToString();
+                paymentLog.NewValues = account.OutstandingBalance.ToString();
+
+                _context.AuditTrail.Add(paymentLog);
 
                 bool loanClosed = false;
                 if (account.OutstandingBalance <= FinancialThreshold)
@@ -318,5 +335,34 @@ namespace LoanApplicationService.Service.Services
             _logger.LogInformation("Loan {AccountId} has been closed.", account.AccountId);
             return true;
         }
+
+        public async Task<AuditTrail> RecordPaymentLog(int accountId)
+        {
+
+            var account = await _context.Accounts
+                .Where(a => a.AccountId == accountId)
+                .FirstOrDefaultAsync();
+
+            
+
+            var PaymentLog = new AuditTrail
+            {
+                CustomerId = account.CustomerId,
+                ApplicationId = account.ApplicationId,
+                AccountId = accountId,
+                EntityType = "Account",
+                EntityId = accountId,
+                Action = "Payment",
+                CreatedAt = DateTime.UtcNow,
+                Customer = account.Customer,
+                LoanApplication = account.LoanApplication,
+                Account = account
+
+            };
+
+            return PaymentLog;
+        }
+
+        
     }
 }

@@ -62,10 +62,11 @@ namespace LoanApplicationService.Service.Services
                 .FirstOrDefaultAsync();
             //set interest rate from loan product
             application.InterestRate = product.InterestRate;
+            
             application.CreatedAt = DateTimeOffset.UtcNow;
             application.UpdatedAt = DateTimeOffset.UtcNow;
             application.PaymentFrequency = paymentFrequency;
-
+            
             await _context.LoanApplications.AddAsync(application);
             var result = await _context.SaveChangesAsync() > 0;
 

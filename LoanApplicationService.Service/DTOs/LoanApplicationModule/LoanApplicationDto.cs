@@ -29,8 +29,7 @@ namespace LoanApplicationService.Service.DTOs.LoanApplicationModule
         [Range(1, 480, ErrorMessage = "Term (months) must be between 1 and 480.")]
         public int TermMonths { get; set; }
 
-        [MaxLength(200)]
-        public string? Purpose { get; set; }
+        public int Purpose { get; set; }
 
         public int PaymentFrequency { get; set; } 
         public LoanStatus Status { get; set; } = (int)LoanStatus.Pending;

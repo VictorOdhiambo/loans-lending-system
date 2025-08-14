@@ -1,20 +1,21 @@
+using AutoMapper;
+using LendingWebApp;
 using LoanApplicationService.Core.Models;
 using LoanApplicationService.Core.Repository;
 using LoanApplicationService.Service.Mapper.LoanModuleMapper;
+using LoanApplicationService.Service.Mapper.RepaymentScheduleMapper;
+using LoanApplicationService.Service.Mapper.TransactionsModuleMapper;
 using LoanApplicationService.Service.Services;
 using LoanApplicationService.Web.Helpers;
 using LoanManagementApp.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity; 
-using LendingWebApp;
-using AutoMapper;
-
-
+using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Globalization;
 // ✅ Avoid ambiguous Role reference
 using AppRole = LoanApplicationService.CrossCutting.Utils.Role;
-using LoanApplicationService.Service.Mapper.TransactionsModuleMapper;
-using LoanApplicationService.Service.Mapper.RepaymentScheduleMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,7 +99,15 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, LendingWebApp.Helpers.BCryptPasswordHasher>();
 
-// builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); // Uncomment if using runtime view compilation
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { new CultureInfo("en-KE") };
+    options.DefaultRequestCulture = new RequestCulture("en-KE");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
+
 
 var app = builder.Build();
 
@@ -108,6 +117,8 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
