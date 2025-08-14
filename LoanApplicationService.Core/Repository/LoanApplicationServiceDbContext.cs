@@ -14,7 +14,7 @@ namespace LoanApplicationService.Core.Repository
         {
         }
 
-        // ✅ DbSets
+        // DbSets
         public DbSet<LoanProduct> LoanProducts { get; set; } = default!;
         public DbSet<ApplicationUser> ApplicationUsers { get; set; } = default!;
         public DbSet<LoanApplication> LoanApplications { get; set; } = default!;
@@ -24,15 +24,13 @@ namespace LoanApplicationService.Core.Repository
         public DbSet<NotificationTemplate> NotificationTemplates { get; set; } = default!;
         public DbSet<Customer> Customers { get; set; } = default!;
         public DbSet<Account> Accounts { get; set; } = default!;
-
         public DbSet<LoanPenalty> LoanPenalties { get; set; } = default!;
-
-
         public DbSet<LoanRepaymentSchedule> LoanRepaymentSchedules { get; set; } = default!;
         public DbSet<ApplicationRole> ApplicationRoles { get; set; } = default!;
         public DbSet<ApplicationUserRole> ApplicationUserRoles { get; set; } = default!;
-
         public DbSet<Transactions> Transactions { get; set; } = default!;
+        public DbSet<AuditTrail> AuditTrail { get; set; } = default!;
+
         public class LoanChargeMapConfiguration : IEntityTypeConfiguration<LoanChargeMapper>
         {
             public void Configure(EntityTypeBuilder<LoanChargeMapper> builder)
@@ -67,31 +65,31 @@ namespace LoanApplicationService.Core.Repository
                 .HasForeignKey(ur => ur.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 🔗 Account ↔ LoanApplication
+            // Account LoanApplication
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.LoanApplication)
                 .WithOne(l => l.Account)
                 .HasForeignKey<Account>(a => a.ApplicationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 🔗 Account ↔ Customer
+            // Account Customer
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Customer)
                 .WithMany(c => c.Accounts)
                 .HasForeignKey(a => a.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 🔗 LoanApplication ↔ Customer
+            // LoanApplication Customer
             modelBuilder.Entity<LoanApplication>()
                 .HasOne(l => l.Customer)
                 .WithMany(c => c.LoanApplications)
                 .HasForeignKey(l => l.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 🔁 Map LoanCharge-LoanProduct
+            // Map LoanCharge-LoanProduct
             modelBuilder.ApplyConfiguration(new LoanChargeMapConfiguration());
 
-            // 🧼 Global soft delete filters
+            // Global soft delete filters
             modelBuilder.Entity<LoanProduct>()
                 .Property(p => p.IsDeleted).HasDefaultValue(false);
             modelBuilder.Entity<LoanProduct>()
@@ -121,6 +119,33 @@ namespace LoanApplicationService.Core.Repository
             modelBuilder.Entity<Customer>()
                 .Property(c => c.AnnualIncome)
                 .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<AuditTrail>()
+                .ToTable("AuditTrail");
+
+            modelBuilder.Entity<AuditTrail>()
+                .HasOne(typeof(ApplicationUser))
+                .WithMany()
+                .HasForeignKey("UserId")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AuditTrail>()
+                .HasOne(typeof(Customer))
+                .WithMany()
+                .HasForeignKey("CustomerId")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AuditTrail>()
+                .HasOne(typeof(LoanApplication))
+                .WithMany()
+                .HasForeignKey("ApplicationId")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AuditTrail>()
+                .HasOne(typeof(Account))
+                .WithMany()
+                .HasForeignKey("AccountId")
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
