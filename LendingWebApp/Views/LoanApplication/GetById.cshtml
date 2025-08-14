@@ -94,16 +94,19 @@
                             </dl>
                         </div>
                     </div>
+                    @{
+                        var loanPurpose = EnumHelper.GetDescription((LoanApplicationPurpose)Model.Purpose);
+                                    
+                    }
 
-                    @if (!string.IsNullOrEmpty(Model.Purpose))
-                    {
+                   
                         <div class="row mt-3">
                             <div class="col-12">
                                 <dt>Purpose:</dt>
-                                <dd>@Model.Purpose</dd>
+                                <dd>@loanPurpose</dd>
                             </div>
                         </div>
-                    }
+                    
 
                     @if (Model.DecisionDate != default(DateTimeOffset))
                     {

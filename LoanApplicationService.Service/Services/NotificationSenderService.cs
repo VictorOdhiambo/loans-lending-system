@@ -1,14 +1,16 @@
-﻿using LoanApplicationService.Core.Repository;
+﻿using LoanApplicationService.Core.Models;
+using LoanApplicationService.Core.Repository;
+using LoanApplicationService.CrossCutting.Utils;
+using LoanManagementApp.DTOs;
+using LoanManagementApp.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
-using LoanManagementApp.DTOs;
-using LoanManagementApp.Models;
-using LoanApplicationService.Core.Models;
-using SendGrid;
-using SendGrid.Helpers.Mail;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LoanApplicationService.Service.Services
 {
@@ -178,7 +180,7 @@ private async Task SendEmailAsync(string to, string subject, string body)
                     data["RequestedAmount"] = loanApp.RequestedAmount.ToString("F2");
                     data["TermMonths"] = loanApp.TermMonths.ToString();
                     data["ApplicationDate"] = loanApp.CreatedAt.ToString("yyyy-MM-dd");
-                    data["Purpose"] = loanApp.Purpose ?? string.Empty;
+                    data["Purpose"] = EnumHelper.GetDescription((LoanApplicationPurpose)loanApp.Purpose);
                 }
             }
 

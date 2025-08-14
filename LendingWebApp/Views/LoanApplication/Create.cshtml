@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Create Loan Application";
     Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
+    var loanPurpose = ViewBag.LoanPurpose as List<SelectListItem>;              
 }
 
 <h2>Loan Application</h2>
@@ -83,7 +84,7 @@ else
 
     <div class="mb-3">
             @Html.LabelFor(model => model.Purpose, new { @class = "form-label" })
-            @Html.TextBoxFor(model => model.Purpose, new { @class = "form-control" })
+            @Html.DropDownListFor(model => model.Purpose, ViewBag.LoanPurpose as List<SelectListItem>, "Purpose" ,new { @class = "form-select" })
             @Html.ValidationMessageFor(model => model.Purpose, "", new { @class = "text-danger" })
     </div>
     

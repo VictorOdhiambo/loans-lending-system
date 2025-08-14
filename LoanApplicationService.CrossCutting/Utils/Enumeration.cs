@@ -151,4 +151,23 @@ namespace LoanApplicationService.CrossCutting.Utils
         Payment = 1,
         
     }
+
+    public enum LoanApplicationPurpose
+    {
+        [Description("Personal Loan")]
+        PersonalLoan = 0,
+        [Description("Business Loan")]
+        BusinessLoan = 1,
+        [Description("Education Loan")]
+        EducationLoan = 2,
+        [Description("Medical Loan")]
+        MedicalLoan = 3,
+        [Description("Home Improvement")]
+        HomeImprovement = 4,
+        [Description("Vehicle Purchase")]
+        VehiclePurchase = 5,
+        [Description("Debt Consolidation")]
+        DebtConsolidation = 6,
+        
+    }
 }

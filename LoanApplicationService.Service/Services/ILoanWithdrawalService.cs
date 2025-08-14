@@ -10,7 +10,7 @@ namespace LoanApplicationService.Service.Services
 {
     public interface ILoanWithdrawalService
     {
-        Task<bool> WithdrawAsync(LoanWithdawalDto loanWithdawalDto);
+        Task<bool> WithdrawAsync(LoanWithdawalDto loanWithdawalDto, Guid userId, string userIpAddress);
 
         Task<IEnumerable<TransactionDto>> GetAllTransactionsAsync( int accountId);
 

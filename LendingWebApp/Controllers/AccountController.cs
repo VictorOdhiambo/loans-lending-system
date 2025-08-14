@@ -7,6 +7,7 @@ using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Identity.Client;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -58,6 +59,19 @@ namespace LoanApplicationService.Web.Controllers
                 }
             }
 
+            var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (userRole == "Customer")
+            {
+                var customerService = HttpContext.RequestServices.GetService(typeof(ICustomerService)) as ICustomerService;
+                if (customerService != null)
+                {
+                    var currentCustomer = await customerService.GetByEmailAsync(User.Identity.Name);
+                    if (currentCustomer == null || currentCustomer.CustomerId != account.CustomerId)
+                    {
+                        return RedirectToAction("AccessDenied", "Home");
+                    }
+                }
+            }
             return View(account);
         }
 
@@ -283,8 +297,15 @@ namespace LoanApplicationService.Web.Controllers
             {
                 return View("~/Views/Shared/NotFound.cshtml");
             }
+            if (account == null)
+            {
+                return View("NotFound");
+            }
+           
             return View(schedules);
         }
+
+
     }
 }
 

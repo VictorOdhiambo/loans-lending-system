@@ -124,23 +124,7 @@
         <h2 class="schedule-header">Loan Repayment Schedule</h2>
 
         <!-- Account Details Card -->
-        <div class="account-card">
-            <h4>Account Details</h4>
-            <div class="row">
-                <div class="col-md-3 col-sm-6">
-                    <strong>Account ID:</strong> @(ViewBag.AccountId ?? "N/A")
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <strong>Disbursement Date:</strong> @(ViewBag.DisbursementDate?.ToString("yyyy-MM-dd") ?? "N/A")
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <strong>Original Principal:</strong> <span class="currency">@(ViewBag.OriginalPrincipal?.ToString("N2") ?? "0.00")</span>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <strong>Outstanding Balance:</strong> <span class="currency">@(ViewBag.OutstandingBalance?.ToString("N2") ?? "0.00")</span>
-                </div>
-            </div>
-        </div>
+       
 
         <!-- Summary Card -->
         @{
