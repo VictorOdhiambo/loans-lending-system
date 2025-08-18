@@ -41,11 +41,20 @@ namespace LoanApplicationService.Web.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            return View(new LoginDto { Email = "", Password = "" });
+            return View();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Login()
+        {
+            return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Index(LoginDto loginDto)
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginDto loginDto)
         {
             if (!ModelState.IsValid)
                 return View(loginDto);
@@ -77,24 +86,15 @@ namespace LoanApplicationService.Web.Controllers
 
             TempData["WelcomeMessage"] = $"Welcome back, {user.UserName}! You are logged in as {role}.";
 
-            // Redirect by user roles using Identity's built-in role system
+            // Redirect based on user role
             if (await _userManager.IsInRoleAsync(user, "SuperAdmin"))
-            {
                 return RedirectToAction("Dashboard");
-            }
             else if (await _userManager.IsInRoleAsync(user, "Admin"))
-            {
                 return RedirectToAction("AdminDashboard");
-            }
             else if (await _userManager.IsInRoleAsync(user, "Customer"))
-            {
                 return RedirectToAction("CustomerDashboard");
-            }
             else
-            {
-                // Fallback: redirect to Index if no role is assigned
                 return RedirectToAction("Index");
-            }
         }
 
         [Authorize(Roles = "SuperAdmin")]
@@ -256,6 +256,18 @@ namespace LoanApplicationService.Web.Controllers
             return View();
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult FAQ(bool fromHome = false)
+        {
+            ViewData["FromHome"] = fromHome;
+            if (fromHome)
+            {
+                return View("FAQ", "_PublicLayout");
+            }
+            return View();
+        }
+
         [Authorize]
         public async Task<IActionResult> Logout()
         {
@@ -265,12 +277,6 @@ namespace LoanApplicationService.Web.Controllers
 
         [Authorize]
         public IActionResult AccessDenied()
-        {
-            return View();
-        }
-
-        [Authorize]
-        public IActionResult FAQ()
         {
             return View();
         }
