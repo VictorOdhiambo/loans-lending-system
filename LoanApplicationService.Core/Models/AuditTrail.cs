@@ -44,4 +44,7 @@ public class AuditTrail
     public string UserAgent { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public Customer Customer { get; set; }
+    public LoanApplication LoanApplication { get; set; }
+    public Account Account { get; set; }
 }

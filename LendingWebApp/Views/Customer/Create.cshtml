@@ -12,120 +12,124 @@
         </div>
         
         <div class="form-card-body">
-            <form asp-action="Create" method="post">
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
-        @if (TempData["CustomerSuccess"] != null)
-        {
-            <div class="alert alert-success">@TempData["CustomerSuccess"]</div>
-        }
-        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+            <form asp-action="Create" method="post" class="w-100">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger w-100">@TempData["Error"]</div>
+                }
+                @if (TempData["CustomerSuccess"] != null)
+                {
+                    <div class="alert alert-success w-100">@TempData["CustomerSuccess"]</div>
+                }
+                @Html.ValidationSummary(false, "", new { @class = "text-danger w-100" })
 
-        @if (User.IsInRole("SuperAdmin"))
-        {
-            <div class="form-group mb-3">
-                <label for="Role" class="form-label">Select Role</label>
-                <select id="Role" class="form-select" onchange="handleRoleChange()">
-                    <option value="SuperAdmin">SuperAdmin</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Customer" selected>Customer</option>
-                </select>
-            </div>
-            <script>
-                function handleRoleChange() {
-                    var role = document.getElementById('Role').value;
-                    if (role === 'Admin') {
-                        window.location.href = '/Users/Create';
+                @if (User.IsInRole("SuperAdmin"))
+                {
+                    <div class="form-group mb-3 w-100">
+                        <label for="Role" class="form-label">Select Role</label>
+                        <select id="Role" class="form-select w-100" onchange="handleRoleChange()">
+                            <option value="Admin">Admin</option>
+                            <option value="Customer" selected>Customer</option>
+                        </select>
+                    </div>
+                    <script>
+                        function handleRoleChange() {
+                            var role = document.getElementById('Role').value;
+                            if (role === 'Admin') {
+                                window.location.href = '/Users/Create';
+                            }
+                        }
+                    </script>
+                }
+
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="FirstName" class="form-label">First Name</label>
+                        <input id="FirstName" name="FirstName" class="form-control w-100" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="LastName" class="form-label">Last Name</label>
+                        <input id="LastName" name="LastName" class="form-control w-100" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="Email" class="form-label">Email</label>
+                    <input id="Email" name="Email" class="form-control w-100" type="email" required />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="PhoneNumber" class="form-label">Phone</label>
+                    <input id="PhoneNumber" name="PhoneNumber" class="form-control w-100" type="text" pattern="\d{10}" maxlength="10" minlength="10" required title="Phone number must be exactly 10 digits" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="DateOfBirth" class="form-label">Date of Birth</label>
+                    <div class="input-group w-100">
+                        <input id="DateOfBirth" name="DateOfBirth" class="form-control" type="date" required max="2007-07-17" />
+                    </div>
+                    <span id="dob-error" class="text-danger" style="display:none;"></span>
+                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="NationalId" class="form-label">National ID</label>
+                    <input id="NationalId" name="NationalId" class="form-control w-100" type="text" pattern="\d{8}" maxlength="8" minlength="8" required title="ID number must be exactly 8 digits" />
+                    <span asp-validation-for="NationalId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="EmploymentStatus" class="form-label">Employment Status</label>
+                    <select id="EmploymentStatus" name="EmploymentStatus" class="form-select w-100" required>
+                        <option value="">-- Select Employment Status --</option>
+                        <option value="Employed">Employed</option>
+                        <option value="Unemployed">Unemployed</option>
+                        <option value="Self-Employed">Self-Employed</option>
+                    </select>
+                    <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="AnnualIncome" class="form-label">Annual Income</label>
+                    <input id="AnnualIncome" name="AnnualIncome" class="form-control w-100" />
+                    <span asp-validation-for="AnnualIncome" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="Password" class="form-label">Password</label>
+                    <div class="input-group w-100">
+                        <input id="Password" name="Password" class="form-control" type="password" placeholder="Enter password" required />
+                        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('Password', this)">Show</button>
+                    </div>
+                </div>
+
+                <div class="mb-4 w-100">
+                    <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+                    <div class="input-group w-100">
+                        <input id="ConfirmPassword" name="ConfirmPassword" class="form-control" type="password" placeholder="Confirm password" required />
+                        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('ConfirmPassword', this)">Show</button>
+                    </div>
+                    <span id="password-match-error" class="text-danger" style="display:none;"></span>
+                </div>
+
+                <div class="form-card-footer d-flex flex-column flex-md-row align-items-md-center justify-content-between w-100">
+                    <button type="submit" class="btn btn-success mb-2 mb-md-0">Save</button>
+                    @if (ViewData["SelfRegister"] as bool? ?? false)
+                    {
+                        <a href="/Home/Index" class="btn btn-link text-decoration-none">Already have an account? Login</a>
                     }
-                    // If Customer, do nothing
-                }
-            </script>
-        }
-
-        <div class="form-group mb-3">
-            <label for="FirstName" class="form-label">First Name</label>
-            <input id="FirstName" name="FirstName" class="form-control" />
-            <span asp-validation-for="FirstName" class="text-danger"></span>
+                    else
+                    {
+                        <a href="/Customer/Index" class="btn btn-secondary">Back to Customer List</a>
+                    }
+                </div>
+            </form>
         </div>
-
-        <div class="form-group mb-3">
-            <label for="LastName" class="form-label">Last Name</label>
-            <input id="LastName" name="LastName" class="form-control" />
-            <span asp-validation-for="LastName" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="Email" class="form-label">Email</label>
-            <input id="Email" name="Email" class="form-control" type="email" required />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="PhoneNumber" class="form-label">Phone</label>
-            <input id="PhoneNumber" name="PhoneNumber" class="form-control" type="text" pattern="\d{10}" maxlength="10" minlength="10" required title="Phone number must be exactly 10 digits" />
-            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="DateOfBirth" class="form-label">Date of Birth</label>
-            <input id="DateOfBirth" name="DateOfBirth" class="form-control" type="date" required max="2007-07-17" />
-<span id="dob-error" class="text-danger" style="display:none;"></span>
-            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="NationalId" class="form-label">National ID</label>
-            <input id="NationalId" name="NationalId" class="form-control" type="text" pattern="\d{8}" maxlength="8" minlength="8" required title="ID number must be exactly 8 digits" />
-            <span asp-validation-for="NationalId" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="EmploymentStatus" class="form-label">Employment Status</label>
-            <select id="EmploymentStatus" name="EmploymentStatus" class="form-select" required>
-                <option value="">-- Select Employment Status --</option>
-                <option value="Employed">Employed</option>
-                <option value="Unemployed">Unemployed</option>
-                <option value="Self-Employed">Self-Employed</option>
-            </select>
-            <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="AnnualIncome" class="form-label">Annual Income</label>
-            <input id="AnnualIncome" name="AnnualIncome" class="form-control" />
-            <span asp-validation-for="AnnualIncome" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-    <label for="Password" class="form-label">Password</label>
-    <div class="input-group">
-        <input id="Password" name="Password" class="form-control" type="password" placeholder="Enter password" required />
-        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('Password', this)">Show</button>
-    </div>
-</div>
-<div class="form-group mb-3">
-    <label for="ConfirmPassword" class="form-label">Confirm Password</label>
-    <div class="input-group">
-        <input id="ConfirmPassword" name="ConfirmPassword" class="form-control" type="password" placeholder="Confirm password" required />
-        <button type="button" class="btn btn-outline-secondary" tabindex="-1" onclick="togglePasswordVisibility('ConfirmPassword', this)">Show</button>
-    </div>
-    <span id="password-match-error" class="text-danger" style="display:none;"></span>
-</div>
-
-            <div class="form-card-footer">
-                <button type="submit" class="btn btn-success">Save</button>
-                @if (ViewData["SelfRegister"] as bool? ?? false)
-                {
-                    <a href="/Home/Index" class="btn btn-link">Already have an account? Login</a>
-                }
-                else
-                {
-                    <a href="/Customer/Index" class="btn btn-secondary ms-2">Back to Customer List</a>
-                }
-            </div>
-        </form>
     </div>
 </div>
 
@@ -133,5 +137,16 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePasswordVisibility(inputId, btn) {
+            var input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "Hide";
+            } else {
+                input.type = "password";
+                btn.textContent = "Show";
+            }
+        }
+    </script>
 }
-
