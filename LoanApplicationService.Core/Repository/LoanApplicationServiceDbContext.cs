@@ -120,32 +120,7 @@ namespace LoanApplicationService.Core.Repository
                 .Property(c => c.AnnualIncome)
                 .HasColumnType("decimal(18,2)");
 
-            modelBuilder.Entity<AuditTrail>()
-                .ToTable("AuditTrail");
-
-            modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(ApplicationUser))
-                .WithMany()
-                .HasForeignKey("UserId")
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(Customer))
-                .WithMany()
-                .HasForeignKey("CustomerId")
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(LoanApplication))
-                .WithMany()
-                .HasForeignKey("ApplicationId")
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(Account))
-                .WithMany()
-                .HasForeignKey("AccountId")
-                .OnDelete(DeleteBehavior.Restrict);
+            
         }
     }
 }
