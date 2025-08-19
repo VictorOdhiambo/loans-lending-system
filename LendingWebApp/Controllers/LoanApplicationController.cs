@@ -17,6 +17,7 @@ using System.Data;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using X.PagedList.Extensions;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -108,7 +109,7 @@ namespace LoanApplicationService.Web.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin,Customer")]
-        public async Task<IActionResult> Index(int? Status, int? customerId)
+        public async Task<IActionResult> Index(int? Status, int? customerId, int ? page)
         {
             var applications = await _loanApplicationService.GetAllAsync();
             var applicationsList = applications.ToList();
@@ -139,8 +140,11 @@ namespace LoanApplicationService.Web.Controllers
             ViewBag.Status = Status;
             ViewBag.CustomerId = customerId;
             ViewBag.Applications = applicationsList;
+            int PageSize = 10; 
+            int PageNumber = page ?? 1; 
 
-            return View(applicationsList);
+            var applicationsPaged = applicationsList.ToPagedList(PageNumber, PageSize);
+            return View(applicationsPaged);
         }
 
         [HttpGet]
