@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Identity.Client;
+using X.PagedList.Extensions;
 
 namespace LoanApplicationService.Web.Controllers
 {
@@ -29,10 +30,15 @@ namespace LoanApplicationService.Web.Controllers
        
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int ? page)
         {
+            int pageSize = 10;
+            int pageNumber = page ?? 1;     
             var accounts = await _accountService.GetAllAccountsAsync();
-            return View(accounts);
+
+            var pagedAccountsList = accounts.ToPagedList(pageNumber, pageSize);
+
+            return View(pagedAccountsList);
         }
 
         [HttpGet]
@@ -142,7 +148,11 @@ namespace LoanApplicationService.Web.Controllers
                 // Return the NotFound view from Shared folder
                 return View("~/Views/Shared/NotFound.cshtml");
             }
-            return View(accounts);
+            int pageSize = 10;
+            int pageNumber = 1; 
+
+            var pagedAccountList = accounts.ToPagedList(pageNumber, pageSize);
+            return View(pagedAccountList);
         }
 
         [HttpGet]

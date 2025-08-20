@@ -1,4 +1,9 @@
-@model IEnumerable<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+
+@model IPagedList<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>
+
 @using LoanApplicationService.CrossCutting.Utils
 
 @{
@@ -143,4 +148,30 @@ else if (ViewBag.CustomerId != null)
             }
         </tbody>
     </table>
+    <br />
+
+    
 </div>
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <span>Page @Model.PageNumber of @Model.PageCount</span>
+</div>
+
+@Html.PagedListPager(
+    Model,
+    page => Url.Action("Index", new { 
+        page, 
+        status = Context.Request.Query["status"].ToString() 
+    }),
+    new PagedListRenderOptions
+    {
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" },
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 5
+    }
+)

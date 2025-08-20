@@ -1,4 +1,6 @@
-﻿@model IEnumerable<LoanApplicationService.Service.DTOs.Account.AccountDto>
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<LoanApplicationService.Service.DTOs.Account.AccountDto>
 
 @{
         ViewData["Title"] = "Account Overview";
@@ -11,15 +13,15 @@
     <table class=" table table-striped table-hover ">
         <thead>
             <tr>
-                <th>@Html.DisplayNameFor(model => model.AccountNumber)</th>
-                <th>@Html.DisplayNameFor(model => model.AccountType)</th>
-                <th>@Html.DisplayNameFor(model => model.PrincipalAmount)</th>
-                <th>@Html.DisplayNameFor(model => model.OutstandingBalance)</th>
-                <th>@Html.DisplayNameFor(model => model.DisbursementDate)</th>
-                <th>@Html.DisplayNameFor(model => model.NextPaymentDate)</th>
-                <th>@Html.DisplayNameFor(model => model.MonthlyPayment)</th>
-                <th>@Html.DisplayNameFor(model => model.InterestRate)</th>
-                <th>@Html.DisplayNameFor(model => model.MaturityDate)</th>
+                <th>AccountNumber</th>
+                <th>AccountType</th>
+                <th>PrincipalAmount</th>
+                <th>OutstandingBalance</th>
+                <th>DisbursementDate</th>
+                <th>NextPaymentDate</th>
+                <th>MonthlyPayment</th>
+                <th>InterestRate</th>
+                <th>MaturityDate</th>
                 <th class="text-end">Actions</th>
             </tr>
         </thead>
@@ -32,11 +34,10 @@
                    <td>@item.AccountType</td>
                    <td>@item.PrincipalAmount</td>
                    <td>@item.OutstandingBalance</td>
-                   <td>@item.DisbursementDate</td>
-                   <td>@item.NextPaymentDate</td>
+                    <td>@(item.DisbursementDate.HasValue ? item.DisbursementDate.Value.ToString("dd/MM/yyyy") : "")</td>                   <td>@item.NextPaymentDate.ToString("dd/MM/yyyy")</td>
                    <td>@item.MonthlyPayment</td>
                    <td>@item.InterestRate</td>
-                   <td>@item.MaturityDate </td>
+                   <td>@(item.DisbursementDate.HasValue ? item.DisbursementDate.Value.ToString("dd/MM/yyyy") : "" ) </td>
                     <td class="text-end">
                         <a href="@Url.Action("GetAccountById", "Account", new { id = item.AccountId })" class="btn btn-info">Details</a>
 
@@ -47,3 +48,24 @@
 
     </table>
 </div>
+
+                   <div class="d-flex justify-content-between align-items-center mb-2">
+    <span>Page @Model.PageNumber of @Model.PageCount</span>
+</div>
+
+@Html.PagedListPager(
+    Model,
+    page => Url.Action("Index", new { 
+        page, 
+        status = Context.Request.Query["status"].ToString() 
+    }),
+    new PagedListRenderOptions
+    {
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" },
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 5
+    }
+)

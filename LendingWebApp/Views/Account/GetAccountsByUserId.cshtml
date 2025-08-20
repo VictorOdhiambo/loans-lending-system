@@ -1,4 +1,7 @@
-﻿@model IEnumerable<LoanApplicationService.Service.DTOs.Account.AccountDto>;
+﻿@using X.PagedList;
+@using X.PagedList.Mvc.Core
+
+@model IPagedList<LoanApplicationService.Service.DTOs.Account.AccountDto>;
 @using LoanApplicationService.CrossCutting.Utils;
 
 @{
@@ -55,3 +58,23 @@ else
 {
     <p>No accounts found for this customer.</p>
 }
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <span>Page @Model.PageNumber of @Model.PageCount</span>
+</div>
+
+@Html.PagedListPager(
+    Model,
+    page => Url.Action("Index", new { 
+        page, 
+        status = Context.Request.Query["status"].ToString() 
+    }),
+    new PagedListRenderOptions
+    {
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" },
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 5
+    }
+)

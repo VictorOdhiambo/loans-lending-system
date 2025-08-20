@@ -354,7 +354,7 @@ namespace LoanApplicationService.Service.Services
                 EntityId = accountId,
                 Action = "Payment",
                 CreatedAt = DateTime.UtcNow,
-                Customer = account.Customer,
+               Customer = account.Customer,
                 LoanApplication = account.LoanApplication,
                 Account = account
 
