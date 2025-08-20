@@ -84,6 +84,11 @@
             <li class="nav-item mt-3">
                 <a class="nav-link text-white" href="/Reports/PortfolioOverview"><i class="bi bi-box-arrow-right"></i> Reports</a>
             </li>
+            
+            <!-- Audit Trail - Admin/SuperAdmin Only -->
+            <li class="nav-item mt-1">
+                <a class="nav-link text-white" href="/Audit"><i class="bi bi-eye"></i> Audit Trail</a>
+            </li>
         }
         
         @if (User.IsInRole("Customer"))

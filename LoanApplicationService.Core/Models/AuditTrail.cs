@@ -9,16 +9,12 @@ public class AuditTrail
     [Key]
     public int AuditId { get; set; }
 
-    [ForeignKey("UserId")]
     public Guid? UserId { get; set; }
 
-    [ForeignKey("CustomerId")]
     public int? CustomerId { get; set; }
 
-    [ForeignKey("ApplicationId")]
     public int? ApplicationId { get; set; }
 
-    [ForeignKey("AccountId")]
     public int? AccountId { get; set; }
 
     [Required]

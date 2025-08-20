@@ -123,28 +123,29 @@ namespace LoanApplicationService.Core.Repository
             modelBuilder.Entity<AuditTrail>()
                 .ToTable("AuditTrail");
 
+            // Strongly-typed AuditTrail relationships using explicit FK properties
             modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(ApplicationUser))
+                .HasOne(a => a.Customer)
                 .WithMany()
-                .HasForeignKey("UserId")
+                .HasForeignKey(a => a.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(Customer))
-                .WithMany()
-                .HasForeignKey("CustomerId")
+                .HasOne(a => a.LoanApplication)
+                .WithMany(l => l.AuditTrails)
+                .HasForeignKey(a => a.ApplicationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(LoanApplication))
-                .WithMany()
-                .HasForeignKey("ApplicationId")
+                .HasOne(a => a.Account)
+                .WithMany(acc => acc.AuditTrails)
+                .HasForeignKey(a => a.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<AuditTrail>()
-                .HasOne(typeof(Account))
+                .HasOne<ApplicationUser>()
                 .WithMany()
-                .HasForeignKey("AccountId")
+                .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

@@ -68,6 +68,57 @@ namespace LoanApplicationService.Service.Services
                 new SqlParameter("@UserAgent", userAgent));
         }
 
+        public async Task AddLoanDisbursementAuditAsync(int applicationId, int accountId, string action, string oldStatus, string newStatus)
+        {
+            var customerId = await GetCustomerId(applicationId);
+            var userId = GetUserId();
+            var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+            var userAgent = _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString();
+
+            var sql = @"
+                INSERT INTO AuditTrail (
+                    ApplicationId,
+                    AccountId,
+                    Action,
+                    OldValues,
+                    NewValues,
+                    UserId,
+                    CustomerId,
+                    EntityType,
+                    EntityId,
+                    CreatedAt,
+                    IpAddress,
+                    UserAgent
+                ) VALUES (
+                    @ApplicationId,
+                    @AccountId,
+                    @Action,
+                    @OldValues,
+                    @NewValues,
+                    @UserId,
+                    @CustomerId,
+                    @EntityType,
+                    @EntityId,
+                    @CreatedAt,
+                    @IpAddress,
+                    @UserAgent
+                )";
+
+            await _context.Database.ExecuteSqlRawAsync(sql,
+                new SqlParameter("@ApplicationId", applicationId),
+                new SqlParameter("@AccountId", accountId),
+                new SqlParameter("@Action", action),
+                new SqlParameter("@OldValues", oldStatus),
+                new SqlParameter("@NewValues", newStatus),
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@CustomerId", customerId),
+                new SqlParameter("@EntityType", "LoanApplication"),
+                new SqlParameter("@EntityId", applicationId),
+                new SqlParameter("@CreatedAt", DateTime.UtcNow),
+                new SqlParameter("@IpAddress", ipAddress),
+                new SqlParameter("@UserAgent", userAgent));
+        }
+
         public async Task<IEnumerable<AuditTrail>> GetAuditTrailByApplicationIdAsync(int applicationId)
         {
             return await _context.AuditTrail
@@ -79,6 +130,23 @@ namespace LoanApplicationService.Service.Services
         public async Task<IEnumerable<AuditTrail>> GetAllAuditTrailsAsync()
         {
             return await _context.AuditTrail
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<string>> GetDistinctEntityTypesAsync()
+        {
+            return await _context.AuditTrail
+                .Select(a => a.EntityType)
+                .Distinct()
+                .OrderBy(t => t)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<AuditTrail>> GetAuditTrailsByEntityTypeAsync(string entityType)
+        {
+            return await _context.AuditTrail
+                .Where(a => a.EntityType == entityType)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
         }
