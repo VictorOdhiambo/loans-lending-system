@@ -27,10 +27,17 @@ namespace LoanApplicationService.Service.Services
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            await CheckOverduePaymentsAsync();
-            await Task.Delay(_interval, stoppingToken);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await CheckOverduePaymentsAsync();
+                await Task.Delay(_interval, stoppingToken);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected on shutdown, optionally log as information
         }
     }
 

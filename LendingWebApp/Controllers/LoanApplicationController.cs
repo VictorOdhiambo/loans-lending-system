@@ -30,6 +30,7 @@ namespace LoanApplicationService.Web.Controllers
         private readonly IAccountService _accountService;
         private readonly ILoanChargeService _loanChargeService;
         private readonly IRepaymentScheduleService _loanRepaymentScheduleService;
+        private readonly IAuditService _auditService;
 
         public LoanApplicationController(
             ILoanApplicationService loanApplicationService,
@@ -38,7 +39,8 @@ namespace LoanApplicationService.Web.Controllers
             ICustomerService customerService,
             IAccountService accountService,
             ILoanChargeService loanChargeService,
-            IRepaymentScheduleService loanRepaymentScheduleService
+            IRepaymentScheduleService loanRepaymentScheduleService,
+            IAuditService auditService
 
             )
 
@@ -50,6 +52,7 @@ namespace LoanApplicationService.Web.Controllers
             _accountService = accountService;
             _loanChargeService = loanChargeService;
             _loanRepaymentScheduleService = loanRepaymentScheduleService;
+            _auditService = auditService;
         }
 
         [Authorize(Roles = "SuperAdmin,Admin")]
@@ -661,6 +664,17 @@ namespace LoanApplicationService.Web.Controllers
                 return RedirectToAction("Index");
             }
             var createdAccount = await _accountService.GetAccountByApplicationIdAsync(application.ApplicationId);
+
+            // Log Audit for Disbursement (only when account is created)
+            var oldStatus = EnumHelper.GetDescription(LoanStatus.Approved);
+            var actionText = $"The loan application of amount {application.ApprovedAmount} has been disbursed";
+            await _auditService.AddLoanDisbursementAuditAsync(
+                application.ApplicationId,
+                createdAccount.AccountId,
+                actionText,
+                oldStatus,
+                "Disbursed"
+            );
 
             // 5. Generate the initial repayment schedule
 

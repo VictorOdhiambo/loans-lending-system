@@ -1,0 +1,73 @@
+@model IEnumerable<LoanApplicationService.Core.Models.AuditTrail>
+@{
+	ViewData["Title"] = "Audit Trail";
+	var entityTypes = ViewBag.EntityTypes as IEnumerable<string>;
+	string selectedType = ViewBag.SelectedEntityType as string;
+}
+
+<div class="row mt-4">
+	<div class="col-12">
+		<h3>Audit Trail</h3>
+		<form method="get" class="row g-3 mb-3">
+			<div class="col-auto">
+				<label for="entityType" class="col-form-label">Entity Type</label>
+			</div>
+			<div class="col-auto">
+				<select class="form-select" id="entityType" name="entityType">
+					<option value="" @(string.IsNullOrWhiteSpace(selectedType) ? "selected" : null)>All</option>
+					@if (entityTypes != null)
+					{
+						foreach (var t in entityTypes)
+						{
+							<option value="@t" @(string.Equals(selectedType, t, StringComparison.OrdinalIgnoreCase) ? "selected" : null)>@t</option>
+						}
+					}
+				</select>
+			</div>
+			<div class="col-auto">
+				<button type="submit" class="btn btn-primary">Filter</button>
+				<a class="btn btn-secondary ms-2" href="@Url.Action("Index", "Audit")">Clear</a>
+			</div>
+		</form>
+
+		<div class="table-responsive">
+			<table class="table table-striped table-sm align-middle">
+				<thead>
+					<tr>
+						<th>Created At</th>
+						<th>Application Id</th>
+						<th>Account Id</th>
+						<th>Customer Id</th>
+						<th>User Id</th>
+						<th>Entity Type</th>
+						<th>Entity Id</th>
+						<th>Action</th>
+						<th>Old Values</th>
+						<th>New Values</th>
+						<th>IP</th>
+						<th>User Agent</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var a in Model)
+					{
+						<tr>
+							<td>@a.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+							<td>@a.ApplicationId</td>
+							<td>@a.AccountId</td>
+							<td>@a.CustomerId</td>
+							<td>@a.UserId</td>
+							<td>@a.EntityType</td>
+							<td>@a.EntityId</td>
+							<td>@a.Action</td>
+							<td>@a.OldValues</td>
+							<td>@a.NewValues</td>
+							<td>@a.IpAddress</td>
+							<td class="text-truncate" style="max-width: 300px;" title="@a.UserAgent">@a.UserAgent</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div> 
