@@ -9,6 +9,7 @@ using LoanApplicationService.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -17,6 +18,7 @@ using System.Data;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using X.PagedList;
 using X.PagedList.Extensions;
 
 namespace LoanApplicationService.Web.Controllers
@@ -112,7 +114,7 @@ namespace LoanApplicationService.Web.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin,Customer")]
-        public async Task<IActionResult> Index(int? Status, int? customerId, int ? page)
+        public async Task<IActionResult> Index(int? Status, int? customerId, int ? page, string sortOrder = null)
         {
             var applications = await _loanApplicationService.GetAllAsync();
             var applicationsList = applications.ToList();
@@ -140,15 +142,87 @@ namespace LoanApplicationService.Web.Controllers
                 applicationsList = applicationsList.Where(a => a.CustomerId == customerId.Value).ToList();
             }
 
+
+            //sort based on sort order
+            switch (sortOrder)
+            {
+                case "ApplicationIdAsc":
+                    applications = applicationsList.OrderBy(a => a.ApplicationId);
+                    break;
+                case "ApplicationIdDesc":
+                    applications = applicationsList.OrderByDescending(a => a.ApplicationId);
+                    break;
+                case "CustomerNameAsc":
+                    applications = applicationsList.OrderBy(a => a.FirstName + " " + a.LastName);
+                    break;
+                case "CustomerNameDesc":
+                    applications = applicationsList.OrderByDescending(a => a.FirstName + " " + a.LastName);
+                    break;
+                case "ProductNameAsc":
+                    applications = applicationsList.OrderBy(a => a.ProductName);
+                    break;
+                case "ProductNameDesc":
+                    applications = applicationsList.OrderByDescending(a => a.ProductName);
+                    break;
+                case "StatusAsc":
+                    applications = applicationsList.OrderBy(a => a.Status);
+                    break;
+                case "StatusDesc":
+                    applications = applicationsList.OrderByDescending(a => a.Status);
+                    break;
+                case "TermMonthsAsc":
+                    applications = applicationsList.OrderBy(a => a.TermMonths);
+                    break;
+                case "TermMonthsDesc":
+                    applications = applicationsList.OrderByDescending(a => a.TermMonths);
+                    break;
+                case "RequestedAmountAsc":
+                    applications = applicationsList.OrderBy(a => a.RequestedAmount);
+                    break;
+                case "RequestedAmountDesc":
+                    applications = applicationsList.OrderByDescending(a => a.RequestedAmount);
+                    break;
+                case "ApprovedAmountAsc":
+                    applications = applicationsList.OrderBy(a => a.ApprovedAmount);
+                    break;
+                case "ApprovedAmountDesc":
+                    applications = applicationsList.OrderByDescending(a => a.ApprovedAmount);
+                    break;
+                case "PurposeAsc":
+                    applications = applicationsList.OrderBy(a => a.Purpose);
+                    break;
+                case "PurposeDesc":
+                    applications = applicationsList.OrderByDescending(a => a.Purpose);
+                    break;
+                case "ApplicationDateAsc":
+                    applications = applicationsList.OrderBy(a => a.ApplicationDate);
+                    break;
+                case "ApplicationDateDesc":
+                    applications = applicationsList.OrderByDescending(a => a.ApplicationDate);
+                    break;
+                case "DecisionDateAsc":
+                    applications = applicationsList.OrderBy(a => a.DecisionDate);
+                    break;
+                case "DecisionDateDesc":
+                    applications = applicationsList.OrderByDescending(a => a.DecisionDate);
+                    break;
+                default:
+                    applications = applicationsList.OrderBy(a => a.ApplicationId);
+                    break;
+            }
+
+
             ViewBag.Status = Status;
             ViewBag.CustomerId = customerId;
-            ViewBag.Applications = applicationsList;
+            ViewBag.Applications = applications;
             int PageSize = 10; 
             int PageNumber = page ?? 1; 
 
-            var applicationsPaged = applicationsList.ToPagedList(PageNumber, PageSize);
+            var applicationsPaged = applications.ToPagedList(PageNumber, PageSize);
             return View(applicationsPaged);
         }
+
+
 
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
@@ -538,41 +612,69 @@ namespace LoanApplicationService.Web.Controllers
 
 
 
-        [HttpPost]
-        public FileResult Export()
+        [HttpGet]
+        [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<FileResult> Export(string status = null)
         {
+            
+                var applications = await _loanApplicationService.GetAllAsync();
 
-            DataTable dt = new DataTable("Loan Application");
-            dt.Columns.AddRange(new DataColumn[11] { new DataColumn("ApplicationId"),
-                                            new DataColumn("CustomerId"),
-                                            new DataColumn("ProductId"),
-                                            new DataColumn("ProcessedBy"),
-                                            new DataColumn("Status"),
-                                            new DataColumn("TermMonths"),
-                                            new DataColumn("RequestedAmount"),
-                                            new DataColumn("ApprovedAmount"),
-                                            new DataColumn("Purpose"),
-                                            new DataColumn("ApplicationDate"),
-                                            new DataColumn("DecisionDate")});
+            var FilteredApplications = applications.Where(a => string.IsNullOrEmpty(status) || a.Status.ToString() == status).ToList();
 
-            var LoanAplications = _loanApplicationService.GetAllAsync().Result;
-
-            foreach (var app in LoanAplications)
-            {
-                dt.Rows.Add(app.ApplicationId, app.CustomerId, app.ProductId, app.ApprovedBy, app.Status, app.TermMonths, app.RequestedAmount, app.ApprovedAmount, app.Purpose, app.ApplicationDate, app.DecisionDate);
-            }
-
-            using (XLWorkbook wb = new XLWorkbook())
-            {
-                wb.Worksheets.Add(dt);
-                using (MemoryStream stream = new MemoryStream())
+            var dt = new DataTable("LoanApplications");
+                dt.Columns.AddRange(new DataColumn[]
                 {
-                    wb.SaveAs(stream);
-                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LoanApplications.xlsx");
-                }
-            }
-        }
+                    new DataColumn("Application ID"),
+                    new DataColumn("Customer Name"),
+                    new DataColumn("Product Name"),
+                    new DataColumn("Customer ID"),
+                    new DataColumn("Product ID"),
+                    new DataColumn("Status"),
+                    new DataColumn("Term (Months)"),
+                    new DataColumn("Requested Amount"),
+                    new DataColumn("Approved Amount"),
+                    new DataColumn("Purpose"),
+                    new DataColumn("Application Date"),
+                    new DataColumn("Decision Date")
+                });
 
+                foreach (var app in FilteredApplications)
+                {
+                    dt.Rows.Add(
+                        app.ApplicationId,
+                        $"{app.FirstName} {app.LastName}",
+                        app.ProductName,
+                        app.CustomerId,
+                        app.ProductId,
+                        app.Status,
+                        app.TermMonths,
+                        app.RequestedAmount.ToString("C"),
+                        app.ApprovedAmount.ToString("C") ,
+                        app.Purpose,
+                        app.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy"),
+                        app.DecisionDate != default(DateTimeOffset) ? app.DecisionDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy") : "N/A"
+                    );
+                }
+
+                using (var wb = new XLWorkbook())
+                {
+                    var ws = wb.Worksheets.Add("Loan Applications");
+                    ws.Cell(1, 1).InsertTable(dt);
+                    ws.Columns().AdjustToContents();
+
+                    using (var stream = new MemoryStream())
+                    {
+                        wb.SaveAs(stream);
+                        return File(
+                            stream.ToArray(),
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "LoanApplications.xlsx"
+                        );
+                    }
+                }
+            
+        }
 
 
 

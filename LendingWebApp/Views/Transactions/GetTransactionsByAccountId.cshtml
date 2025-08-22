@@ -34,6 +34,7 @@
     <table class="table table-striped table-hover">
         <thead>
             <tr>
+                <th>@Html.DisplayNameFor(model => model.AccountId)</th>
                 <th>@Html.DisplayNameFor(model => model.TransactionId)</th>
                 <th>@Html.DisplayNameFor(model => model.TransactionType)</th>
                 <th>@Html.DisplayNameFor(model => model.Amount)</th>
@@ -46,6 +47,7 @@
             @foreach (var transaction in Model)
             {
                 <tr>
+                    <td>@transaction.AccountId</td>
                     <td>@transaction.TransactionId</td>
                     @{
                         var transactionType = (TransactionType)transaction.TransactionType;
