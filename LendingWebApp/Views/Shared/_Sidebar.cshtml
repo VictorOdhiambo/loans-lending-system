@@ -15,13 +15,13 @@
             else if (User.IsInRole("SuperAdmin"))
             {
                 <a class="nav-link text-white" href="/Home/Dashboard">
-                    <i class="bi bi-house-door"></i> Super Admin Dashboard
+                    <i class="bi bi-house-door"></i> Dashboard
                 </a>
             }
             else if (User.IsInRole("Admin"))
             {
                 <a class="nav-link text-white" href="/Home/AdminDashboard">
-                    <i class="bi bi-house-door"></i> Admin Dashboard
+                    <i class="bi bi-house-door"></i> Dashboard
                 </a>
             }
         </li>
@@ -31,13 +31,13 @@
             <!-- Loans Dropdown - Admin/SuperAdmin Only -->
             <li class="nav-item">
                 <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminLoansMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-cash-stack me-2"></i> Loans Management
+                    <i class="bi bi-cash-stack me-2"></i> Loans Module
                 </a>
                 <div class="collapse" id="adminLoansMenu">
                     <ul class="nav flex-column ms-3">
                         <li class="nav-item"><a class="nav-link text-white" href="/Account">View All Loan Accounts</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/LoanProduct">View All Loan Products</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Index">View All Loan Applications</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanProduct">Loan Products</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Index">Loan Applications</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/LoanApplication/Create">Apply Loan for Customer</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/LoanCharge/Index">Loan Charges</a></li>
                         <li class="nav-item"><a class="nav-link text-white" href="/LoanCharge/AddChargeToLoanProduct">Add Loan Charge To Loan Product</a></li>
@@ -48,7 +48,7 @@
             <!-- Users Dropdown - Admin/SuperAdmin Only -->
             <li class="nav-item">
                 <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminUsersMenu" role="button" aria-expanded="false">
-                    <i class="bi bi-people me-2"></i> User Management
+                    <i class="bi bi-people me-2"></i> User Module
                 </a>
                 <div class="collapse" id="adminUsersMenu">
                     <ul class="nav flex-column ms-3">
@@ -63,6 +63,26 @@
                         {
                             <li class="nav-item"><a class="nav-link text-white" href="/Customer/Create">Add New Customer</a></li>
                         }
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link text-white" data-bs-toggle="collapse" href="#adminUsersMenu" role="button" aria-expanded="false">
+                    <i class="bi bi-people me-2"></i> Account Module
+                </a>
+                <div class="collapse" id="adminUsersMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-white" href="/Account/">Loan acocunts</a></li>
+                        <a class="nav-link text-white" data-bs-toggle="collapse" href="#chargesandpenaltiesmenu" role="button" aria-expanded="false">
+                            <i class="bi bi-people me-2"></i> Charges and Penalties
+
+                            <div class=" collapse" id=" chargesandpenaltiesmenu">
+                        <li class="nav-item"><a class="nav-link text-white" href="/LoanCharge">Charges</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Penalty">Penalties</a></li>
+                            </div>
+                        <li class="nav-item"><a class="nav-link text-white" href="/Transactions/">Transactions</a></li>
+                       
                     </ul>
                 </div>
             </li>

@@ -1,16 +1,12 @@
 @using X.PagedList
 @using X.PagedList.Mvc.Core
-
-
-@model IPagedList<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>
-
 @using LoanApplicationService.CrossCutting.Utils
+@model IPagedList<LoanApplicationService.Service.DTOs.LoanApplicationModule.LoanApplicationDto>
 
 @{
     ViewData["Title"] = "Loan Applications";
     Layout = User.IsInRole("Customer") ? "~/Views/Customer/Shared/_CustomerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
-    
-    // Create status dropdown list
+
     var statusList = new List<SelectListItem>
     {
         new SelectListItem { Value = "", Text = "-- All --" },
@@ -19,22 +15,73 @@
         new SelectListItem { Value = "2", Text = "Rejected" },
         new SelectListItem { Value = "3", Text = "Disbursed" }
     };
+
+    var currentSort = ViewData["CurrentSort"]?.ToString();
 }
 
-  
-<h1>Loan Applications</h1>
+<style>
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+        border: 1px solid #dee2e6;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    .table tbody tr:hover {
+        background-color: #e9ecef;
+    }
+
+    .sort-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+        .sort-link:hover {
+            text-decoration: underline;
+        }
+
+    .sort-icon::after {
+        content: '';
+        display: inline-block;
+        width: 0;
+        height: 0;
+        margin-left: 5px;
+        vertical-align: middle;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+    }
+
+    .sort-asc::after {
+        border-bottom: 4px solid #007bff;
+    }
+
+    .sort-desc::after {
+        border-top: 4px solid #007bff;
+    }
+</style>
+
+<h2>Loan Applications</h2>
+
 @if (TempData["Success"] != null)
 {
- <div class="alert alert-success">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         <strong>Success!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-success">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <strong>Error!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+
 @if (ViewBag.CustomerId != null && ViewBag.CustomerName != null)
 {
     <div class="alert alert-info mb-3">
@@ -62,38 +109,87 @@ else if (ViewBag.CustomerId != null)
     </div>
 }
 
-<form method="get" asp-action="Index" class="mb-3">
-    <div class="row g-2 align-items-center">
-        <div class="col-auto">
-            <label for="status" class="col-form-label">Filter by Status:</label>
+<div class="mb-3">
+    <div class="row align-items-center flex-wrap">
+        <div class="col-md-6 d-flex align-items-center flex-wrap gap-2">
+            <div>
+                <label for="status" class="col-form-label me-2">Filter by Status:</label>
+            </div>
+            <div>
+                @Html.DropDownList("status", statusList, new { @class = "form-select", id = "status", onchange = "updateExportUrl()" })
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary" onclick="applyFilter()">Filter</button>
+            </div>
         </div>
-        <div class="col-auto">
-            @Html.DropDownList("status", statusList, "-- All --", new { @class = "form-select", id = "status" })
-        </div>
-        <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Filter</button>
-        </div>
+        @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+        {
+            <div class="col-md-6 d-flex justify-content-md-end align-items-center flex-wrap gap-2">
+                <a id="export-excel-btn" href="/LoanApplication/Export?status=@Context.Request.Query["status"]" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i> Export to Excel
+                </a>
+            </div>
+        }
     </div>
-</form>
+</div>
 
 <div class="table-responsive">
-
-    <table class="table table-striped table-hover">
+    <table class="table table-striped table-hover table-bordered">
         <thead>
             <tr>
                 @if (ViewBag.CustomerId == null)
                 {
-                    <th>Application ID</th>
+                    <th>
+                        <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "ApplicationIdAsc" ? "ApplicationIdDesc" : "ApplicationIdAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "ApplicationIdAsc" ? "sort-asc" : currentSort == "ApplicationIdDesc" ? "sort-desc" : "")">
+                            Application ID
+                        </a>
+                    </th>
                 }
-                <th>Customer Name</th>
-                <th>Product Name</th>
-                <th>Status</th>
-                <th>Term (Months)</th>
-                <th>Requested Amount</th>
-                <th>Approved Amount</th>
-                <th>Purpose</th>
-                <th>Application Date</th>
-                <th>Decision Date</th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "CustomerNameAsc" ? "CustomerNameDesc" : "CustomerNameAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "CustomerNameAsc" ? "sort-asc" : currentSort == "CustomerNameDesc" ? "sort-desc" : "")">
+                        Customer Name
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "ProductNameAsc" ? "ProductNameDesc" : "ProductNameAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "ProductNameAsc" ? "sort-asc" : currentSort == "ProductNameDesc" ? "sort-desc" : "")">
+                        Product Name
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "StatusAsc" ? "StatusDesc" : "StatusAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "StatusAsc" ? "sort-asc" : currentSort == "StatusDesc" ? "sort-desc" : "")">
+                        Status
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "TermMonthsAsc" ? "TermMonthsDesc" : "TermMonthsAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "TermMonthsAsc" ? "sort-asc" : currentSort == "TermMonthsDesc" ? "sort-desc" : "")">
+                        Term (Months)
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "RequestedAmountAsc" ? "RequestedAmountDesc" : "RequestedAmountAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "RequestedAmountAsc" ? "sort-asc" : currentSort == "RequestedAmountDesc" ? "sort-desc" : "")">
+                        Requested Amount
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "ApprovedAmountAsc" ? "ApprovedAmountDesc" : "ApprovedAmountAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "ApprovedAmountAsc" ? "sort-asc" : currentSort == "ApprovedAmountDesc" ? "sort-desc" : "")">
+                        Approved Amount
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "PurposeAsc" ? "PurposeDesc" : "PurposeAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "PurposeAsc" ? "sort-asc" : currentSort == "PurposeDesc" ? "sort-desc" : "")">
+                        Purpose
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "ApplicationDateAsc" ? "ApplicationDateDesc" : "ApplicationDateAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "ApplicationDateAsc" ? "sort-asc" : currentSort == "ApplicationDateDesc" ? "sort-desc" : "")">
+                        Application Date
+                    </a>
+                </th>
+                <th>
+                    <a href="@Url.Action("Index", new { status = Context.Request.Query["status"], sortOrder = currentSort == "DecisionDateAsc" ? "DecisionDateDesc" : "DecisionDateAsc", page = Model.PageNumber })" class="sort-link @(currentSort == "DecisionDateAsc" ? "sort-asc" : currentSort == "DecisionDateDesc" ? "sort-desc" : "")">
+                        Decision Date
+                    </a>
+                </th>
                 @if (ViewBag.CustomerId == null)
                 {
                     <th>Actions</th>
@@ -101,70 +197,61 @@ else if (ViewBag.CustomerId != null)
             </tr>
         </thead>
         <tbody>
-           @foreach (var item in Model)
+            @foreach (var item in Model)
             {
-                
-                    <tr>
-                        @if (ViewBag.CustomerId == null)
-                        {
-                            <td>@item.ApplicationId</td>
-                        }
-                        <td>@item.FirstName @item.LastName</td>
-                        <td>@item.ProductName</td>
-                        <td>@item.Status</td>
-                        <td>@item.TermMonths</td>
-                        <td>@item.RequestedAmount</td>
-                        <td>@item.ApprovedAmount</td>
-                        <td>@item.Purpose</td>
-                        <td>@item.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy")</td>
-                      <td>@(item.DecisionDate != default(DateTimeOffset) ? item.DecisionDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy ") : "")</td>
-                      @if (ViewBag.CustomerId == null)
-                      {
-                          <td>
-@if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
-{
-    if (item.Status.ToString() != "Disbursed")
-    {
-        if (item.Status.ToString() != "Approved" && item.Status.ToString() != "Rejected")
-        {
-            <a href="/LoanApplication/Approve/@item.ApplicationId" class="btn btn-sm btn-outline-primary me-1">
-                <i class="bi bi-pencil-square"></i> Approve
-            </a>
-            <a href="/LoanApplication/Reject/@item.ApplicationId" class="btn btn-sm btn-outline-danger me-1">
-                <i class="bi bi-trash"></i> Reject
-            </a>
-        }
-        if (item.Status.ToString() == "Approved")
-        {
-            <a href="/LoanApplication/DisburseLoan/@item.ApplicationId" class="btn btn-sm btn-success me-1">
-                <i class="bi bi-cash-stack"></i> Disburse
-            </a>
-        }
-    }
-}                </td>
-                      }
+                <tr>
+                    @if (ViewBag.CustomerId == null)
+                    {
+                        <td>@item.ApplicationId</td>
+                    }
+                    <td>@item.FirstName @item.LastName</td>
+                    <td>@item.ProductName</td>
+                    <td>@item.Status</td>
+                    <td>@item.TermMonths</td>
+                    <td>@item.RequestedAmount.ToString("C")</td>
+                    <td>@item.ApprovedAmount.ToString("C") </td>
+                    <td>@item.Purpose</td>
+                    <td>@item.ApplicationDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy")</td>
+                    <td>@(item.DecisionDate != default(DateTimeOffset) ? item.DecisionDate.ToOffset(TimeSpan.FromHours(3)).ToString("dd/MM/yyyy") : "N/A")</td>
+                    @if (ViewBag.CustomerId == null)
+                    {
+                        <td>
+                            @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                            {
+                                if (item.Status.ToString() != "Disbursed")
+                                {
+                                    if (item.Status.ToString() != "Approved" && item.Status.ToString() != "Rejected")
+                                    {
+                                        <a href="/LoanApplication/Approve/@item.ApplicationId" class="btn btn-sm btn-outline-primary me-1">
+                                            <i class="bi bi-pencil-square"></i> Approve
+                                        </a>
+                                        <a href="/LoanApplication/Reject/@item.ApplicationId" class="btn btn-sm btn-outline-danger me-1">
+                                            <i class="bi bi-trash"></i> Reject
+                                        </a>
+                                    }
+                                    if (item.Status.ToString() == "Approved")
+                                    {
+                                        <a href="/LoanApplication/DisburseLoan/@item.ApplicationId" class="btn btn-sm btn-success me-1">
+                                            <i class="bi bi-cash-stack"></i> Disburse
+                                        </a>
+                                    }
+                                }
+                            }
+                        </td>
+                    }
                 </tr>
-               
             }
         </tbody>
     </table>
-    <br />
-
-    
 </div>
-
-
 
 <div class="d-flex justify-content-between align-items-center mb-2">
     <span>Page @Model.PageNumber of @Model.PageCount</span>
 </div>
 
 @Html.PagedListPager(
-    Model,
-    page => Url.Action("Index", new { 
-        page, 
-        status = Context.Request.Query["status"].ToString() 
-    }),
+Model,
+page => Url.Action("Index", new { page, status = Context.Request.Query["status"], sortOrder = currentSort }),
     new PagedListRenderOptions
     {
         UlElementClasses = new[] { "pagination" },
@@ -175,3 +262,38 @@ else if (ViewBag.CustomerId != null)
         MaximumPageNumbersToDisplay = 5
     }
 )
+
+@section Scripts {
+    <script>
+        function updateExportUrl() {
+            const status = document.getElementById('status').value;
+            const exportBtn = document.getElementById('export-excel-btn');
+            if (exportBtn) {
+                exportBtn.href = '/LoanApplication/Export?status=' + encodeURIComponent(status);
+            }
+        }
+
+        function applyFilter() {
+            const status = document.getElementById('status').value;
+            const currentPage = @Model.PageNumber;
+            const currentSort = '@currentSort';
+            let url = '/LoanApplication/Index';
+            const params = [];
+            if (status) params.push('status=' + encodeURIComponent(status));
+            if (currentSort) params.push('sortOrder=' + encodeURIComponent(currentSort));
+            if (params.length > 0) url += '?' + params.join('&');
+            if (currentPage > 1) url += (params.length > 0 ? '&' : '?') + 'page=' + currentPage;
+            window.location.href = url;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const alert = document.querySelector('.alert-success, .alert-danger');
+            if (alert) {
+                setTimeout(function () {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            }
+        });
+    </script>
+}
